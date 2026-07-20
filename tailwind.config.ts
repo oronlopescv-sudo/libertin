@@ -14,7 +14,9 @@ const config: Config = {
           50: '#FDF1F6',
           100: '#FBE1EB',
           300: '#F5B8CC',
+          400: '#EC88A3',
           500: '#D4145A', // Rosa quente principal
+          600: '#B80D4F',
           700: '#A00E44',
           900: '#6B0C2D',
         },
