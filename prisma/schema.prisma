@@ -1,0 +1,218 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============ UTILISATEURS ============
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  phone           String?
+  hashedPassword  String
+  username        String    @unique
+  
+  // Profil
+  dateOfBirth     DateTime
+  gender          String    // "homme", "femme", "couple"
+  sexualOrientation String  // "hetero", "homo", "bi"
+  location        String
+  lat             Float?
+  lng             Float?
+  
+  // Subscrição
+  subscriptionTier String  @default("FREE") // FREE, PREMIUM_3M, PREMIUM_12M, PREMIUM_24M
+  subscriptionStart DateTime?
+  subscriptionEnd   DateTime?
+  stripeCustomerId String?
+  
+  // Conteúdo
+  bio             String?   @db.Text
+  interests       String[]  // JSON array
+  photos          Photo[]
+  verificationPhotos VerificationPhoto[]
+  
+  // Grupos & Mensagens
+  groupMemberships GroupMembership[]
+  messages        Message[]
+  createdGroups   Group[]   @relation("CreatedGroups")
+  
+  // Bloqueios
+  blockedUsers    User[]    @relation("BlockedBy")
+  blockedBy       User[]    @relation("BlockedBy")
+  
+  // Status
+  isVerified      Boolean   @default(false)
+  isActive        Boolean   @default(true)
+  isNSFW          Boolean   @default(false)
+  isBanned        Boolean   @default(false)
+  
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  lastLoginAt     DateTime?
+  
+  @@index([subscriptionEnd])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model Photo {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  url       String
+  isCover   Boolean  @default(false)
+  order     Int      @default(0)
+  
+  uploadedAt DateTime @default(now())
+  
+  @@index([userId])
+  @@map("photos")
+}
+
+model VerificationPhoto {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  url       String
+  status    String   @default("pending") // pending, approved, rejected
+  rejectionReason String?
+  
+  submittedAt DateTime @default(now())
+  reviewedAt  DateTime?
+  expiresAt   DateTime? // Válida por 1 ano
+  
+  @@index([userId, status])
+  @@map("verification_photos")
+}
+
+// ============ SUBSCRIÇÕES ============
+
+model Subscription {
+  id        String   @id @default(cuid())
+  userId    String
+  
+  tier      String   // PREMIUM_3M, PREMIUM_12M, PREMIUM_24M
+  priceEuro Decimal  @db.Decimal(8, 2)
+  
+  stripeSessionId String?
+  stripeSubscriptionId String?
+  
+  startDate DateTime
+  endDate   DateTime
+  
+  status    String   @default("active") // active, cancelled, expired
+  autoRenew Boolean  @default(true)
+  
+  createdAt DateTime @default(now())
+  
+  @@index([userId, endDate])
+  @@map("subscriptions")
+}
+
+// ============ GRUPOS & CHAT ============
+
+model Group {
+  id        String   @id @default(cuid())
+  
+  name      String
+  description String? @db.Text
+  creatorId String
+  creator   User     @relation("CreatedGroups", fields: [creatorId], references: [id])
+  
+  // Configurações
+  isPrivate Boolean  @default(false)
+  maxMembers Int     @default(50)
+  category  String   // "casual", "aventure", "discretion"
+  
+  // Cover photo
+  coverPhoto String?
+  
+  members   GroupMembership[]
+  messages  Message[]
+  
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  
+  @@index([creatorId])
+  @@index([createdAt])
+  @@map("groups")
+}
+
+model GroupMembership {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  groupId   String
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  
+  role      String   @default("member") // member, moderator, admin
+  joinedAt  DateTime @default(now())
+  
+  @@unique([userId, groupId])
+  @@index([groupId])
+  @@map("group_memberships")
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  groupId   String
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  
+  content   String   @db.Text
+  mediaUrl  String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([groupId, createdAt])
+  @@index([userId])
+  @@map("messages")
+}
+
+// ============ PREFERÊNCIAS & BLOQUEIOS ============
+
+model Like {
+  id        String   @id @default(cuid())
+  userId    String
+  targetId  String
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([userId, targetId])
+  @@index([userId])
+  @@map("likes")
+}
+
+model BlockedUser {
+  id        String   @id @default(cuid())
+  userId    String
+  blockedId String
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([userId, blockedId])
+  @@map("blocked_users")
+}
+
+model PasswordReset {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@map("password_resets")
+}
