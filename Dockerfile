@@ -1,46 +1,39 @@
-# Dockerfile pour Easypanel / VPS
-FROM node:20-alpine AS base
+# Dockerfile simplificado para Easypanel
+FROM node:20-alpine
+
+# Instala dependências
 RUN apk add --no-cache libc6-compat openssl
 
-# --- Dépendances ---
-FROM base AS deps
 WORKDIR /app
-COPY package.json package-lock.json* ./
-COPY prisma ./prisma
-RUN npm install --legacy-peer-deps
+
+# Copia package.json
+COPY package.json package-lock.json ./
+
+# Instala node_modules (com timeout mais curto)
+RUN npm install --legacy-peer-deps --no-audit --no-fund
+
+# Copia código
+COPY . .
+
+# Gera Prisma client
 RUN npx prisma generate
 
-# --- Build ---
-FROM base AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+# Build Next.js
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npx prisma generate
 RUN npm run build
 
-# --- Production ---
-FROM base AS runner
-WORKDIR /app
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
+# Cria user
+RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Folder uploads
+RUN mkdir -p /app/public/uploads && chown -R nextjs:nodejs /app/public /app/.next
 
-# Pasta uploads com permissões corretas
-RUN mkdir -p /app/public/uploads && chown -R nextjs:nodejs /app/public
-
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-
+# Muda user
 USER nextjs
+
 EXPOSE 3000
 ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
+HOSTNAME="0.0.0.0"
 
-CMD ["node", "server.js"]
+# Comando CORRECTO para standalone Next.js
+CMD ["node", ".next/standalone/server.js"]
