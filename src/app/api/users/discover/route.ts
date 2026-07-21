@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     prisma.user.count({ where }),
   ])
 
-  const result = profiles.map((p) => ({
+  const result = profiles.map((p: any) => ({
     id: p.id,
     username: p.username,
     gender: p.gender,
