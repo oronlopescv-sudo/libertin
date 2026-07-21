@@ -73,28 +73,33 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-primary-400 dark:bg-primary-600 rounded-full;
+  background-color: #EC88A3;
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-primary-500 dark:bg-primary-500;
+  background-color: #D4145A;
 }
 
 /* Focus states */
 :focus-visible {
-  @apply outline-none ring-2 ring-primary-500 ring-offset-2 dark:ring-offset-slate-950;
+  outline: none;
+  box-shadow: 0 0 0 2px #D4145A;
 }
 
 button:focus-visible {
-  @apply outline-none ring-2 ring-primary-500 ring-offset-2 dark:ring-offset-slate-950;
+  outline: none;
+  box-shadow: 0 0 0 2px #D4145A;
 }
 
 input:focus-visible {
-  @apply outline-none ring-2 ring-primary-500;
+  outline: none;
+  box-shadow: 0 0 0 2px #D4145A;
 }
 
 textarea:focus-visible {
-  @apply outline-none ring-2 ring-primary-500;
+  outline: none;
+  box-shadow: 0 0 0 2px #D4145A;
 }
 
 /* Placeholder styling */
@@ -104,7 +109,8 @@ textarea:focus-visible {
 
 /* Selection styling */
 ::selection {
-  @apply bg-primary-300 text-slate-900 dark:bg-primary-700 dark:text-white;
+  background-color: #F5B8CC;
+  color: #0f172a;
 }
 
 /* Smooth scroll behavior */
@@ -153,12 +159,13 @@ input[type='tel']:focus,
 input[type='number']:focus,
 textarea:focus,
 select:focus {
-  @apply border-primary-500 ring-2 ring-primary-300 dark:ring-primary-700;
+  border-color: #D4145A;
+  box-shadow: 0 0 0 2px #F5B8CC;
 }
 
 /* Button reset */
 button {
-  @apply font-body;
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
 }
 
 /* Link styling */
@@ -168,8 +175,8 @@ a {
 
 /* Heading styling */
 h1, h2, h3, h4, h5, h6 {
-  @apply font-heading;
-  @apply font-bold;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-weight: 700;
 }
 
 /* Small styling */
@@ -209,7 +216,8 @@ td, th {
 }
 
 .badge-primary {
-  @apply bg-primary-100 text-primary-900 dark:bg-primary-900 dark:text-primary-100;
+  background-color: #FBE1EB;
+  color: #6B0C2D;
 }
 
 .badge-success {
@@ -243,9 +251,13 @@ td, th {
 
 /* Card styling */
 .card {
-  @apply rounded-2xl bg-white dark:bg-slate-800 shadow-card border border-slate-200 dark:border-slate-700 p-6;
+  border-radius: 1rem;
+  background-color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  padding: 1.5rem;
 }
 
 .card:hover {
-  @apply shadow-elevated;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
