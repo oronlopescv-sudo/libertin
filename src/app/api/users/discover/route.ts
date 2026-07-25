@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
         },
         createdAt: true,
       },
-      orderBy: { lastLoginAt: 'desc' },
+      orderBy: [{ lastLoginAt: 'desc' }, { createdAt: 'desc' }],
       skip: (page - 1) * perPage,
       take: perPage,
     }),

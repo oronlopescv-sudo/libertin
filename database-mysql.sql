@@ -201,7 +201,7 @@ INSERT INTO `users`
   (`id`, `email`, `hashedPassword`, `username`, `dateOfBirth`, `gender`,
    `sexualOrientation`, `location`, `bio`, `interests`, `isVerified`,
    `subscriptionTier`, `subscriptionStart`, `subscriptionEnd`,
-   `createdAt`, `updatedAt`)
+   `createdAt`, `updatedAt`, `lastLoginAt`)
 VALUES
   ('seed-user-alice', 'alice@test.fr',
    '$2a$12$s6DKWrr2I.jc.K8bB3Xs2.jRppuewswb3NNxWuhFsxRiXpxoKceme',
@@ -209,7 +209,7 @@ VALUES
    'Curieuse et discrète. Ouverte aux belles rencontres.',
    '["Soirées privées","Voyages","Danse"]', true,
    'PREMIUM_12M', NOW(3), DATE_ADD(NOW(3), INTERVAL 1 YEAR),
-   NOW(3), NOW(3)),
+   NOW(3), NOW(3), NOW(3)),
 
   ('seed-user-couple', 'couple@test.fr',
    '$2a$12$s6DKWrr2I.jc.K8bB3Xs2.jRppuewswb3NNxWuhFsxRiXpxoKceme',
@@ -217,14 +217,14 @@ VALUES
    'Couple complice depuis 8 ans, nous cherchons des rencontres élégantes.',
    '["Clubs","Gastronomie","Art & culture"]', true,
    'PREMIUM_24M', NOW(3), DATE_ADD(NOW(3), INTERVAL 1 YEAR),
-   NOW(3), NOW(3)),
+   NOW(3), NOW(3), NOW(3)),
 
   ('seed-user-marc', 'free@test.fr',
    '$2a$12$s6DKWrr2I.jc.K8bB3Xs2.jRppuewswb3NNxWuhFsxRiXpxoKceme',
    'Marc_Free', '1995-01-20 00:00:00.000', 'homme', 'hetero', 'Marseille',
    NULL, NULL, false,
    'FREE', NULL, NULL,
-   NOW(3), NOW(3))
+   NOW(3), NOW(3), NOW(3))
 ON DUPLICATE KEY UPDATE `updatedAt` = NOW(3);
 
 INSERT INTO `groups`

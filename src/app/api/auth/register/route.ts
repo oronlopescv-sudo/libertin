@@ -74,6 +74,9 @@ export async function POST(request: NextRequest) {
         gender,
         sexualOrientation,
         location: typeof pays === 'string' ? pays : '',
+        // Sem isto, quem se regista fica no fim de /decouvrir:
+        // em MySQL o NULL ordena a seguir a qualquer data.
+        lastLoginAt: new Date(),
       },
       select: { id: true, email: true, username: true },
     })
