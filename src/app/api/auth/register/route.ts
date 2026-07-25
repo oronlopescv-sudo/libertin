@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { hash } from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 import { sendMail, welcomeEmail } from '@/lib/mail'
+import { describeDbError } from '@/lib/db-errors'
 
 function generateUsername(email: string): string {
   const base = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '').slice(0, 12)
@@ -98,6 +99,10 @@ export async function POST(request: NextRequest) {
     )
   } catch (error) {
     console.error('[REGISTER]', error)
-    return NextResponse.json({ error: "Erreur lors de l'inscription" }, { status: 500 })
+    const detail = describeDbError(error)
+    return NextResponse.json(
+      { error: `Inscription impossible — ${detail.message}`, code: detail.code },
+      { status: 500 }
+    )
   }
 }

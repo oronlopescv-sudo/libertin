@@ -3,6 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
 import { compare } from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
+import { describeDbError } from '@/lib/db-errors'
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
@@ -31,10 +32,9 @@ export const authOptions: NextAuthOptions = {
           user = await prisma.user.findUnique({
             where: { email: credentials.email.toLowerCase() },
           })
-        } catch {
-          throw new Error(
-            'Service temporairement indisponible (base de données). Réessayez plus tard.'
-          )
+        } catch (dbError) {
+          console.error('[LOGIN_DB]', dbError)
+          throw new Error(describeDbError(dbError).message)
         }
 
         if (!user || !user.hashedPassword) {
