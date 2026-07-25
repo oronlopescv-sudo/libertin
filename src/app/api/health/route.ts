@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
  * Abre /api/health no browser para ver o que falta configurar.
  * Nunca expõe valores de segredos — apenas se estão definidos ou não.
  */
-export async function GET() {
+export async function GET(request: Request) {
   const required = ['DATABASE_URL', 'NEXTAUTH_URL', 'NEXTAUTH_SECRET']
   const optional = [
     'SMTP_HOST',
@@ -75,15 +75,83 @@ export async function GET() {
     )
   }
 
-  return NextResponse.json(
-    {
-      status: problems.length === 0 ? 'ok' : 'configuração incompleta',
-      email: emailAtivo ? 'activo' : 'inactivo',
-      nodeEnv: process.env.NODE_ENV ?? 'não definido',
-      database,
-      env,
-      problems,
-    },
-    { status: problems.length === 0 ? 200 : 503 }
-  )
+  const payload = {
+    status: problems.length === 0 ? 'ok' : 'configuração incompleta',
+    email: emailAtivo ? 'activo' : 'inactivo',
+    nodeEnv: process.env.NODE_ENV ?? 'não definido',
+    database,
+    env,
+    problems,
+  }
+
+  const httpStatus = problems.length === 0 ? 200 : 503
+
+  // Se aberto num browser, devolve uma página legível em vez de JSON cru
+  const accept = request.headers.get('accept') ?? ''
+  if (accept.includes('text/html')) {
+    return new NextResponse(renderHtml(payload), {
+      status: httpStatus,
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    })
+  }
+
+  return NextResponse.json(payload, { status: httpStatus })
+}
+
+type Payload = {
+  status: string
+  email: string
+  nodeEnv: string
+  database: string
+  env: Record<string, string>
+  problems: string[]
+}
+
+function renderHtml(p: Payload) {
+  const ok = p.problems.length === 0
+  const badge = (v: string) => {
+    const bom = v === 'definida' || v.startsWith('ligada') || v === 'activo'
+    const neutro = v.includes('opcional') || v === 'inactivo'
+    const cor = bom ? '#16a34a' : neutro ? '#94a3b8' : '#dc2626'
+    const icone = bom ? '&#10004;' : neutro ? '&#8211;' : '&#10008;'
+    return `<span style="color:${cor};font-weight:600">${icone} ${v}</span>`
+  }
+
+  const linhas = Object.entries(p.env)
+    .map(
+      ([k, v]) =>
+        `<tr><td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;font-family:monospace;font-size:13px">${k}</td>
+             <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;font-size:13px">${badge(v)}</td></tr>`
+    )
+    .join('')
+
+  const listaProblemas = p.problems.length
+    ? `<h2 style="font-size:16px;margin:24px 0 8px">O que falta</h2>
+       <ul style="margin:0;padding-left:20px;color:#b91c1c;font-size:14px;line-height:1.7">
+         ${p.problems.map((x) => `<li>${x}</li>`).join('')}
+       </ul>`
+    : `<p style="color:#16a34a;font-weight:600;font-size:15px">Tudo configurado. O site está operacional.</p>`
+
+  return `<!doctype html><html lang="pt"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Diagnóstico</title></head>
+<body style="margin:0;padding:16px;background:#f8fafc;font-family:system-ui,-apple-system,sans-serif;color:#0f172a">
+<div style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px">
+  <div style="display:inline-block;padding:6px 14px;border-radius:999px;font-weight:700;font-size:14px;
+       background:${ok ? '#dcfce7' : '#fee2e2'};color:${ok ? '#166534' : '#991b1b'}">
+    ${ok ? 'OK' : 'CONFIGURAÇÃO INCOMPLETA'}
+  </div>
+  <h1 style="font-size:20px;margin:16px 0 4px">Diagnóstico do site</h1>
+  <p style="margin:0 0 16px;font-size:14px;color:#475569">
+    Base de dados: ${badge(p.database)}<br>
+    Email: ${badge(p.email)}<br>
+    Ambiente: <strong>${p.nodeEnv}</strong>
+  </p>
+  <h2 style="font-size:16px;margin:24px 0 8px">Variáveis</h2>
+  <table style="width:100%;border-collapse:collapse;border-top:1px solid #e2e8f0">${linhas}</table>
+  ${listaProblemas}
+  <p style="margin-top:24px;font-size:12px;color:#94a3b8">
+    Esta página nunca mostra o valor dos segredos, apenas se estão definidos.
+  </p>
+</div></body></html>`
 }
