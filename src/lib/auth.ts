@@ -5,12 +5,14 @@ import { compare } from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 
 export const authOptions: NextAuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: 'jwt',
     maxAge: 7 * 24 * 60 * 60, // 7 jours
   },
   pages: {
     signIn: '/login',
+    error: '/login',
   },
   providers: [
     CredentialsProvider({
@@ -24,9 +26,16 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Email et mot de passe requis')
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email.toLowerCase() },
-        })
+        let user
+        try {
+          user = await prisma.user.findUnique({
+            where: { email: credentials.email.toLowerCase() },
+          })
+        } catch {
+          throw new Error(
+            'Service temporairement indisponible (base de données). Réessayez plus tard.'
+          )
+        }
 
         if (!user || !user.hashedPassword) {
           throw new Error('Identifiants incorrects')
@@ -41,10 +50,14 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Identifiants incorrects')
         }
 
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { lastLoginAt: new Date() },
-        })
+        try {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { lastLoginAt: new Date() },
+          })
+        } catch {
+          // não bloqueia o login se a escrita falhar
+        }
 
         return {
           id: user.id,
@@ -69,6 +82,7 @@ export const authOptions: NextAuthOptions = {
       }
       // Rafraîchir les infos d'abonnement à chaque requête token
       if (token.id) {
+        try {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
           select: {
@@ -85,6 +99,9 @@ export const authOptions: NextAuthOptions = {
           token.isVerified = dbUser.isVerified
           token.gender = dbUser.gender
           token.name = dbUser.username
+        }
+        } catch {
+          // BD indisponível: mantém os dados já presentes no token
         }
       }
       return token

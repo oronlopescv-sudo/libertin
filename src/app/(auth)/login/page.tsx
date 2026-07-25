@@ -5,12 +5,32 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 
+/** Traduz os códigos de erro do NextAuth em mensagens legíveis */
+function authErrorMessage(code: string | null): string {
+  if (!code) return ''
+  switch (code) {
+    case 'Configuration':
+      return "Le service d'authentification n'est pas configuré (variables d'environnement manquantes). Contactez l'administrateur."
+    case 'CredentialsSignin':
+      return 'Identifiants incorrects.'
+    case 'AccessDenied':
+      return 'Accès refusé.'
+    case 'Verification':
+      return 'Ce lien de connexion a expiré.'
+    case 'OAuthAccountNotLinked':
+      return 'Cet email est déjà associé à un autre mode de connexion.'
+    default:
+      return "Erreur d'authentification (" + code + ')'
+  }
+}
+
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const resetDone = searchParams.get('reset') === '1'
+  const authError = searchParams.get('error')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [error, setError] = useState(authErrorMessage(authError))
   const [formData, setFormData] = useState({
     email: '',
     password: '',
