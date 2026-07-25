@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { buildDatabaseUrl, hasUnencodedPassword } from '@/lib/db-url'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,7 +10,7 @@ export const dynamic = 'force-dynamic'
  * Nunca expõe valores de segredos — apenas se estão definidos ou não.
  */
 export async function GET(request: Request) {
-  const required = ['DATABASE_URL', 'NEXTAUTH_URL', 'NEXTAUTH_SECRET']
+  const required = ['NEXTAUTH_URL', 'NEXTAUTH_SECRET']
   const optional = [
     'SMTP_HOST',
     'SMTP_USER',
@@ -46,6 +47,19 @@ export async function GET(request: Request) {
     env[key] = process.env[key] ? 'definida' : 'vazia (opcional)'
   }
 
+  // Ligacao a base de dados: URL completo ou campos separados
+  const { url: dbUrl, source: dbSource } = buildDatabaseUrl()
+  if (!dbUrl) {
+    problems.push(
+      'Base de dados não configurada: define DATABASE_URL, ou então DB_HOST, DB_USER, DB_PASSWORD e DB_NAME'
+    )
+  } else if (dbSource === 'DATABASE_URL' && hasUnencodedPassword(dbUrl)) {
+    problems.push(
+      'A password dentro de DATABASE_URL não está codificada (contém um @). ' +
+        'Codifica-a (@ vira %40, + vira %2B, & vira %26) ou usa DB_HOST/DB_USER/DB_PASSWORD/DB_NAME.'
+    )
+  }
+
   // NEXTAUTH_SECRET tem de ter comprimento suficiente
   const secret = process.env.NEXTAUTH_SECRET
   if (secret && secret.length < 32) {
@@ -79,6 +93,7 @@ export async function GET(request: Request) {
     status: problems.length === 0 ? 'ok' : 'configuração incompleta',
     email: emailAtivo ? 'activo' : 'inactivo',
     nodeEnv: process.env.NODE_ENV ?? 'não definido',
+    ligacao: dbSource,
     database,
     env,
     problems,
@@ -102,6 +117,7 @@ type Payload = {
   status: string
   email: string
   nodeEnv: string
+  ligacao: string
   database: string
   env: Record<string, string>
   problems: string[]
@@ -144,6 +160,7 @@ function renderHtml(p: Payload) {
   <h1 style="font-size:20px;margin:16px 0 4px">Diagnóstico do site</h1>
   <p style="margin:0 0 16px;font-size:14px;color:#475569">
     Base de dados: ${badge(p.database)}<br>
+    Configurada por: <strong>${p.ligacao}</strong><br>
     Email: ${badge(p.email)}<br>
     Ambiente: <strong>${p.nodeEnv}</strong>
   </p>
