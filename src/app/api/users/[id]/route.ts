@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions, hasFullAccess } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { toInterests } from '@/lib/interests'
 
 export async function GET(
   _request: NextRequest,
@@ -50,7 +51,7 @@ export async function GET(
       orientation: user.sexualOrientation,
       location: user.location,
       bio: user.bio,
-      interests: user.interests,
+      interests: toInterests(user.interests),
       isVerified: user.isVerified,
       age: Math.floor((Date.now() - user.dateOfBirth.getTime()) / (365.25 * 24 * 3600 * 1000)),
       lastSeen: user.lastLoginAt,

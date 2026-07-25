@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { sanitizeInterests, toInterests } from '@/lib/interests'
 
 export async function GET() {
   const session = await getServerSession(authOptions)
@@ -33,7 +34,9 @@ export async function GET() {
     return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 })
   }
 
-  return NextResponse.json({ user })
+  return NextResponse.json({
+    user: { ...user, interests: toInterests(user.interests) },
+  })
 }
 
 export async function PATCH(request: NextRequest) {
@@ -69,7 +72,7 @@ export async function PATCH(request: NextRequest) {
     data.location = body.location.slice(0, 100)
   }
   if (Array.isArray(body.interests)) {
-    data.interests = body.interests.filter((i: unknown) => typeof i === 'string').slice(0, 10)
+    data.interests = sanitizeInterests(body.interests)
   }
 
   const user = await prisma.user.update({
@@ -78,5 +81,7 @@ export async function PATCH(request: NextRequest) {
     select: { id: true, username: true, bio: true, location: true, interests: true },
   })
 
-  return NextResponse.json({ user })
+  return NextResponse.json({
+    user: { ...user, interests: toInterests(user.interests) },
+  })
 }

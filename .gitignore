@@ -37,3 +37,4 @@ yarn-error.log*
 # Uploads (generated at runtime)
 public/uploads/*
 !public/uploads/.gitkeep
+tsconfig.tsbuildinfo
