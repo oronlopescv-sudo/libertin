@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { stripe, PLANS, isValidTier } from '@/lib/stripe'
+import { stripe, PLANS, isValidTier, isStripeConfigured } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
@@ -9,6 +9,16 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    }
+
+    if (!isStripeConfigured()) {
+      return NextResponse.json(
+        {
+          error:
+            "Le paiement en ligne n'est pas encore activé. Contactez-nous pour souscrire un abonnement.",
+        },
+        { status: 503 }
+      )
     }
 
     const { tier } = await request.json()

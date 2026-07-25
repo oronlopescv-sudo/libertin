@@ -11,6 +11,9 @@ export const dynamic = 'force-dynamic'
 export async function GET() {
   const required = ['DATABASE_URL', 'NEXTAUTH_URL', 'NEXTAUTH_SECRET']
   const optional = [
+    'SMTP_HOST',
+    'SMTP_USER',
+    'SMTP_PASSWORD',
     'STRIPE_SECRET_KEY',
     'STRIPE_PUBLIC_KEY',
     'STRIPE_WEBHOOK_SECRET',
@@ -63,9 +66,19 @@ export async function GET() {
     )
   }
 
+  const emailAtivo = Boolean(
+    process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD
+  )
+  if (!emailAtivo) {
+    problems.push(
+      'SMTP não configurado: a recuperação de password não envia email (o link fica nos logs)'
+    )
+  }
+
   return NextResponse.json(
     {
       status: problems.length === 0 ? 'ok' : 'configuração incompleta',
+      email: emailAtivo ? 'activo' : 'inactivo',
       nodeEnv: process.env.NODE_ENV ?? 'não definido',
       database,
       env,

@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 
 function RegisterForm() {
   const router = useRouter()
@@ -103,8 +104,19 @@ function RegisterForm() {
         return
       }
 
-      // Rediriger vers vérification email
-      router.push('/verify-email?email=' + encodeURIComponent(formData.email))
+      // Connexion automatique après inscription
+      const signInResult = await signIn('credentials', {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+      })
+
+      if (signInResult?.ok) {
+        router.push('/decouvrir')
+      } else {
+        // Le compte est créé : on renvoie vers la connexion manuelle
+        router.push('/login?registered=1')
+      }
     } finally {
       setLoading(false)
     }

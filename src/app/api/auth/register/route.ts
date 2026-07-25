@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { hash } from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
+import { sendMail, welcomeEmail } from '@/lib/mail'
 
 function generateUsername(email: string): string {
   const base = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '').slice(0, 12)
@@ -73,13 +74,26 @@ export async function POST(request: NextRequest) {
         sexualOrientation,
         location: typeof pays === 'string' ? pays : '',
       },
-      select: { id: true, email: true },
+      select: { id: true, email: true, username: true },
     })
 
-    // TODO: envoyer email de vérification via SendGrid
+    // Email de bienvenue (ne bloque jamais l'inscription)
+    try {
+      const baseUrl =
+        process.env.NEXTAUTH_URL?.replace(/\/$/, '') ?? new URL(request.url).origin
+      const mail = welcomeEmail(user.username, `${baseUrl}/login`)
+      await sendMail({
+        to: user.email,
+        subject: mail.subject,
+        html: mail.html,
+        text: mail.text,
+      })
+    } catch (mailError) {
+      console.warn('[REGISTER] email de bienvenue non envoyé', mailError)
+    }
 
     return NextResponse.json(
-      { message: 'Compte créé avec succès. Vérifiez votre email.', userId: user.id },
+      { message: 'Compte créé avec succès.', userId: user.id },
       { status: 201 }
     )
   } catch (error) {

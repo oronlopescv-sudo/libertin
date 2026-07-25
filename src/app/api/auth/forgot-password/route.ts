@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { randomBytes } from 'crypto'
+import { sendMail, passwordResetEmail } from '@/lib/mail'
 
 // Réponse identique que l'email existe ou non (évite l'énumération de comptes)
 export async function POST(request: NextRequest) {
@@ -24,8 +25,24 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      // TODO: envoyer via SendGrid le lien `${NEXTAUTH_URL}/reset-password?token=${token}`
-      console.log(`[FORGOT_PASSWORD] ${user.email} -> /reset-password?token=${token}`)
+      const baseUrl =
+        process.env.NEXTAUTH_URL?.replace(/\/$/, '') ??
+        new URL(request.url).origin
+      const resetUrl = `${baseUrl}/reset-password?token=${token}`
+
+      const mail = passwordResetEmail(resetUrl)
+      const result = await sendMail({
+        to: user.email,
+        subject: mail.subject,
+        html: mail.html,
+        text: mail.text,
+      })
+
+      if (!result.sent) {
+        // Sem SMTP configurado o link fica nos logs do servidor,
+        // para o administrador o poder enviar manualmente.
+        console.warn(`[FORGOT_PASSWORD] email não enviado (${result.reason}) -> ${resetUrl}`)
+      }
     }
 
     return NextResponse.json({ message: 'ok' })

@@ -28,6 +28,7 @@ function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const resetDone = searchParams.get('reset') === '1'
+  const justRegistered = searchParams.get('registered') === '1'
   const authError = searchParams.get('error')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(authErrorMessage(authError))
@@ -89,6 +90,12 @@ function LoginForm() {
           {resetDone && (
             <div className="alert alert-success mb-4 text-sm">
               ✓ Mot de passe réinitialisé. Connectez-vous avec votre nouveau mot de passe.
+            </div>
+          )}
+
+          {justRegistered && (
+            <div className="alert alert-success mb-4 text-sm">
+              ✓ Compte créé avec succès. Connectez-vous pour continuer.
             </div>
           )}
 

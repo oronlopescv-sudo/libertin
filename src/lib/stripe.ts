@@ -4,6 +4,14 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? 'sk_test_place
   apiVersion: '2023-10-16',
 })
 
+/** Verdadeiro apenas com uma chave Stripe real (nao placeholder). */
+export function isStripeConfigured(): boolean {
+  const key = process.env.STRIPE_SECRET_KEY
+  if (!key) return false
+  if (key.includes('placeholder') || key.includes('fake')) return false
+  return key.startsWith('sk_')
+}
+
 export const PLANS = {
   PREMIUM_3M: {
     name: 'Premium 3 mois',
