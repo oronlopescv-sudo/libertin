@@ -14,8 +14,8 @@
   },
   "dependencies": {
     "next": "^14.0.0",
-    "react": "^19.0.0-rc-66cd6fda48-20240106",
-    "react-dom": "^19.0.0-rc-66cd6fda48-20240106",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "@prisma/client": "^5.8.0",
     "next-auth": "^4.24.10",
     "stripe": "^14.16.0",
