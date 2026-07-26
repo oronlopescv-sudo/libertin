@@ -2,147 +2,160 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
-import { signIn } from 'next-auth/react'
+import { usePathname } from 'next/navigation'
 
 const dashboardRoutes = ['/decouvrir', '/groupes', '/groupe', '/chat', '/profil', '/abonnements']
+
+const links = [
+  { href: '/decouvrir', label: 'Découvrir' },
+  { href: '/groupes', label: 'Groupes' },
+  { href: '/abonnements', label: 'Abonnements' },
+]
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
-  const router = useRouter()
-  const [loginEmail, setLoginEmail] = useState('')
-  const [loginPassword, setLoginPassword] = useState('')
 
-  const handleQuickLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const result = await signIn('credentials', {
-      email: loginEmail,
-      password: loginPassword,
-      redirect: false,
-    })
-    if (result?.ok) router.push('/decouvrir')
-    else router.push('/login')
-  }
+  // Na homepage o hero é escuro e o cabeçalho funde-se com ele.
+  // Nas páginas de fundo claro, um bloco aubergine sólido lê-se como
+  // uma faixa estranha colada por cima — aí o cabeçalho passa a claro.
+  const sobreHero = pathname === '/'
 
-  // Sur les pages du dashboard, la navigation est gérée par le layout dédié
+  // Nas páginas do painel a navegação é do layout dedicado
   if (dashboardRoutes.some((r) => pathname.startsWith(r))) {
     return null
   }
 
   return (
-    <nav className="sticky top-0 w-full bg-white dark:bg-slate-900 shadow-md z-50">
-      {/* Barre de connexion rapide — format Libertic */}
-      <div className="hidden md:block bg-secondary-900 text-white">
-        <div className="max-w-6xl mx-auto px-4 md:px-8 py-1.5 flex justify-end items-center gap-3 text-xs">
-          <span className="text-white/70">Déjà membre ?</span>
-          <form onSubmit={handleQuickLogin} className="flex items-center gap-2">
-            <input
-              type="email"
-              value={loginEmail}
-              onChange={(e) => setLoginEmail(e.target.value)}
-              placeholder="Email"
-              className="!py-1 !px-2.5 !text-xs !rounded-md !bg-white/10 !border-white/20 !text-white placeholder:!text-white/50 w-36"
-            />
-            <input
-              type="password"
-              value={loginPassword}
-              onChange={(e) => setLoginPassword(e.target.value)}
-              placeholder="Mot de passe"
-              className="!py-1 !px-2.5 !text-xs !rounded-md !bg-white/10 !border-white/20 !text-white placeholder:!text-white/50 w-36"
-            />
-            <button
-              type="submit"
-              className="px-4 py-1 bg-primary-600 hover:bg-primary-500 rounded-md font-bold transition-colors"
-            >
-              Connexion
-            </button>
-          </form>
-          <Link href="/forgot-password" className="text-white/60 hover:text-white underline">
-            Mot de passe oublié ?
-          </Link>
-        </div>
-      </div>
+    <header
+      className={`sticky top-0 z-50 border-b transition-colors ${
+        sobreHero
+          ? 'bg-secondary-900/80 backdrop-blur-md text-white border-white/10'
+          : 'bg-white/90 backdrop-blur-md text-slate-900 border-slate-200 dark:bg-slate-900/90 dark:text-slate-100 dark:border-slate-800'
+      }`}
+    >
       <div className="max-w-6xl mx-auto px-4 md:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary-600 to-accent-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">RP</span>
-            </div>
-            <span className="hidden md:block font-bold font-heading text-lg text-primary-900 dark:text-primary-200">
-              RencontresPremium
+        <div className="flex items-center justify-between h-16">
+          {/* Marca: o nome é o logótipo, sem emblema a repeti-lo */}
+          <Link
+            href="/"
+            className="font-display text-xl md:text-2xl tracking-tight transition-opacity hover:opacity-80"
+          >
+            Rencontres
+            <span className={sobreHero ? 'text-accent-300' : 'text-primary-600'}>
+              Premium
             </span>
           </Link>
 
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center gap-8">
-            <Link href="/decouvrir" className="text-slate-700 dark:text-slate-300 hover:text-primary-600 transition-colors">
-              Découvrir
-            </Link>
-            <Link href="/groupes" className="text-slate-700 dark:text-slate-300 hover:text-primary-600 transition-colors">
-              Groupes
-            </Link>
-            <Link href="/abonnements" className="text-slate-700 dark:text-slate-300 hover:text-primary-600 transition-colors">
-              Abonnements
-            </Link>
-          </div>
+          {/* Navegação, com indicação da página actual */}
+          <nav className="hidden md:flex items-center gap-8" aria-label="Navigation principale">
+            {links.map((l) => {
+              const active = pathname.startsWith(l.href)
+              return (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  aria-current={active ? 'page' : undefined}
+                  className={`text-sm h-16 flex items-center border-b-2 -mb-px transition-colors ${
+                    active
+                      ? 'border-primary-500'
+                      : sobreHero
+                        ? 'border-transparent text-white/70 hover:text-white'
+                        : 'border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
+                  }`}
+                >
+                  {l.label}
+                </Link>
+              )
+            })}
+          </nav>
 
-          {/* Auth Buttons */}
-          <div className="hidden md:flex items-center gap-4">
+          {/* Uma só acção destacada */}
+          <div className="hidden md:flex items-center gap-5">
             <Link
               href="/login"
-              className="text-primary-600 hover:text-primary-700 font-semibold transition-colors"
+              className={`text-sm transition-colors ${
+                sobreHero
+                  ? 'text-white/80 hover:text-white'
+                  : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
+              }`}
             >
-              Connexion
+              Se connecter
             </Link>
             <Link
               href="/register"
-              className="px-6 py-2 bg-gradient-to-r from-primary-600 to-accent-600 text-white font-bold rounded-lg hover:shadow-lg transition-shadow"
+              className="px-5 py-2 bg-primary-600 hover:bg-primary-500 text-white text-sm font-semibold rounded-lg transition-colors"
             >
-              Rejoindre
+              Créer un compte
             </Link>
           </div>
 
-          {/* Mobile Menu Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2"
-            aria-label="Toggle menu"
+            className="md:hidden p-2 -mr-2"
+            aria-expanded={isOpen}
+            aria-label={isOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d={isOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'}
+              />
             </svg>
           </button>
         </div>
 
-        {/* Mobile Menu */}
         {isOpen && (
-          <div className="md:hidden py-4 border-t border-slate-200 dark:border-slate-700">
-            <div className="flex flex-col gap-4">
-              <Link href="/decouvrir" className="text-slate-700 dark:text-slate-300 hover:text-primary-600 transition-colors">
-                Découvrir
-              </Link>
-              <Link href="/groupes" className="text-slate-700 dark:text-slate-300 hover:text-primary-600 transition-colors">
-                Groupes
-              </Link>
-              <Link href="/abonnements" className="text-slate-700 dark:text-slate-300 hover:text-primary-600 transition-colors">
-                Abonnements
-              </Link>
-              <hr className="border-slate-200 dark:border-slate-700" />
-              <Link href="/login" className="text-primary-600 hover:text-primary-700 font-semibold">
-                Connexion
+          <div
+            className={`md:hidden pb-5 border-t ${
+              sobreHero ? 'border-white/10' : 'border-slate-200 dark:border-slate-800'
+            }`}
+          >
+            <nav className="flex flex-col pt-2" aria-label="Navigation principale">
+              {links.map((l) => (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  onClick={() => setIsOpen(false)}
+                  className={`py-3 transition-colors ${
+                    sobreHero
+                      ? 'text-white/80 hover:text-white'
+                      : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
+                  }`}
+                >
+                  {l.label}
+                </Link>
+              ))}
+            </nav>
+            <div
+              className={`flex items-center gap-3 pt-3 border-t ${
+                sobreHero ? 'border-white/10' : 'border-slate-200 dark:border-slate-800'
+              }`}
+            >
+              <Link
+                href="/login"
+                onClick={() => setIsOpen(false)}
+                className={`flex-1 py-2.5 text-center text-sm rounded-lg border ${
+                  sobreHero
+                    ? 'text-white/80 border-white/20'
+                    : 'text-slate-700 border-slate-300 dark:text-slate-300 dark:border-slate-700'
+                }`}
+              >
+                Se connecter
               </Link>
               <Link
                 href="/register"
-                className="px-4 py-2 bg-gradient-to-r from-primary-600 to-accent-600 text-white font-bold rounded-lg text-center"
+                onClick={() => setIsOpen(false)}
+                className="flex-1 py-2.5 text-center text-sm font-semibold bg-primary-600 text-white rounded-lg"
               >
-                Rejoindre
+                Créer un compte
               </Link>
             </div>
           </div>
         )}
       </div>
-    </nav>
+    </header>
   )
 }

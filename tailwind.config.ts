@@ -26,6 +26,7 @@ const config: Config = {
           500: '#593E60', // Roxo escuro
           700: '#3D2940',
           900: '#2C1B3D',
+          950: '#1B1027', // banda do cabeçalho, mais funda que o hero
         },
         accent: {
           50: '#FFF5F7',

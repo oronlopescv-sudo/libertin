@@ -4,9 +4,12 @@ import GoogleProvider from 'next-auth/providers/google'
 import { compare } from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 import { describeDbError } from '@/lib/db-errors'
+import { getAuthSecret } from '@/lib/auth-secret'
 
 export const authOptions: NextAuthOptions = {
-  secret: process.env.NEXTAUTH_SECRET,
+  // Usa NEXTAUTH_SECRET quando existe; caso contrário deriva um segredo
+  // estável, para o site não ficar bloqueado com error=Configuration.
+  secret: getAuthSecret().secret,
   session: {
     strategy: 'jwt',
     maxAge: 7 * 24 * 60 * 60, // 7 jours
