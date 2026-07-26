@@ -117,6 +117,8 @@ function RegisterForm() {
         // Le compte est créé : on renvoie vers la connexion manuelle
         router.push('/login?registered=1')
       }
+    } catch {
+      setError('Erreur réseau. Vérifiez votre connexion et réessayez.')
     } finally {
       setLoading(false)
     }

@@ -69,6 +69,8 @@ export default function AbonnementsContent() {
       }
 
       window.location.href = data.url
+    } catch {
+      setError('Erreur réseau. Vérifiez votre connexion et réessayez.')
     } finally {
       setLoading(null)
     }

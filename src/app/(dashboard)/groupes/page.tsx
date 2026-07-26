@@ -73,15 +73,27 @@ export default function GroupesPage() {
   }
 
   const handleJoin = async (groupId: string) => {
-    const res = await fetch(`/api/groups/${groupId}/join`, { method: 'POST' })
-    const data = await res.json()
+    setError('')
+    try {
+      const res = await fetch(`/api/groups/${groupId}/join`, { method: 'POST' })
+      const data = await res.json()
 
-    if (!res.ok && data.premiumRequired) {
-      router.push('/abonnements')
-      return
-    }
-    if (res.ok) {
-      router.push(`/chat/${groupId}`)
+      if (res.ok) {
+        router.push(`/chat/${groupId}`)
+        return
+      }
+      if (data.premiumRequired) {
+        router.push('/abonnements')
+        return
+      }
+      if (res.status === 401) {
+        router.push('/login')
+        return
+      }
+      // Grupo cheio, inexistente ou erro do servidor: mostrar sempre algo
+      setError(data.error ?? 'Impossible de rejoindre ce groupe')
+    } catch {
+      setError('Erreur réseau. Vérifiez votre connexion.')
     }
   }
 
@@ -128,6 +140,9 @@ export default function GroupesPage() {
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto">
+      {error && !showCreate && (
+        <div className="alert alert-danger text-sm mb-6">{error}</div>
+      )}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold font-heading text-primary-900 dark:text-primary-100 mb-1">

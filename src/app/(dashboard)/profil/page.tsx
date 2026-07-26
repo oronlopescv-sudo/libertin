@@ -64,20 +64,32 @@ export default function ProfilPage() {
         const d = await r.json()
         if (d.user) setProfile(d.user)
       }
+    } catch {
+      setError('Erreur réseau. Vérifiez votre connexion.')
     } finally {
       setUploading(false)
     }
   }
 
   const deletePhoto = async (photoId: string) => {
-    await fetch('/api/users/upload-photo', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ photoId }),
-    })
-    const r = await fetch('/api/users/profile')
-    const d = await r.json()
-    if (d.user) setProfile(d.user)
+    setError('')
+    try {
+      const res = await fetch('/api/users/upload-photo', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ photoId }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setError(data.error ?? 'Impossible de supprimer la photo')
+        return
+      }
+      const r = await fetch('/api/users/profile')
+      const d = await r.json()
+      if (d.user) setProfile(d.user)
+    } catch {
+      setError('Erreur réseau. Vérifiez votre connexion.')
+    }
   }
 
   const [form, setForm] = useState({

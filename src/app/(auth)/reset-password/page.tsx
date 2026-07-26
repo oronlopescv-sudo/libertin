@@ -33,6 +33,8 @@ function ResetForm() {
         return
       }
       router.push('/login?reset=1')
+    } catch {
+      setError('Erreur réseau. Vérifiez votre connexion et réessayez.')
     } finally {
       setLoading(false)
     }

@@ -36,6 +36,7 @@ export default function MembrePage() {
   const [profile, setProfile] = useState<MemberProfile | null>(null)
   const [notFound, setNotFound] = useState(false)
   const [starting, setStarting] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     fetch(`/api/users/${id}`)
@@ -63,13 +64,22 @@ export default function MembrePage() {
         body: JSON.stringify({ targetId: id }),
       })
       const data = await res.json()
-      if (res.status === 403 && data.premiumRequired) {
+
+      if (res.ok && data.groupId) {
+        router.push(`/chat/${data.groupId}`)
+        return
+      }
+      if (data.premiumRequired) {
         router.push('/abonnements')
         return
       }
-      if (data.groupId) {
-        router.push(`/chat/${data.groupId}`)
+      if (res.status === 401) {
+        router.push('/login')
+        return
       }
+      setError(data.error ?? "Impossible d'ouvrir la conversation")
+    } catch {
+      setError('Erreur réseau. Vérifiez votre connexion.')
     } finally {
       setStarting(false)
     }
@@ -141,6 +151,7 @@ export default function MembrePage() {
       </div>
 
       {/* Bouton message — l'action principale */}
+      {error && <div className="alert alert-danger text-sm mb-4">{error}</div>}
       <button
         onClick={startConversation}
         disabled={starting}

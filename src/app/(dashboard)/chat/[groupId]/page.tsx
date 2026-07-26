@@ -121,6 +121,8 @@ export default function ChatPage() {
       lastMessageDate.current = data.message.createdAt
       setInput('')
       setTimeout(scrollToBottom, 100)
+    } catch {
+      setError("Erreur réseau. Message non envoyé.")
     } finally {
       setSending(false)
     }

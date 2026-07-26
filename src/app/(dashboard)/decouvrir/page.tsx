@@ -33,6 +33,7 @@ export default function DecouvrirPage() {
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [loading, setLoading] = useState(true)
   const [premiumRequired, setPremiumRequired] = useState(false)
+  const [error, setError] = useState('')
   const [filter, setFilter] = useState<string>('')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
@@ -51,9 +52,19 @@ export default function DecouvrirPage() {
         return
       }
 
+      if (!res.ok) {
+        setError(data.error ?? 'Impossible de charger les profils')
+        setProfiles([])
+        return
+      }
+
+      setError('')
       setProfiles(data.profiles ?? [])
       setTotalPages(data.totalPages ?? 1)
       setPremiumRequired(false)
+    } catch {
+      setError('Erreur réseau. Vérifiez votre connexion.')
+      setProfiles([])
     } finally {
       setLoading(false)
     }
@@ -92,6 +103,7 @@ export default function DecouvrirPage() {
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto">
+      {error && <div className="alert alert-danger text-sm mb-6">{error}</div>}
       <div className="mb-8">
         <h1 className="text-2xl md:text-3xl font-bold font-heading text-primary-900 dark:text-primary-100 mb-2">
           Découvrir
