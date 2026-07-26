@@ -5,14 +5,14 @@ import { Footer } from '@/components/footer'
 import '@/styles/globals.css'
 
 export const metadata: Metadata = {
-  title: 'RencontresPremium.fr - Rencontres Libertines entre Couples',
-  description: 'Site de rencontres premium pour couples et libertins. Discrétion garantie. Chat privé sécurisé.',
-  keywords: 'rencontre, libertine, couple, adulte, chat privé, France',
+  title: 'LIBERTINESEX - Rencontres Libertines entre Couples',
+  description: 'LIBERTINESEX - Site de rencontres premium pour couples et libertins. Discrétion garantie. Chat privé sécurisé.',
+  keywords: 'libertinesex, rencontre, libertine, couple, adulte, chat privé, France',
   openGraph: {
-    title: 'RencontresPremium.fr - Rencontres Libertines',
-    description: 'Plateforme premium de rencontres libertines avec discrétion garantie.',
+    title: 'LIBERTINESEX - Rencontres Libertines',
+    description: 'LIBERTINESEX - Plateforme premium de rencontres libertines avec discrétion garantie.',
     type: 'website',
-    url: 'https://rencontres-premium.fr',
+    url: 'https://darkcyan-hare-728045.hostingersite.com',
   },
 }
 

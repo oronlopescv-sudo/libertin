@@ -1,7 +1,7 @@
 {
-  "name": "rencontres-premium",
+  "name": "libertinesex",
   "version": "1.0.0",
-  "description": "Site de encontros libertinagem premium - Next.js 14",
+  "description": "LIBERTINESEX - Site de encontros libertinos premium - Next.js 14",
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",

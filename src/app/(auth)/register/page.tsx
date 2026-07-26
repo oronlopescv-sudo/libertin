@@ -133,7 +133,7 @@ function RegisterForm() {
             <span className="text-white font-bold text-3xl">RP</span>
           </div>
           <h1 className="text-3xl font-bold font-heading text-primary-900 dark:text-primary-100">
-            RencontresPremium
+            LIBERTINESEX
           </h1>
         </div>
 
