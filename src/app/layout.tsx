@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     title: 'LIBERTINESEX - Rencontres Libertines',
     description: 'LIBERTINESEX - Plateforme premium de rencontres libertines avec discrétion garantie.',
     type: 'website',
-    url: 'https://darkcyan-hare-728045.hostingersite.com',
+    url: 'https://green-toad-192382.hostingersite.com',
   },
 }
 
