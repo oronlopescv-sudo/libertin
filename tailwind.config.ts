@@ -38,6 +38,7 @@ const config: Config = {
         success: '#28A745',
       },
       fontFamily: {
+        display: ['Bodoni Moda', 'Georgia', 'serif'],
         heading: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
         body: ['Be Vietnam Pro', 'system-ui', 'sans-serif'],
       },

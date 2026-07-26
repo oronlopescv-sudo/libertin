@@ -47,49 +47,76 @@ export function HeroSection() {
   }
 
   return (
-    <section className="bg-gradient-to-b from-secondary-900 via-secondary-700 to-primary-700 text-white">
-      <div className="max-w-6xl mx-auto px-4 md:px-8 pt-10 pb-16">
-        {/* Titres centrés — format Libertic */}
-        <div className="text-center mb-6">
-          <h2 className="text-lg md:text-xl font-heading text-accent-300 mb-1">
-            Plaisirs et Libertinage
-          </h2>
-          <h1 className="text-2xl md:text-4xl font-bold font-heading">
-            Bienvenue sur le 1<sup>er</sup> réseau social pour les couples et célibataires
+    <section className="bg-secondary-900 text-white">
+      <div className="max-w-6xl mx-auto px-4 md:px-8 pt-10 pb-14">
+        {/* Título: o diferenciador dito em primeiro lugar */}
+        <div className="max-w-3xl mb-8">
+          <p className="t-eyebrow text-accent-300 mb-3">
+            Réservé aux adultes · France, Belgique, Suisse
+          </p>
+          <h1 className="t-display mb-4">
+            Ici, les femmes et les couples sont majoritaires.
           </h1>
+          <p className="text-white/70 text-base md:text-lg max-w-xl">
+            C&apos;est pourquoi leur inscription et leur accès restent entièrement
+            gratuits.
+          </p>
         </div>
 
-        {/* Compteur ratio — bandeau central comme Libertic */}
-        <div className="max-w-2xl mx-auto text-center mb-10">
-          <p className="text-sm text-white/80 mb-3 capitalize">Membres actifs au {today}</p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center items-stretch">
-            <div className="flex-1 bg-white/10 backdrop-blur rounded-xl px-6 py-4 border border-white/20">
-              <p className="text-2xl md:text-3xl font-bold font-heading text-accent-300">
-                {stats.femmesCouplesPct.toLocaleString('fr-FR', { minimumFractionDigits: 1 })} %
-              </p>
-              <p className="text-sm text-white/90">Femmes et Couples</p>
+        {/* Barra de proporção: a largura de cada segmento é a percentagem real */}
+        <div className="max-w-3xl mb-12">
+          <div
+            className="ratio-bar"
+            role="img"
+            aria-label={`${stats.femmesCouplesPct} % de femmes et couples, ${stats.hommesPct} % d'hommes`}
+          >
+            <div
+              className="ratio-major"
+              style={{ flexBasis: `${stats.femmesCouplesPct}%` }}
+            >
+              <span className="ratio-figure">
+                {stats.femmesCouplesPct.toLocaleString('fr-FR', {
+                  minimumFractionDigits: 1,
+                })}
+                %
+              </span>
+              <span className="ratio-label">Femmes et couples</span>
             </div>
-            <div className="flex-1 bg-white/5 rounded-xl px-6 py-4 border border-white/10">
-              <p className="text-2xl md:text-3xl font-bold font-heading text-white/70">
-                {stats.hommesPct.toLocaleString('fr-FR', { minimumFractionDigits: 1 })} %
-              </p>
-              <p className="text-sm text-white/70">Hommes</p>
+            <div
+              className="ratio-minor"
+              style={{ flexBasis: `${stats.hommesPct}%` }}
+            >
+              <span className="ratio-figure">
+                {stats.hommesPct.toLocaleString('fr-FR', {
+                  minimumFractionDigits: 1,
+                })}
+                %
+              </span>
+              <span className="ratio-label">Hommes</span>
             </div>
           </div>
+          <p className="text-xs text-white/50 mt-3 capitalize">
+            Répartition des membres actifs au {today}
+          </p>
         </div>
 
-        {/* Illustration + formulaire — 2 colonnes comme Libertic */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-          {/* Illustration gauche */}
-          <div className="hidden lg:flex flex-col items-center justify-center">
-            <div className="relative">
-              <div className="w-72 h-72 rounded-full bg-gradient-to-br from-primary-500/40 to-accent-500/30 blur-2xl absolute inset-0" />
-              <div className="relative text-[11rem] leading-none select-none">💃</div>
-            </div>
-            <p className="text-center text-white/80 text-lg font-heading mt-6 max-w-sm">
-              Découvrez des milliers de couples, femmes et hommes, et faites-vous de nouvelles
-              relations
-            </p>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-10 lg:items-start">
+          <div className="hidden lg:block">
+            <p className="t-eyebrow text-white/40 mb-4">Comment ça marche</p>
+            <ol className="space-y-5 text-white/75 max-w-sm">
+              <li className="flex gap-3">
+                <span className="font-display text-accent-300 text-xl leading-none">1</span>
+                <span>Créez votre profil en une minute, sans carte bancaire.</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="font-display text-accent-300 text-xl leading-none">2</span>
+                <span>Parcourez les profils actifs près de chez vous.</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="font-display text-accent-300 text-xl leading-none">3</span>
+                <span>Échangez en privé ou rejoignez un groupe de discussion.</span>
+              </li>
+            </ol>
           </div>
 
           {/* Formulaire d'inscription — carte blanche comme Libertic */}
@@ -203,13 +230,6 @@ export function HeroSection() {
         </div>
       </div>
 
-      {/* Séparateur en vague vers la section blanche */}
-      <svg viewBox="0 0 1440 80" className="w-full block" preserveAspectRatio="none">
-        <path
-          d="M0,40 C360,90 1080,-10 1440,40 L1440,80 L0,80 Z"
-          className="fill-white dark:fill-slate-900"
-        />
-      </svg>
     </section>
   )
 }

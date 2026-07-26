@@ -40,44 +40,10 @@ export default function HomePage() {
       {/* Hero avec formulaire — format Libertic */}
       <HeroSection />
 
-      {/* Bandeau découverte */}
-      <section className="py-12 px-4 bg-white dark:bg-slate-900 text-center">
-        <h2 className="text-xl md:text-2xl font-bold font-heading text-slate-900 dark:text-slate-100 max-w-3xl mx-auto">
-          <strong className="text-primary-600">
-            Découvrez des milliers de couples, femmes et hommes,
-          </strong>{' '}
-          et faites-vous de nouvelles relations
-        </h2>
-      </section>
-
-      {/* Proportion unique — deux blocs comme Libertic */}
-      <section className="py-14 px-4 bg-slate-100 dark:bg-slate-800">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl md:text-3xl font-bold font-heading mb-10 text-slate-900 dark:text-slate-100">
-            Une proportion unique de <span className="text-primary-600">couples</span> et de{' '}
-            <span className="text-primary-600">femmes</span>
-          </h2>
-          <div className="grid grid-cols-2 gap-4 md:gap-8 max-w-2xl mx-auto">
-            <div className="bg-gradient-to-br from-primary-600 to-accent-600 rounded-2xl py-10 px-4 text-white shadow-elevated">
-              <div className="text-4xl mb-3">👩👫</div>
-              <p className="font-bold font-heading text-lg">Couples & femmes</p>
-              <p className="text-3xl font-bold font-heading mt-2">78 %</p>
-            </div>
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl py-10 px-4 shadow-card">
-              <div className="text-4xl mb-3">👨</div>
-              <p className="font-bold font-heading text-lg text-slate-700 dark:text-slate-300">
-                Hommes
-              </p>
-              <p className="text-3xl font-bold font-heading mt-2 text-slate-500">22 %</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Avantages — 6 icônes comme Libertic */}
-      <section className="py-16 px-4 bg-white dark:bg-slate-900">
+      <section className="py-16 px-4 border-t border-slate-200 dark:border-slate-800">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold font-heading text-center mb-12 text-slate-900 dark:text-slate-100">
+          <h2 className="t-section text-center mb-12 text-slate-900 dark:text-slate-100">
             Rejoignez-nous et profitez gratuitement{' '}
             <strong className="text-primary-600">de nombreux avantages</strong>
           </h2>
@@ -98,9 +64,9 @@ export default function HomePage() {
       </section>
 
       {/* Pratiques sur la homepage — format Libertic */}
-      <section className="py-16 px-4 bg-slate-50 dark:bg-slate-800">
+      <section className="py-16 px-4 border-t border-slate-200 dark:border-slate-800">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold font-heading text-center mb-4 text-slate-900 dark:text-slate-100">
+          <h2 className="t-section text-center mb-4 text-slate-900 dark:text-slate-100">
             Toutes les pratiques libertines
           </h2>
           <p className="text-center text-slate-600 dark:text-slate-400 mb-12 max-w-2xl mx-auto">
@@ -131,9 +97,9 @@ export default function HomePage() {
       </section>
 
       {/* Multi-appareils — format Libertic */}
-      <section className="py-16 px-4 bg-white dark:bg-slate-900 text-center">
+      <section className="py-16 px-4 border-t border-slate-200 dark:border-slate-800 text-center">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold font-heading mb-8 text-slate-900 dark:text-slate-100">
+          <h2 className="t-section mb-8 text-slate-900 dark:text-slate-100">
             Restez en contact sur mobile, tablette, ordinateur
           </h2>
           <div className="flex justify-center items-end gap-4 md:gap-8 text-7xl md:text-8xl mb-10 select-none">
@@ -151,9 +117,9 @@ export default function HomePage() {
       </section>
 
       {/* SEO : liens vers les villes */}
-      <section className="py-12 px-4 md:px-8 bg-slate-50 dark:bg-slate-800">
+      <section className="py-12 px-4 md:px-8 border-t border-slate-200 dark:border-slate-800">
         <div className="max-w-6xl mx-auto text-center">
-          <h2 className="text-xl font-bold font-heading mb-6 text-slate-900 dark:text-slate-100">
+          <h2 className="t-sub mb-6 text-slate-900 dark:text-slate-100">
             Rencontres libertines dans votre ville
           </h2>
           <div className="flex flex-wrap justify-center gap-2 mb-6">
