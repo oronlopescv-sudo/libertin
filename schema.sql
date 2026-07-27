@@ -1,3 +1,18 @@
+-- =====================================================================
+-- ATENÇÃO: NÃO USAR ESTE FICHEIRO
+--
+-- Usa antes: database-mysql.sql
+--
+-- Este ficheiro está incompleto e provoca erros em produção:
+--   1. Falta a tabela `_BlockedBy`, que o Prisma exige para a relação
+--      de bloqueio entre utilizadores. Sem ela, as consultas que
+--      tocam em bloqueios falham.
+--   2. Não inclui os utilizadores de teste, portanto não é possível
+--      entrar no site depois de importar.
+--
+-- Verificado por importação real em MariaDB 10.11.
+-- =====================================================================
+
 -- ============ CRIAR TODAS AS TABELAS MYSQL ============
 -- Database: u128759105_SEX
 -- User: u128759105_SEXFR

@@ -8,7 +8,7 @@ isso não vai para o servidor — os valores têm de ser definidos no painel.
 
 | Variável | Valor |
 |---|---|
-| `NEXTAUTH_URL` | `https://darkcyan-hare-728045.hostingersite.com` |
+| `NEXTAUTH_URL` | `https://green-toad-192382.hostingersite.com` |
 | `NEXTAUTH_SECRET` | gerar com `openssl rand -base64 32` |
 | `DATABASE_URL` | `postgresql://UTILIZADOR:PASSWORD@HOST:5432/BASEDADOS` |
 | `NODE_ENV` | `production` |
@@ -30,7 +30,7 @@ não aparece.
 ## Depois de definir as variáveis
 
 1. Redeploy da aplicação
-2. Abrir `https://darkcyan-hare-728045.hostingersite.com/api/health`
+2. Abrir `https://green-toad-192382.hostingersite.com/api/health`
 3. Criar as tabelas: `npx prisma migrate deploy`
 4. Popular dados de teste: `npm run prisma:seed`
 

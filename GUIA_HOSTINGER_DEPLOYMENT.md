@@ -1,6 +1,6 @@
 # 🚀 GUIA COMPLETO - Deploy RencontresPremium.fr no Hostinger
 
-**Site atual**: https://darkcyan-hare-728045.hostingersite.com  
+**Site atual**: https://green-toad-192382.hostingersite.com  
 **Status**: ✅ Compilado, ⏳ Awaiting Configuration
 
 ---
@@ -32,7 +32,7 @@ X5k9JkL2m9Qp3R4sT5u6V7w8X9yZaBbCdDeEfFgGhH==
 
 | Variável | Valor |
 |----------|-------|
-| `NEXTAUTH_URL` | `https://darkcyan-hare-728045.hostingersite.com` |
+| `NEXTAUTH_URL` | `https://green-toad-192382.hostingersite.com` |
 | `NEXTAUTH_SECRET` | (Cole o valor gerado acima) |
 | `DATABASE_URL` | `postgresql://user:pass@localhost:5432/db` |
 | `NODE_ENV` | `production` |
@@ -98,7 +98,7 @@ Se só tem MySQL:
 
 ## ✅ PASSO 4: Verificar Configuração
 
-1. Aceda a: `https://darkcyan-hare-728045.hostingersite.com/api/health`
+1. Aceda a: `https://green-toad-192382.hostingersite.com/api/health`
 
 2. Deve ver uma página HTML com:
    ```
@@ -141,7 +141,7 @@ Contacte suporte Hostinger para executar o comando acima.
 
 ### Homepage
 
-Visite: https://darkcyan-hare-728045.hostingersite.com
+Visite: https://green-toad-192382.hostingersite.com
 
 Deve ver:
 - ✅ Logo "RP" (RencontresPremium)
