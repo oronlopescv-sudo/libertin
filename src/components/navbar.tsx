@@ -41,11 +41,10 @@ export const Navbar = React.memo(() => {
           {/* Marca: o nome é o logótipo, sem emblema a repeti-lo */}
           <Link
             href="/"
-            className="font-display text-xl md:text-2xl tracking-tight transition-opacity hover:opacity-80"
+            className="font-display text-xl md:text-2xl tracking-tight transition-opacity hover:opacity-80 font-bold"
           >
-            Rencontres
-            <span className={sobreHero ? 'text-accent-300' : 'text-primary-600'}>
-              Premium
+            <span className={sobreHero ? 'text-white' : 'text-slate-900 dark:text-white'}>
+              Libertinelover
             </span>
           </Link>
 

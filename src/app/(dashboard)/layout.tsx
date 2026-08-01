@@ -26,8 +26,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-20 md:pb-0">
       {/* Bandeau Premium */}
       {!hasAccess && (
-        <div className="bg-gradient-to-r from-primary-600 to-accent-600 text-white text-center text-sm py-2 px-4">
-          <Link href="/abonnements" className="hover:underline">
+        <div className="w-full bg-gradient-to-r from-primary-600 to-accent-600 text-white text-center text-sm py-3 px-4">
+          <Link href="/abonnements" className="hover:underline font-semibold">
             🔓 Passez Premium pour voir les profils et accéder au chat — dès 2,08€/mois
           </Link>
         </div>
