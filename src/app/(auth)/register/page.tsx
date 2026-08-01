@@ -59,7 +59,7 @@ function RegisterForm() {
     try {
       // Étape 1: Valider données
       if (!formData.email || !formData.password) {
-        setError('Tous les champs são obrigatórios')
+        setError('Tous les champs sont obligatoires')
         return
       }
 

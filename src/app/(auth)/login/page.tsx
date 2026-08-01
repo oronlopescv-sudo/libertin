@@ -61,7 +61,7 @@ function LoginForm() {
 
       router.push('/decouvrir')
     } catch (error) {
-      setError(error instanceof Error ? error.message : "Erro desconhecido")
+      setError(error instanceof Error ? error.message : "Erreur inconnue")
     } finally {
       setLoading(false)
     }
