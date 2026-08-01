@@ -23,7 +23,7 @@ const genderEmojis: Record<string, string> = {
   couple: '👫',
 }
 
-export default function ChatPage() {
+export default function ChatPage(): void {
   const { groupId } = useParams<{ groupId: string }>()
   const router = useRouter()
   const { data: session } = useSession()
@@ -32,6 +32,7 @@ export default function ChatPage() {
   const [groupName, setGroupName] = useState('')
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [accessDenied, setAccessDenied] = useState(false)
 
@@ -93,7 +94,7 @@ export default function ChatPage() {
     return () => clearInterval(interval)
   }, [loadHistory, pollNewMessages])
 
-  const handleSend = async (e: React.FormEvent) => {
+  const handleSend = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
     const text = input.trim()
     if (!text || sending) return
@@ -124,6 +125,7 @@ export default function ChatPage() {
     } catch {
       setError("Erreur réseau. Message non envoyé.")
     } catch (error) {
+    throw error
       setError(error instanceof Error ? error.message : "Erro desconhecido")
     } finally {
       setSending(false)
@@ -235,7 +237,7 @@ export default function ChatPage() {
               maxLength={2000}
               className="flex-1"
             />
-            <button
+            <button aria-label="Action"
               type="submit"
               disabled={sending || !input.trim()}
               className="px-5 py-2 bg-primary-600 text-white font-bold rounded-lg disabled:opacity-40 hover:bg-primary-700 transition-colors"

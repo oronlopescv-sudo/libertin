@@ -36,10 +36,11 @@ const benefits = [
   'Badge Premium sur votre profil',
 ]
 
-export default function AbonnementsContent() {
+export default function AbonnementsContent(): void {
   const { data: session } = useSession()
   const searchParams = useSearchParams()
   const [loading, setLoading] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const success = searchParams.get('success')
@@ -52,7 +53,7 @@ export default function AbonnementsContent() {
   const isFreeAccess =
     session?.user?.gender === 'femme' || session?.user?.gender === 'couple'
 
-  const handleCheckout = async (tier: string) => {
+  const handleCheckout = useCallback(async (tier: string) => {
     setLoading(tier)
     setError('')
     try {
@@ -184,7 +185,7 @@ export default function AbonnementsContent() {
             <h3 className="font-bold font-heading text-lg mb-1">{plan.name}</h3>
             <p className="text-3xl font-bold text-primary-600 mb-1">{plan.price}€</p>
             <p className="text-sm text-slate-500 mb-6">soit {plan.monthly}</p>
-            <button
+            <button aria-label="Action"
               onClick={() => handleCheckout(plan.tier)}
               disabled={loading !== null}
               className={`mt-auto py-3 font-bold rounded-lg transition-all disabled:opacity-50 ${

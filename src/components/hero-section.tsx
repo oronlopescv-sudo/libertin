@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
-export function HeroSection() {
+export const HeroSection = React.memo(() {
   const router = useRouter()
   const [stats, setStats] = useState({ femmesCouplesPct: 78.0, hommesPct: 22.0 })
   const [gender, setGender] = useState('')
@@ -13,6 +13,7 @@ export function HeroSection() {
   const [pays, setPays] = useState('')
   const [major, setMajor] = useState(false)
   const [rgpd, setRgpd] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -31,7 +32,7 @@ export function HeroSection() {
     year: 'numeric',
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     if (!gender) return setError('Sélectionnez votre profil')
@@ -219,7 +220,7 @@ export function HeroSection() {
                 </span>
               </label>
 
-              <button
+              <button aria-label="Action"
                 type="submit"
                 className="w-full py-3.5 bg-gradient-to-r from-primary-600 to-accent-600 text-white font-bold font-heading rounded-xl hover:shadow-elevated transition-shadow text-lg tracking-wide"
               >

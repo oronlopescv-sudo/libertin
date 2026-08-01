@@ -12,7 +12,7 @@ const navItems = [
   { href: '/abonnements', label: 'Abonnement', icon: '⭐' },
 ]
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout({ children }: { children: React.ReactNode }): void {
   const pathname = usePathname()
   const { data: session } = useSession()
 
@@ -76,7 +76,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <span className="text-slate-500">Compte gratuit</span>
               )}
             </p>
-            <button
+            <button aria-label="Action"
               onClick={() => signOut({ callbackUrl: '/' })}
               className="text-sm text-slate-500 hover:text-danger transition-colors"
             >

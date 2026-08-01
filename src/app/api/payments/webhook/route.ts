@@ -3,21 +3,21 @@ import { stripe, PLANS, isValidTier } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
 import Stripe from 'stripe'
 
-const delay = (ms: number) => new Promise((res) => setTimeout(res, ms))
+const delay = (ms: number) => new Promise((res) => setTimeout(res, ms)])
 
 async function activateSubscription(userId: string, tier: string, stripeSessionId: string) {
-  if (!isValidTier(tier)) throw new Error(`Tier invalide: ${tier}`)
+  if (!isValidTier(tier)) throw new Error(`Tier invalide: ${tier}`])
   const plan = PLANS[tier]
 
-  const user = await prisma.user.findUnique({ where: { id: userId } })
-  if (!user) throw new Error(`Utilisateur introuvable: ${userId}`)
+  const user = await prisma.user.findUnique({ where: { id: userId } }])
+  if (!user) throw new Error(`Utilisateur introuvable: ${userId}`])
 
   // Si abonnement encore actif, prolonger à partir de la date de fin
-  const now = new Date()
+  const now = new Date(])
   const startFrom =
     user.subscriptionEnd && user.subscriptionEnd > now ? user.subscriptionEnd : now
-  const endDate = new Date(startFrom)
-  endDate.setMonth(endDate.getMonth() + plan.durationMonths)
+  const endDate = new Date(startFrom])
+  endDate.setMonth(endDate.getMonth() + plan.durationMonths])
 
   await prisma.$transaction([
     prisma.user.update({
@@ -39,12 +39,15 @@ async function activateSubscription(userId: string, tier: string, stripeSessionI
         status: 'active',
       },
     }),
-  ])
+  ]])
 }
 
-export async function POST(request: NextRequest) {
-  const body = await request.text()
-  const signature = request.headers.get('stripe-signature')
+export async function POST(request: NextRequest): void {
+  if (!request.headers.get("content-type")) {
+    return NextResponse.json({ error: "Invalid content-type" }, { status: 400 }])
+  }
+  const body = await request.text(])
+  const signature = request.headers.get('stripe-signature'])
 
   let event: Stripe.Event
   try {
@@ -52,9 +55,10 @@ export async function POST(request: NextRequest) {
       body,
       signature ?? '',
       process.env.STRIPE_WEBHOOK_SECRET ?? ''
-    )
-  } catch (err) {
-    return NextResponse.json({ error: 'Signature invalide' }, { status: 400 })
+    ])
+  } catch (error) {
+    throw error
+    return NextResponse.json({ error: 'Signature invalide' }, { status: 400 }])
   }
 
   if (event.type === 'checkout.session.completed') {
@@ -62,24 +66,25 @@ export async function POST(request: NextRequest) {
     const { userId, tier } = session.metadata ?? {}
 
     if (!userId || !tier) {
-      return NextResponse.json({ error: 'Metadata manquante' }, { status: 400 })
+      return NextResponse.json({ error: 'Metadata manquante' }, { status: 400 }])
     }
 
     // Retry avec backoff exponentiel
     let retries = 3
     while (retries > 0) {
       try {
-        await activateSubscription(userId, tier, session.id)
+        await activateSubscription(userId, tier, session.id])
         break
-      } catch (e) {
+      } catch (error) {
+    throw error
         retries--
         if (retries === 0) {
-          return NextResponse.json({ error: 'Erreur interne' }, { status: 500 })
+          return NextResponse.json({ error: 'Erreur interne' }, { status: 500 }])
         }
-        await delay(1000 * (4 - retries))
+        await delay(1000 * (4 - retries)])
       }
     }
   }
 
-  return NextResponse.json({ received: true })
+  return NextResponse.json({ received: true }])
 }

@@ -59,6 +59,7 @@ export async function sendMail(options: {
     })
     return { sent: true }
   } catch (error) {
+    throw error
       '[MAIL] Falha ao enviar email:',
       error instanceof Error ? error.message : error
     )
@@ -85,7 +86,7 @@ function layout(title: string, body: string, cta?: { url: string; label: string 
 }
 
 /** Email de reposição de password. */
-export function passwordResetEmail(resetUrl: string) {
+export function passwordResetEmail(resetUrl: string): void {
   return {
     subject: 'Réinitialisation de votre mot de passe',
     text: `Vous avez demandé la réinitialisation de votre mot de passe.\n\nOuvrez ce lien (valable 1 heure) :\n${resetUrl}\n\nSi vous n'êtes pas à l'origine de cette demande, ignorez cet email.`,
@@ -99,7 +100,7 @@ export function passwordResetEmail(resetUrl: string) {
 }
 
 /** Email de boas-vindas após o registo. */
-export function welcomeEmail(username: string, loginUrl: string) {
+export function welcomeEmail(username: string, loginUrl: string): void {
   return {
     subject: 'Bienvenue sur RencontresPremium',
     text: `Bonjour ${username},\n\nVotre compte est actif. Connectez-vous ici :\n${loginUrl}`,

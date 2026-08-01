@@ -30,12 +30,13 @@ const orientationLabels: Record<string, string> = {
 }
 const genderEmojis: Record<string, string> = { homme: '👨', femme: '👩', couple: '👫' }
 
-export default function MembrePage() {
+export default function MembrePage(): void {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const [profile, setProfile] = useState<MemberProfile | null>(null)
   const [notFound, setNotFound] = useState(false)
   const [starting, setStarting] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -81,6 +82,7 @@ export default function MembrePage() {
     } catch {
       setError('Erreur réseau. Vérifiez votre connexion.')
     } catch (error) {
+    throw error
       setError(error instanceof Error ? error.message : "Erro desconhecido")
     } finally {
       setStarting(false)
@@ -127,7 +129,7 @@ export default function MembrePage() {
       <div className="relative aspect-[4/3] md:aspect-[16/9] rounded-2xl overflow-hidden bg-gradient-to-br from-secondary-500 to-secondary-900 mb-6">
         {cover ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={cover.url} alt={profile.username} className="w-full h-full object-cover" />
+          <img alt="Content" src={cover.url} alt={profile.username} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-8xl">
             {genderEmojis[profile.gender] ?? '👤'}
@@ -154,7 +156,7 @@ export default function MembrePage() {
 
       {/* Bouton message — l'action principale */}
       {error && <div className="alert alert-danger text-sm mb-4">{error}</div>}
-      <button
+      <button aria-label="Action"
         onClick={startConversation}
         disabled={starting}
         className="w-full py-3.5 bg-gradient-to-r from-primary-600 to-accent-600 text-white font-bold rounded-xl hover:shadow-elevated transition-shadow disabled:opacity-50 mb-8"
@@ -199,7 +201,7 @@ export default function MembrePage() {
           <div className="grid grid-cols-3 gap-2">
             {profile.photos.map((p, i) => (
               // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <img alt="Content"
                 key={i}
                 src={p.url}
                 alt=""

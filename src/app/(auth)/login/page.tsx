@@ -31,18 +31,19 @@ function LoginForm() {
   const justRegistered = searchParams.get('registered') === '1'
   const authError = searchParams.get('error')
   const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState(authErrorMessage(authError))
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   })
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
@@ -61,6 +62,7 @@ function LoginForm() {
 
       router.push('/decouvrir')
     } catch (error) {
+    throw error
       setError(error instanceof Error ? error.message : "Erro desconhecido")
     } finally {
       setLoading(false)
@@ -155,7 +157,7 @@ function LoginForm() {
             </div>
 
             {/* Submit Button */}
-            <button
+            <button aria-label="Action"
               type="submit"
               disabled={loading}
               className="w-full py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white font-bold rounded-lg hover:shadow-lg transition-shadow disabled:opacity-50"
@@ -177,7 +179,7 @@ function LoginForm() {
           </div>
 
           {/* Google Login */}
-          <button
+          <button aria-label="Action"
             type="button"
             onClick={() => signIn('google', { redirect: false })}
             className="w-full py-3 border-2 border-slate-300 dark:border-slate-600 rounded-lg font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-2"
@@ -210,7 +212,7 @@ function LoginForm() {
   )
 }
 
-export default function LoginPage() {
+export default function LoginPage(): void {
   return (
     <Suspense>
       <LoginForm />

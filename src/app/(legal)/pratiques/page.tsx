@@ -81,7 +81,7 @@ const pratiques = [
   },
 ]
 
-export default function PratiquesPage() {
+export default function PratiquesPage(): void {
   return (
     <div className="max-w-4xl mx-auto px-4 py-16">
       <div className="text-center mb-12">

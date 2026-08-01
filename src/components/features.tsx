@@ -1,4 +1,4 @@
-export function Features() {
+export const Features = React.memo(() {
   const features = [
     {
       icon: '🔒',

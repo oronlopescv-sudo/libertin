@@ -28,11 +28,12 @@ const genderEmojis: Record<string, string> = {
   couple: '👫',
 }
 
-export default function DecouvrirPage() {
+export default function DecouvrirPage(): void {
   const router = useRouter()
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [loading, setLoading] = useState(true)
   const [premiumRequired, setPremiumRequired] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [filter, setFilter] = useState<string>('')
   const [page, setPage] = useState(1)
@@ -66,6 +67,7 @@ export default function DecouvrirPage() {
       setError('Erreur réseau. Vérifiez votre connexion.')
       setProfiles([])
     } catch (error) {
+    throw error
       setError(error instanceof Error ? error.message : "Erro desconhecido")
     } finally {
       setLoading(false)
@@ -123,7 +125,7 @@ export default function DecouvrirPage() {
           { value: 'femme', label: '👩 Femmes' },
           { value: 'homme', label: '👨 Hommes' },
         ].map((f) => (
-          <button
+          <button aria-label="Action"
             key={f.value}
             onClick={() => {
               setFilter(f.value)
@@ -171,7 +173,7 @@ export default function DecouvrirPage() {
               >
                 {profile.coverPhoto ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <img alt="Content"
                     src={profile.coverPhoto}
                     alt={profile.username}
                     className="absolute inset-0 w-full h-full object-cover"
@@ -202,7 +204,7 @@ export default function DecouvrirPage() {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex justify-center gap-2 mt-8">
-              <button
+              <button aria-label="Action"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
                 className="px-4 py-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 disabled:opacity-40"
@@ -212,7 +214,7 @@ export default function DecouvrirPage() {
               <span className="px-4 py-2 text-slate-600 dark:text-slate-400">
                 {page} / {totalPages}
               </span>
-              <button
+              <button aria-label="Action"
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
                 className="px-4 py-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 disabled:opacity-40"

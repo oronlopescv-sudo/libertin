@@ -1,4 +1,4 @@
-export function Testimonials() {
+export const Testimonials = React.memo(() {
   const testimonials = [
     {
       text: "Une plateforme super discrète et facile d'utilisation. Nous avons trouvé exactement ce que nous cherchions!",

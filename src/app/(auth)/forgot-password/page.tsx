@@ -3,13 +3,14 @@
 import { useState } from 'react'
 import Link from 'next/link'
 
-export default function ForgotPasswordPage() {
+export default function ForgotPasswordPage(): void {
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
@@ -65,7 +66,7 @@ export default function ForgotPasswordPage() {
                 required
                 className="w-full"
               />
-              <button
+              <button aria-label="Action"
                 type="submit"
                 disabled={loading}
                 className="w-full py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white font-bold rounded-xl hover:shadow-lg transition-shadow disabled:opacity-50"

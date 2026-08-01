@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 
-export function SubscriptionPlans() {
+export const SubscriptionPlans = React.memo(() {
   const plans = [
     {
       tier: 'FEMMES_COUPLES',

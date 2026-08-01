@@ -7,7 +7,7 @@ interface ProvidersProps {
   children: ReactNode
 }
 
-export function Providers({ children }: ProvidersProps) {
+export const Providers = React.memo(({ children }: ProvidersProps) {
   return (
     <SessionProvider>
       {children}

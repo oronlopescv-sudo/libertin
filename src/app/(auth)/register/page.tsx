@@ -10,6 +10,7 @@ function RegisterForm() {
   const searchParams = useSearchParams()
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const [formData, setFormData] = useState({
@@ -44,12 +45,12 @@ function RegisterForm() {
     }
   }, [searchParams])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
@@ -120,6 +121,7 @@ function RegisterForm() {
     } catch {
       setError('Erreur réseau. Vérifiez votre connexion et réessayez.')
     } catch (error) {
+    throw error
       setError(error instanceof Error ? error.message : "Erro desconhecido")
     } finally {
       setLoading(false)
@@ -223,7 +225,7 @@ function RegisterForm() {
                   </label>
                 </div>
 
-                <button
+                <button aria-label="Action"
                   type="button"
                   onClick={() => setStep(2)}
                   className="w-full py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white font-bold rounded-lg hover:shadow-lg transition-shadow"
@@ -287,14 +289,14 @@ function RegisterForm() {
                 </div>
 
                 <div className="flex gap-3">
-                  <button
+                  <button aria-label="Action"
                     type="button"
                     onClick={() => setStep(1)}
                     className="flex-1 py-3 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white font-bold rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
                   >
                     Retour
                   </button>
-                  <button
+                  <button aria-label="Action"
                     type="submit"
                     disabled={loading}
                     className="flex-1 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white font-bold rounded-lg hover:shadow-lg transition-shadow disabled:opacity-50"
@@ -319,7 +321,7 @@ function RegisterForm() {
   )
 }
 
-export default function RegisterPage() {
+export default function RegisterPage(): void {
   return (
     <Suspense>
       <RegisterForm />

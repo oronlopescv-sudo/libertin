@@ -12,7 +12,7 @@ const links = [
   { href: '/abonnements', label: 'Abonnements' },
 ]
 
-export function Navbar() {
+export const Navbar = React.memo(() {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
 
@@ -90,7 +90,7 @@ export function Navbar() {
             </Link>
           </div>
 
-          <button
+          <button aria-label="Action"
             onClick={() => setIsOpen(!isOpen)}
             className="md:hidden p-2 -mr-2"
             aria-expanded={isOpen}

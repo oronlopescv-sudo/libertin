@@ -13,7 +13,7 @@ const links = [
   { href: '/mentions-legales', label: 'Mentions légales' },
 ]
 
-export function Footer() {
+export const Footer = React.memo(() {
   const pathname = usePathname()
   const currentYear = new Date().getFullYear()
 

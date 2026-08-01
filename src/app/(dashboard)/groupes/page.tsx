@@ -21,12 +21,13 @@ const categoryLabels: Record<string, { label: string; emoji: string }> = {
   prive: { label: 'Message privé', emoji: '💌' },
 }
 
-export default function GroupesPage() {
+export default function GroupesPage(): void {
   const router = useRouter()
   const [myGroups, setMyGroups] = useState<Group[]>([])
   const [publicGroups, setPublicGroups] = useState<Group[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreate, setShowCreate] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [form, setForm] = useState({ name: '', description: '', category: 'casual', isPrivate: false })
 
@@ -40,6 +41,7 @@ export default function GroupesPage() {
         setPublicGroups(data.publicGroups ?? [])
       }
     } catch (error) {
+    throw error
       setError(error instanceof Error ? error.message : "Erro desconhecido")
     } finally {
       setLoading(false)
@@ -50,7 +52,7 @@ export default function GroupesPage() {
     fetchGroups()
   }, [fetchGroups])
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleCreate = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     const res = await fetch('/api/groups', {
@@ -74,7 +76,7 @@ export default function GroupesPage() {
     fetchGroups()
   }
 
-  const handleJoin = async (groupId: string) => {
+  const handleJoin = useCallback(async (groupId: string) => {
     setError('')
     try {
       const res = await fetch(`/api/groups/${groupId}/join`, { method: 'POST' })
@@ -128,7 +130,7 @@ export default function GroupesPage() {
               Ouvrir le chat
             </Link>
           ) : (
-            <button
+            <button aria-label="Action"
               onClick={() => handleJoin(group.id)}
               className="px-4 py-2 border border-primary-600 text-primary-600 text-sm font-semibold rounded-lg hover:bg-primary-50 dark:hover:bg-primary-950 transition-colors"
             >
@@ -154,7 +156,7 @@ export default function GroupesPage() {
             Créez et rejoignez des groupes de discussion privés
           </p>
         </div>
-        <button
+        <button aria-label="Action"
           onClick={() => setShowCreate(true)}
           className="px-5 py-2.5 bg-gradient-to-r from-primary-600 to-accent-600 text-white font-bold rounded-xl hover:shadow-lg transition-shadow whitespace-nowrap"
         >
@@ -264,14 +266,14 @@ export default function GroupesPage() {
                 </label>
               </div>
               <div className="flex gap-3 pt-2">
-                <button
+                <button aria-label="Action"
                   type="button"
                   onClick={() => setShowCreate(false)}
                   className="flex-1 py-3 bg-slate-200 dark:bg-slate-700 font-semibold rounded-lg"
                 >
                   Annuler
                 </button>
-                <button
+                <button aria-label="Action"
                   type="submit"
                   className="flex-1 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white font-bold rounded-lg"
                 >

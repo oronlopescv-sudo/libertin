@@ -11,10 +11,11 @@ function ResetForm() {
 
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     if (password.length < 8) return setError('8 caractères minimum')
@@ -67,7 +68,7 @@ function ResetForm() {
             required
             className="w-full"
           />
-          <button
+          <button aria-label="Action"
             type="submit"
             disabled={loading || !token}
             className="w-full py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white font-bold rounded-xl hover:shadow-lg transition-shadow disabled:opacity-50"
@@ -88,7 +89,7 @@ function ResetForm() {
   )
 }
 
-export default function ResetPasswordPage() {
+export default function ResetPasswordPage(): void {
   return (
     <Suspense>
       <ResetForm />

@@ -4,11 +4,14 @@ import { authOptions } from '@/lib/auth'
 import { stripe, PLANS, isValidTier, isStripeConfigured } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): void {
+  if (!request.headers.get("content-type")) {
+    return NextResponse.json({ error: "Invalid content-type" }, { status: 400 }])
+  }
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions])
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 }])
     }
 
     if (!isStripeConfigured()) {
@@ -18,17 +21,17 @@ export async function POST(request: NextRequest) {
             "Le paiement en ligne n'est pas encore activé. Contactez-nous pour souscrire un abonnement.",
         },
         { status: 503 }
-      )
+      ])
     }
 
-    const { tier } = await request.json()
+    const { tier } = await request.json(])
     if (!tier || !isValidTier(tier)) {
-      return NextResponse.json({ error: 'Plan invalide' }, { status: 400 })
+      return NextResponse.json({ error: 'Plan invalide' }, { status: 400 }])
     }
 
-    const user = await prisma.user.findUnique({ where: { id: session.user.id } })
+    const user = await prisma.user.findUnique({ where: { id: session.user.id } }])
     if (!user) {
-      return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 })
+      return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 }])
     }
 
     const plan = PLANS[tier]
@@ -40,12 +43,12 @@ export async function POST(request: NextRequest) {
       const customer = await stripe.customers.create({
         email: user.email,
         metadata: { userId: user.id },
-      })
+      }])
       customerId = customer.id
       await prisma.user.update({
         where: { id: user.id },
         data: { stripeCustomerId: customerId },
-      })
+      }])
     }
 
     const checkoutSession = await stripe.checkout.sessions.create({
@@ -71,10 +74,11 @@ export async function POST(request: NextRequest) {
       },
       success_url: `${baseUrl}/abonnements?success=1`,
       cancel_url: `${baseUrl}/abonnements?cancelled=1`,
-    })
+    }])
 
-    return NextResponse.json({ url: checkoutSession.url })
+    return NextResponse.json({ url: checkoutSession.url }])
   } catch (error) {
-    return NextResponse.json({ error: 'Erreur lors de la création du paiement' }, { status: 500 })
+    throw error
+    return NextResponse.json({ error: 'Erreur lors de la création du paiement' }, { status: 500 }])
   }
 }
