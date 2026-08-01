@@ -11,6 +11,8 @@ function RegisterForm() {
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [agreedToRules, setAgreedToRules] = useState(false)
+  const [ruleCheckbox, setRuleCheckbox] = useState(false)
 
   const [formData, setFormData] = useState({
     email: '',
@@ -123,6 +125,85 @@ function RegisterForm() {
       setLoading(false)
     }
   }, [formData, pseudo, pays, router])
+
+  // Modal de acceptação de règles
+  if (!agreedToRules) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-100 dark:from-primary-950 dark:to-secondary-900 flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-elevated p-8 border border-slate-200 dark:border-slate-700">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-primary-600 to-accent-600 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <span className="text-white font-bold text-3xl">⚠️</span>
+              </div>
+              <h1 className="text-2xl font-bold font-heading text-primary-900 dark:text-primary-100 mb-2">
+                Important — Avant de continuer
+              </h1>
+            </div>
+
+            <div className="bg-primary-50 dark:bg-primary-950/30 border-l-4 border-primary-600 p-5 rounded mb-6">
+              <div className="space-y-4 text-slate-900 dark:text-slate-100">
+                <p className="font-semibold text-lg">
+                  ⚠️ Ce site est réservé aux adultes de 18 ans et plus
+                </p>
+                <p className="text-sm leading-relaxed">
+                  En accédant à Libertinelover, vous confirmez que vous avez 18 ans ou plus et que vous acceptez nos règles de respect mutuel.
+                </p>
+
+                <div className="bg-white dark:bg-slate-800 p-4 rounded border border-primary-200 dark:border-primary-800">
+                  <p className="font-semibold text-base mb-2">
+                    💚 Ici, on ne plaisante pas — on fait des choses bien
+                  </p>
+                  <ul className="text-sm space-y-2">
+                    <li>✓ Respect et consentement mutuel : toujours</li>
+                    <li>✓ Confidentialité garantie de vos photos et données</li>
+                    <li>✓ Zéro tolérance pour le harcèlement et les abus</li>
+                    <li>✓ Profils vérifiés : sécurité au cœur de notre plateforme</li>
+                    <li>✓ Communauté bienveillante d'adultes responsables</li>
+                  </ul>
+                </div>
+
+                <p className="text-xs text-slate-600 dark:text-slate-400 italic">
+                  Si vous êtes ici, c'est que vous recherchez des rencontres sérieuses et respectueuses. Nous ne tolérons pas les contrefacteurs, les mensonges sur l'âge, ou le non-consentement. Bienvenue parmi nous.
+                </p>
+              </div>
+            </div>
+
+            <label className="flex items-start gap-3 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg mb-6 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+              <input
+                type="checkbox"
+                checked={ruleCheckbox}
+                onChange={(e) => setRuleCheckbox(e.target.checked)}
+                className="w-5 h-5 mt-0.5 rounded border-slate-300"
+              />
+              <span className="text-sm text-slate-900 dark:text-slate-100">
+                Je confirme avoir 18 ans ou plus et j'accepte les règles de respect de cette communauté
+              </span>
+            </label>
+
+            <button
+              onClick={() => {
+                if (ruleCheckbox) {
+                  setAgreedToRules(true)
+                }
+              }}
+              disabled={!ruleCheckbox}
+              className="w-full py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white font-bold rounded-lg hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Je comprends et j'accepte
+            </button>
+
+            <button
+              onClick={() => router.push('/')}
+              className="w-full py-2 mt-3 text-slate-600 dark:text-slate-400 font-semibold hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
+            >
+              Retourner à la page d'accueil
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-100 dark:from-primary-950 dark:to-secondary-900 flex items-center justify-center px-4 py-12">
