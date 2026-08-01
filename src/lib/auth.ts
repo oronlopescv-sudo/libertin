@@ -36,7 +36,6 @@ export const authOptions: NextAuthOptions = {
             where: { email: credentials.email.toLowerCase() },
           })
         } catch (dbError) {
-          console.error('[LOGIN_DB]', dbError)
           throw new Error(describeDbError(dbError).message)
         }
 

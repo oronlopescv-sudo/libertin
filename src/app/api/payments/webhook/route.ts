@@ -54,7 +54,6 @@ export async function POST(request: NextRequest) {
       process.env.STRIPE_WEBHOOK_SECRET ?? ''
     )
   } catch (err) {
-    console.error('[WEBHOOK] Signature invalide', err)
     return NextResponse.json({ error: 'Signature invalide' }, { status: 400 })
   }
 
@@ -63,7 +62,6 @@ export async function POST(request: NextRequest) {
     const { userId, tier } = session.metadata ?? {}
 
     if (!userId || !tier) {
-      console.error('[WEBHOOK] Metadata manquante', session.id)
       return NextResponse.json({ error: 'Metadata manquante' }, { status: 400 })
     }
 
@@ -72,12 +70,10 @@ export async function POST(request: NextRequest) {
     while (retries > 0) {
       try {
         await activateSubscription(userId, tier, session.id)
-        console.log(`[WEBHOOK] Abonnement ${tier} activé pour ${userId}`)
         break
       } catch (e) {
         retries--
         if (retries === 0) {
-          console.error('[WEBHOOK] Échec définitif activation abonnement', e)
           return NextResponse.json({ error: 'Erreur interne' }, { status: 500 })
         }
         await delay(1000 * (4 - retries))

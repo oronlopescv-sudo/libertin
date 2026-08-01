@@ -123,6 +123,8 @@ export default function ChatPage() {
       setTimeout(scrollToBottom, 100)
     } catch {
       setError("Erreur réseau. Message non envoyé.")
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Erro desconhecido")
     } finally {
       setSending(false)
     }

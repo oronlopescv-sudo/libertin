@@ -66,6 +66,8 @@ export default function ProfilPage() {
       }
     } catch {
       setError('Erreur réseau. Vérifiez votre connexion.')
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Erro desconhecido")
     } finally {
       setUploading(false)
     }
@@ -142,6 +144,8 @@ export default function ProfilPage() {
       }
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Erro desconhecido")
     } finally {
       setSaving(false)
     }

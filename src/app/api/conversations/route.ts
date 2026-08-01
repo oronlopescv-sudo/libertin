@@ -8,6 +8,7 @@ import { prisma } from '@/lib/prisma'
  * Implémentée comme un groupe privé de 2 membres, catégorie "prive".
  */
 export async function POST(request: NextRequest) {
+  try {
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })

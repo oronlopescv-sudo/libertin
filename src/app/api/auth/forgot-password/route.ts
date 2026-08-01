@@ -41,7 +41,6 @@ export async function POST(request: NextRequest) {
       if (!result.sent) {
         // Sem SMTP configurado o link fica nos logs do servidor,
         // para o administrador o poder enviar manualmente.
-        console.warn(`[FORGOT_PASSWORD] email não enviado (${result.reason}) -> ${resetUrl}`)
       }
     }
 

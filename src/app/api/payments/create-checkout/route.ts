@@ -75,7 +75,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url: checkoutSession.url })
   } catch (error) {
-    console.error('[CREATE_CHECKOUT]', error)
     return NextResponse.json({ error: 'Erreur lors de la création du paiement' }, { status: 500 })
   }
 }

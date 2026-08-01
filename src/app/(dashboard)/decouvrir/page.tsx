@@ -65,6 +65,8 @@ export default function DecouvrirPage() {
     } catch {
       setError('Erreur réseau. Vérifiez votre connexion.')
       setProfiles([])
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Erro desconhecido")
     } finally {
       setLoading(false)
     }

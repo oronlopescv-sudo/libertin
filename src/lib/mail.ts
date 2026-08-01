@@ -42,7 +42,6 @@ export async function sendMail(options: {
   text: string
 }): Promise<SendResult> {
   if (!isMailConfigured()) {
-    console.warn(
       '[MAIL] SMTP não configurado — email não enviado para',
       options.to,
       '| define SMTP_HOST, SMTP_USER e SMTP_PASSWORD'
@@ -60,7 +59,6 @@ export async function sendMail(options: {
     })
     return { sent: true }
   } catch (error) {
-    console.error(
       '[MAIL] Falha ao enviar email:',
       error instanceof Error ? error.message : error
     )

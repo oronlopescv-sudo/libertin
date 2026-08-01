@@ -10,6 +10,7 @@ const MAX_SIZE = 5 * 1024 * 1024 // 5 Mo
 const ALLOWED = ['image/jpeg', 'image/png', 'image/webp']
 
 export async function POST(request: NextRequest) {
+  try {
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })

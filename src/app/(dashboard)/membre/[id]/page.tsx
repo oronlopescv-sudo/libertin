@@ -80,6 +80,8 @@ export default function MembrePage() {
       setError(data.error ?? "Impossible d'ouvrir la conversation")
     } catch {
       setError('Erreur réseau. Vérifiez votre connexion.')
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Erro desconhecido")
     } finally {
       setStarting(false)
     }

@@ -31,7 +31,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ message: 'Mot de passe réinitialisé' })
   } catch (error) {
-    console.error('[RESET_PASSWORD]', error)
     return NextResponse.json({ error: 'Erreur interne' }, { status: 500 })
   }
 }

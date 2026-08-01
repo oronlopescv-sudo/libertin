@@ -119,6 +119,8 @@ function RegisterForm() {
       }
     } catch {
       setError('Erreur réseau. Vérifiez votre connexion et réessayez.')
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Erro desconhecido")
     } finally {
       setLoading(false)
     }

@@ -39,6 +39,8 @@ export default function GroupesPage() {
         setMyGroups(data.myGroups ?? [])
         setPublicGroups(data.publicGroups ?? [])
       }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Erro desconhecido")
     } finally {
       setLoading(false)
     }

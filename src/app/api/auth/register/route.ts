@@ -92,8 +92,8 @@ export async function POST(request: NextRequest) {
         html: mail.html,
         text: mail.text,
       })
-    } catch (mailError) {
-      console.warn('[REGISTER] email de bienvenue non envoyé', mailError)
+    } catch {
+      // L'email de bienvenue est non-critique; l'inscription réussit quand même
     }
 
     return NextResponse.json(
@@ -101,7 +101,6 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     )
   } catch (error) {
-    console.error('[REGISTER]', error)
     const detail = describeDbError(error)
     return NextResponse.json(
       { error: `Inscription impossible — ${detail.message}`, code: detail.code },
