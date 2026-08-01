@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 
@@ -40,7 +40,6 @@ export default function AbonnementsContent(): void {
   const { data: session } = useSession()
   const searchParams = useSearchParams()
   const [loading, setLoading] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const success = searchParams.get('success')
@@ -75,7 +74,7 @@ export default function AbonnementsContent(): void {
     } finally {
       setLoading(null)
     }
-  }
+  }, [])
 
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto">

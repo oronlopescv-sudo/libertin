@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn } from 'next-auth/react'
@@ -9,7 +9,6 @@ function RegisterForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [step, setStep] = useState(1)
-  const [loading, setLoading] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -48,7 +47,7 @@ function RegisterForm() {
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
-  }
+  }, [])
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
@@ -58,7 +57,7 @@ function RegisterForm() {
     try {
       // Étape 1: Valider données
       if (!formData.email || !formData.password) {
-        setError('Tous les champs sont obligatoires')
+        setError('Tous les champs são obrigatórios')
         return
       }
 
@@ -118,15 +117,12 @@ function RegisterForm() {
         // Le compte est créé : on renvoie vers la connexion manuelle
         router.push('/login?registered=1')
       }
-    } catch {
-      setError('Erreur réseau. Vérifiez votre connexion et réessayez.')
     } catch (error) {
-    throw error
-      setError(error instanceof Error ? error.message : "Erro desconhecido")
+      setError(error instanceof Error ? error.message : 'Erreur réseau. Vérifiez votre connexion et réessayez.')
     } finally {
       setLoading(false)
     }
-  }
+  }, [formData, pseudo, pays, router])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-100 dark:from-primary-950 dark:to-secondary-900 flex items-center justify-center px-4 py-12">

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, useCallback, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn } from 'next-auth/react'
@@ -31,7 +31,6 @@ function LoginForm() {
   const justRegistered = searchParams.get('registered') === '1'
   const authError = searchParams.get('error')
   const [loading, setLoading] = useState(false)
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState(authErrorMessage(authError))
   const [formData, setFormData] = useState({
     email: '',
@@ -41,7 +40,7 @@ function LoginForm() {
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
-  }
+  }, [])
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
@@ -62,12 +61,11 @@ function LoginForm() {
 
       router.push('/decouvrir')
     } catch (error) {
-    throw error
       setError(error instanceof Error ? error.message : "Erro desconhecido")
     } finally {
       setLoading(false)
     }
-  }
+  }, [formData, router])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-100 dark:from-primary-950 dark:to-secondary-900 flex items-center justify-center px-4 py-12">

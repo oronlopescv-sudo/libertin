@@ -1,12 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import Link from 'next/link'
 
 export default function ForgotPasswordPage(): void {
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
-  const [loading, setLoading] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -26,7 +25,7 @@ export default function ForgotPasswordPage(): void {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-100 dark:from-primary-950 dark:to-secondary-900 flex items-center justify-center px-4">
