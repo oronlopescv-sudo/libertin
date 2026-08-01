@@ -45,7 +45,7 @@ export function getAuthSecret(): { secret: string | undefined; source: SecretSou
  * Só escreve se a variável ainda não existir — um valor definido no painel
  * tem sempre prioridade.
  */
-export function ensureAuthUrl(headers: Headers): void {
+export function ensureAuthUrl(headers: Headers) {
   if (process.env.NEXTAUTH_URL) return
 
   const host = headers.get('x-forwarded-host') ?? headers.get('host')

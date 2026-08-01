@@ -1,4 +1,5 @@
-export const Features = React.memo(() {
+import React from 'react'
+export const Features = React.memo(() => {
   const features = [
     {
       icon: '🔒',
@@ -63,4 +64,4 @@ export const Features = React.memo(() {
       </div>
     </section>
   )
-}
+})

@@ -2,7 +2,7 @@ export const metadata = {
   title: 'Politique de Confidentialité - Libertinelover.com',
 }
 
-export default function PrivacitePage(): void {
+export default function PrivacitePage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-16">
       <h1 className="text-3xl font-bold font-heading mb-8 text-primary-900 dark:text-primary-100">

@@ -36,7 +36,7 @@ function VerifyEmailContent() {
   )
 }
 
-export default function VerifyEmailPage(): void {
+export default function VerifyEmailPage() {
   return (
     <Suspense>
       <VerifyEmailContent />

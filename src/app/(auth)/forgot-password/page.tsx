@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react'
 import Link from 'next/link'
 
-export default function ForgotPasswordPage(): void {
+export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -65,7 +65,7 @@ export default function ForgotPasswordPage(): void {
                 required
                 className="w-full"
               />
-              <button aria-label="Action"
+              <button
                 type="submit"
                 disabled={loading}
                 className="w-full py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white font-bold rounded-xl hover:shadow-lg transition-shadow disabled:opacity-50"

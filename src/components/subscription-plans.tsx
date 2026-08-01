@@ -1,8 +1,10 @@
 'use client'
 
+import React from 'react'
+
 import Link from 'next/link'
 
-export const SubscriptionPlans = React.memo(() {
+export const SubscriptionPlans = React.memo(() => {
   const plans = [
     {
       tier: 'FEMMES_COUPLES',
@@ -160,4 +162,4 @@ export const SubscriptionPlans = React.memo(() {
       </div>
     </div>
   )
-}
+})

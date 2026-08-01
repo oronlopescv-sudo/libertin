@@ -1,5 +1,7 @@
 'use client'
 
+import React from 'react'
+
 import Link from 'next/link'
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
@@ -12,7 +14,7 @@ const links = [
   { href: '/abonnements', label: 'Abonnements' },
 ]
 
-export const Navbar = React.memo(() {
+export const Navbar = React.memo(() => {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
 
@@ -90,7 +92,7 @@ export const Navbar = React.memo(() {
             </Link>
           </div>
 
-          <button aria-label="Action"
+          <button
             onClick={() => setIsOpen(!isOpen)}
             className="md:hidden p-2 -mr-2"
             aria-expanded={isOpen}
@@ -158,4 +160,4 @@ export const Navbar = React.memo(() {
       </div>
     </header>
   )
-}
+})

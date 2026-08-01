@@ -21,13 +21,12 @@ const categoryLabels: Record<string, { label: string; emoji: string }> = {
   prive: { label: 'Message privé', emoji: '💌' },
 }
 
-export default function GroupesPage(): void {
+export default function GroupesPage() {
   const router = useRouter()
   const [myGroups, setMyGroups] = useState<Group[]>([])
   const [publicGroups, setPublicGroups] = useState<Group[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreate, setShowCreate] = useState(false)
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [form, setForm] = useState({ name: '', description: '', category: 'casual', isPrivate: false })
 
@@ -40,10 +39,7 @@ export default function GroupesPage(): void {
         setMyGroups(data.myGroups ?? [])
         setPublicGroups(data.publicGroups ?? [])
       }
-    } catch (error) {
-    throw error
-      setError(error instanceof Error ? error.message : "Erro desconhecido")
-    } finally {
+        } finally {
       setLoading(false)
     }
   }, [])
@@ -74,7 +70,7 @@ export default function GroupesPage(): void {
     setShowCreate(false)
     setForm({ name: '', description: '', category: 'casual', isPrivate: false })
     fetchGroups()
-  }
+  }, [])
 
   const handleJoin = useCallback(async (groupId: string) => {
     setError('')
@@ -99,7 +95,7 @@ export default function GroupesPage(): void {
     } catch {
       setError('Erreur réseau. Vérifiez votre connexion.')
     }
-  }
+  }, [])
 
   const GroupCard = ({ group, isMember }: { group: Group; isMember: boolean }) => {
     const cat = categoryLabels[group.category] ?? categoryLabels.casual
@@ -130,7 +126,7 @@ export default function GroupesPage(): void {
               Ouvrir le chat
             </Link>
           ) : (
-            <button aria-label="Action"
+            <button
               onClick={() => handleJoin(group.id)}
               className="px-4 py-2 border border-primary-600 text-primary-600 text-sm font-semibold rounded-lg hover:bg-primary-50 dark:hover:bg-primary-950 transition-colors"
             >
@@ -156,7 +152,7 @@ export default function GroupesPage(): void {
             Créez et rejoignez des groupes de discussion privés
           </p>
         </div>
-        <button aria-label="Action"
+        <button
           onClick={() => setShowCreate(true)}
           className="px-5 py-2.5 bg-gradient-to-r from-primary-600 to-accent-600 text-white font-bold rounded-xl hover:shadow-lg transition-shadow whitespace-nowrap"
         >
@@ -266,14 +262,14 @@ export default function GroupesPage(): void {
                 </label>
               </div>
               <div className="flex gap-3 pt-2">
-                <button aria-label="Action"
+                <button
                   type="button"
                   onClick={() => setShowCreate(false)}
                   className="flex-1 py-3 bg-slate-200 dark:bg-slate-700 font-semibold rounded-lg"
                 >
                   Annuler
                 </button>
-                <button aria-label="Action"
+                <button
                   type="submit"
                   className="flex-1 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white font-bold rounded-lg"
                 >

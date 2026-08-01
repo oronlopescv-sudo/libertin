@@ -155,7 +155,7 @@ function LoginForm() {
             </div>
 
             {/* Submit Button */}
-            <button aria-label="Action"
+            <button
               type="submit"
               disabled={loading}
               className="w-full py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white font-bold rounded-lg hover:shadow-lg transition-shadow disabled:opacity-50"
@@ -177,7 +177,7 @@ function LoginForm() {
           </div>
 
           {/* Google Login */}
-          <button aria-label="Action"
+          <button
             type="button"
             onClick={() => signIn('google', { redirect: false })}
             className="w-full py-3 border-2 border-slate-300 dark:border-slate-600 rounded-lg font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-2"
@@ -210,7 +210,7 @@ function LoginForm() {
   )
 }
 
-export default function LoginPage(): void {
+export default function LoginPage() {
   return (
     <Suspense>
       <LoginForm />

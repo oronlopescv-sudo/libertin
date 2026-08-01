@@ -23,7 +23,7 @@ const genderEmojis: Record<string, string> = {
   couple: '👫',
 }
 
-export default function ChatPage(): void {
+export default function ChatPage() {
   const { groupId } = useParams<{ groupId: string }>()
   const router = useRouter()
   const { data: session } = useSession()
@@ -124,13 +124,10 @@ export default function ChatPage(): void {
       setTimeout(scrollToBottom, 100)
     } catch {
       setError("Erreur réseau. Message non envoyé.")
-    } catch (error) {
-    throw error
-      setError(error instanceof Error ? error.message : "Erro desconhecido")
-    } finally {
+        } finally {
       setSending(false)
     }
-  }
+  }, [])
 
   if (accessDenied) {
     return (
@@ -237,7 +234,7 @@ export default function ChatPage(): void {
               maxLength={2000}
               className="flex-1"
             />
-            <button aria-label="Action"
+            <button
               type="submit"
               disabled={sending || !input.trim()}
               className="px-5 py-2 bg-primary-600 text-white font-bold rounded-lg disabled:opacity-40 hover:bg-primary-700 transition-colors"

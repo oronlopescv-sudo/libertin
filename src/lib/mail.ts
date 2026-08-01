@@ -42,6 +42,7 @@ export async function sendMail(options: {
   text: string
 }): Promise<SendResult> {
   if (!isMailConfigured()) {
+    console.warn(
       '[MAIL] SMTP não configurado — email não enviado para',
       options.to,
       '| define SMTP_HOST, SMTP_USER e SMTP_PASSWORD'
@@ -59,7 +60,7 @@ export async function sendMail(options: {
     })
     return { sent: true }
   } catch (error) {
-    throw error
+    console.error(
       '[MAIL] Falha ao enviar email:',
       error instanceof Error ? error.message : error
     )
@@ -86,7 +87,7 @@ function layout(title: string, body: string, cta?: { url: string; label: string 
 }
 
 /** Email de reposição de password. */
-export function passwordResetEmail(resetUrl: string): void {
+export function passwordResetEmail(resetUrl: string) {
   return {
     subject: 'Réinitialisation de votre mot de passe',
     text: `Vous avez demandé la réinitialisation de votre mot de passe.\n\nOuvrez ce lien (valable 1 heure) :\n${resetUrl}\n\nSi vous n'êtes pas à l'origine de cette demande, ignorez cet email.`,
@@ -100,7 +101,7 @@ export function passwordResetEmail(resetUrl: string): void {
 }
 
 /** Email de boas-vindas após o registo. */
-export function welcomeEmail(username: string, loginUrl: string): void {
+export function welcomeEmail(username: string, loginUrl: string) {
   return {
     subject: 'Bienvenue sur Libertinelover',
     text: `Bonjour ${username},\n\nVotre compte est actif. Connectez-vous ici :\n${loginUrl}`,

@@ -221,7 +221,7 @@ function RegisterForm() {
                   </label>
                 </div>
 
-                <button aria-label="Action"
+                <button
                   type="button"
                   onClick={() => setStep(2)}
                   className="w-full py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white font-bold rounded-lg hover:shadow-lg transition-shadow"
@@ -285,14 +285,14 @@ function RegisterForm() {
                 </div>
 
                 <div className="flex gap-3">
-                  <button aria-label="Action"
+                  <button
                     type="button"
                     onClick={() => setStep(1)}
                     className="flex-1 py-3 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white font-bold rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
                   >
                     Retour
                   </button>
-                  <button aria-label="Action"
+                  <button
                     type="submit"
                     disabled={loading}
                     className="flex-1 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white font-bold rounded-lg hover:shadow-lg transition-shadow disabled:opacity-50"
@@ -317,7 +317,7 @@ function RegisterForm() {
   )
 }
 
-export default function RegisterPage(): void {
+export default function RegisterPage() {
   return (
     <Suspense>
       <RegisterForm />

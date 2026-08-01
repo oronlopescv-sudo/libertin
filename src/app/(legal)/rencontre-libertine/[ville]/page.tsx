@@ -8,7 +8,7 @@ interface Props {
 }
 
 // Génération statique de toutes les pages villes au build
-export function generateStaticParams(): void {
+export function generateStaticParams() {
   return villes.map((v) => ({ ville: v.slug }))
 }
 
@@ -31,7 +31,7 @@ export function generateMetadata({ params }: Props): Metadata {
   }
 }
 
-export default function VillePage({ params }: Props): void {
+export default function VillePage({ params }: Props) {
   const ville = getVille(params.ville)
   if (!ville) notFound()
 

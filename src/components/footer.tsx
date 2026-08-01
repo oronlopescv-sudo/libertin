@@ -1,5 +1,7 @@
 'use client'
 
+import React from 'react'
+
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -13,7 +15,7 @@ const links = [
   { href: '/mentions-legales', label: 'Mentions légales' },
 ]
 
-export const Footer = React.memo(() {
+export const Footer = React.memo(() => {
   const pathname = usePathname()
   const currentYear = new Date().getFullYear()
 
@@ -49,4 +51,4 @@ export const Footer = React.memo(() {
       </div>
     </footer>
   )
-}
+})

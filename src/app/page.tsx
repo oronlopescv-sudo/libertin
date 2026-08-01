@@ -34,7 +34,7 @@ const avantages = [
   { icon: '💚', titre: 'Inscription gratuite', sous: 'femmes et couples' },
 ]
 
-export default function HomePage(): void {
+export default function HomePage() {
   return (
     <div className="w-full">
       {/* Hero avec formulaire — format Libertic */}

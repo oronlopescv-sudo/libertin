@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 
 interface Profile {
   username: string
@@ -35,7 +35,7 @@ const genderLabels: Record<string, string> = {
   couple: 'Couple',
 }
 
-export default function ProfilPage(): void {
+export default function ProfilPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -67,10 +67,7 @@ export default function ProfilPage(): void {
       }
     } catch {
       setError('Erreur réseau. Vérifiez votre connexion.')
-    } catch (error) {
-    throw error
-      setError(error instanceof Error ? error.message : "Erro desconhecido")
-    } finally {
+        } finally {
       setUploading(false)
     }
   }
@@ -146,13 +143,10 @@ export default function ProfilPage(): void {
       }
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
-    } catch (error) {
-    throw error
-      setError(error instanceof Error ? error.message : "Erro desconhecido")
-    } finally {
+        } finally {
       setSaving(false)
     }
-  }
+  }, [])
 
   if (!profile) {
     return (
@@ -224,13 +218,13 @@ export default function ProfilPage(): void {
           {profile.photos?.map((p) => (
             <div key={p.id} className="relative aspect-square rounded-xl overflow-hidden group">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img alt="Content" src={p.url} alt="" className="w-full h-full object-cover" />
+              <img src={p.url} alt="" className="w-full h-full object-cover" />
               {p.isCover && (
                 <span className="absolute top-1 left-1 bg-primary-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
                   Couverture
                 </span>
               )}
-              <button aria-label="Action"
+              <button
                 type="button"
                 onClick={() => deletePhoto(p.id)}
                 className="absolute top-1 right-1 bg-black/60 text-white text-xs w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
@@ -312,7 +306,7 @@ export default function ProfilPage(): void {
           <label className="block text-sm font-semibold mb-3">Centres d&apos;intérêt</label>
           <div className="flex flex-wrap gap-2">
             {interestOptions.map((interest) => (
-              <button aria-label="Action"
+              <button
                 key={interest}
                 type="button"
                 onClick={() => toggleInterest(interest)}
@@ -328,7 +322,7 @@ export default function ProfilPage(): void {
           </div>
         </div>
 
-        <button aria-label="Action"
+        <button
           type="submit"
           disabled={saving}
           className="w-full py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white font-bold rounded-xl hover:shadow-lg transition-shadow disabled:opacity-50"

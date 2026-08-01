@@ -67,7 +67,7 @@ function ResetForm() {
             required
             className="w-full"
           />
-          <button aria-label="Action"
+          <button
             type="submit"
             disabled={loading || !token}
             className="w-full py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white font-bold rounded-xl hover:shadow-lg transition-shadow disabled:opacity-50"
@@ -88,7 +88,7 @@ function ResetForm() {
   )
 }
 
-export default function ResetPasswordPage(): void {
+export default function ResetPasswordPage() {
   return (
     <Suspense>
       <ResetForm />

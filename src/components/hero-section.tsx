@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React from 'react'
+
+import { useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
-export const HeroSection = React.memo(() {
+export const HeroSection = React.memo(() => {
   const router = useRouter()
   const [stats, setStats] = useState({ femmesCouplesPct: 78.0, hommesPct: 22.0 })
   const [gender, setGender] = useState('')
@@ -45,7 +47,7 @@ export const HeroSection = React.memo(() {
 
     const params = new URLSearchParams({ gender, pseudo, password, pays })
     router.push(`/register?${params.toString()}`)
-  }
+  }, [])
 
   return (
     <section className="bg-secondary-900 text-white">
@@ -220,7 +222,7 @@ export const HeroSection = React.memo(() {
                 </span>
               </label>
 
-              <button aria-label="Action"
+              <button
                 type="submit"
                 className="w-full py-3.5 bg-gradient-to-r from-primary-600 to-accent-600 text-white font-bold font-heading rounded-xl hover:shadow-elevated transition-shadow text-lg tracking-wide"
               >
@@ -233,4 +235,4 @@ export const HeroSection = React.memo(() {
 
     </section>
   )
-}
+})

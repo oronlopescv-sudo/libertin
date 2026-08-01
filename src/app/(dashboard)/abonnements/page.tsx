@@ -4,7 +4,7 @@ import AbonnementsContent from './content'
 // Evita pré-renderização estática desta página (usa useSearchParams)
 export const dynamic = 'force-dynamic'
 
-export default function AbonnementsPage(): void {
+export default function AbonnementsPage() {
   return (
     <Suspense fallback={<AbonnementsLoading />}>
       <AbonnementsContent />

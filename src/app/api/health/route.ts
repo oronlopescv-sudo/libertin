@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic'
  * Abre /api/health no browser para ver o que falta configurar.
  * Nunca expõe valores de segredos — apenas se estão definidos ou não.
  */
-export async function GET(request: Request): void {
+export async function GET(request: Request) {
   const required = ['NEXTAUTH_URL', 'NEXTAUTH_SECRET']
   const optional = [
     'SMTP_HOST',
@@ -34,10 +34,10 @@ export async function GET(request: Request): void {
     const value = process.env[key]
     if (!value) {
       env[key] = 'EM FALTA'
-      problems.push(`${key} não está definida`])
+      problems.push(`${key} não está definida`)
     } else if (isPlaceholder(value)) {
       env[key] = 'VALOR PLACEHOLDER'
-      problems.push(`${key} ainda tem um valor de exemplo`])
+      problems.push(`${key} ainda tem um valor de exemplo`)
     } else {
       env[key] = 'definida'
     }
@@ -48,46 +48,45 @@ export async function GET(request: Request): void {
   }
 
   // Ligacao a base de dados: URL completo ou campos separados
-  const { url: dbUrl, source: dbSource } = buildDatabaseUrl(])
+  const { url: dbUrl, source: dbSource } = buildDatabaseUrl()
   if (!dbUrl) {
     problems.push(
       'Base de dados não configurada: define DATABASE_URL, ou então DB_HOST, DB_USER, DB_PASSWORD e DB_NAME'
-    ])
+    )
   } else if (dbSource === 'DATABASE_URL' && hasUnencodedPassword(dbUrl)) {
     problems.push(
       'A password dentro de DATABASE_URL não está codificada (contém um @). ' +
         'Codifica-a (@ vira %40, + vira %2B, & vira %26) ou usa DB_HOST/DB_USER/DB_PASSWORD/DB_NAME.'
-    ])
+    )
   }
 
   // NEXTAUTH_SECRET tem de ter comprimento suficiente
   const secret = process.env.NEXTAUTH_SECRET
   if (secret && secret.length < 32) {
-    problems.push('NEXTAUTH_SECRET tem menos de 32 caracteres'])
+    problems.push('NEXTAUTH_SECRET tem menos de 32 caracteres')
   }
 
   // Testa ligação à base de dados
   let database = 'não testada'
   try {
     await prisma.$queryRaw`SELECT 1`
-    const users = await prisma.user.count(])
+    const users = await prisma.user.count()
     database = `ligada (${users} utilizadores)`
   } catch (error) {
-    throw error
     database = 'ERRO DE LIGAÇÃO'
     problems.push(
       'Não foi possível ligar à base de dados: ' +
-        (e instanceof Error ? e.message.split('\n')[0] : 'erro desconhecido'])
-    ])
+        (error instanceof Error ? error.message.split('\n')[0] : 'erro desconhecido')
+    )
   }
 
   const emailAtivo = Boolean(
     process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD
-  ])
+  )
   if (!emailAtivo) {
     problems.push(
       'SMTP não configurado: a recuperação de password não envia email (o link fica nos logs)'
-    ])
+    )
   }
 
   const payload = {
@@ -108,10 +107,10 @@ export async function GET(request: Request): void {
     return new NextResponse(renderHtml(payload), {
       status: httpStatus,
       headers: { 'Content-Type': 'text/html; charset=utf-8' },
-    }])
+    })
   }
 
-  return NextResponse.json(payload, { status: httpStatus }])
+  return NextResponse.json(payload, { status: httpStatus })
 }
 
 type Payload = {
@@ -134,13 +133,13 @@ function renderHtml(p: Payload) {
     return `<span style="color:${cor};font-weight:600">${icone} ${v}</span>`
   }
 
-  const linhas = Object.entries(p.env])
+  const linhas = Object.entries(p.env)
     .map(
       ([k, v]) =>
         `<tr><td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;font-family:monospace;font-size:13px">${k}</td>
              <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;font-size:13px">${badge(v)}</td></tr>`
-    ])
-    .join(''])
+    )
+    .join('')
 
   const listaProblemas = p.problems.length
     ? `<h2 style="font-size:16px;margin:24px 0 8px">O que falta</h2>

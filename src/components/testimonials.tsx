@@ -1,4 +1,5 @@
-export const Testimonials = React.memo(() {
+import React from 'react'
+export const Testimonials = React.memo(() => {
   const testimonials = [
     {
       text: "Une plateforme super discrète et facile d'utilisation. Nous avons trouvé exactement ce que nous cherchions!",
@@ -57,4 +58,4 @@ export const Testimonials = React.memo(() {
       </div>
     </section>
   )
-}
+})

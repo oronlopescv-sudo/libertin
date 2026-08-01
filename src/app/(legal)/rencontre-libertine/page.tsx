@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   },
 }
 
-export default function VillesIndexPage(): void {
+export default function VillesIndexPage() {
   // Regrouper par région
   const parRegion = villes.reduce<Record<string, typeof villes>>((acc, v) => {
     ;(acc[v.region] ??= []).push(v)

@@ -15,11 +15,11 @@ interface ProfileResult {
   coverPhoto: string | null
 }
 
-export async function GET(request: NextRequest): void {
+export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions])
+    const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 }])
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
     // RÈGLE CRITIQUE : seuls les membres Premium voient les autres profils
@@ -27,16 +27,16 @@ export async function GET(request: NextRequest): void {
       return NextResponse.json(
         { error: 'Abonnement Premium requis pour découvrir les profils', premiumRequired: true },
         { status: 403 }
-      ])
+      )
     }
 
-    const { searchParams } = new URL(request.url])
+    const { searchParams } = new URL(request.url)
     const gender = searchParams.get('gender') // homme | femme | couple
-    const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10)])
+    const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10))
     const perPage = 12
 
     if (page < 1) {
-      return NextResponse.json({ error: 'Page invalide' }, { status: 400 }])
+      return NextResponse.json({ error: 'Page invalide' }, { status: 400 })
     }
 
     const where: Record<string, unknown> = {
@@ -72,9 +72,9 @@ export async function GET(request: NextRequest): void {
         take: perPage,
       }),
       prisma.user.count({ where }),
-    ]])
+    ])
 
-    const result: ProfileResult[] = profiles.map((profile) => ({
+    const result: ProfileResult[] = profiles.map((profile: any) => ({
       id: profile.id,
       username: profile.username,
       gender: profile.gender,
@@ -83,23 +83,22 @@ export async function GET(request: NextRequest): void {
       bio: profile.bio,
       isVerified: profile.isVerified,
       age: profile.dateOfBirth 
-        ? Math.floor((Date.now() - profile.dateOfBirth.getTime()) / (365.25 * 24 * 3600 * 1000)])
+        ? Math.floor((Date.now() - profile.dateOfBirth.getTime()) / (365.25 * 24 * 3600 * 1000))
         : 0,
       coverPhoto: profile.photos[0]?.url ?? null,
-    })])
+    }))
 
     return NextResponse.json({
       profiles: result,
       total,
       page,
       totalPages: Math.ceil(total / perPage),
-    }])
+    })
   } catch (error) {
-    throw error
     const errorMessage = error instanceof Error ? error.message : 'Erreur serveur'
     return NextResponse.json(
       { error: 'Erreur lors de la récupération des profils', details: errorMessage },
       { status: 500 }
-    ])
+    )
   }
 }

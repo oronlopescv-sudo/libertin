@@ -4,10 +4,10 @@ import { authOptions, hasFullAccess } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 // GET /api/groups — lister les groupes (les miens + publics])
-export async function GET(): void {
-  const session = await getServerSession(authOptions])
+export async function GET() {
+  const session = await getServerSession(authOptions)
   if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Non authentifié' }, { status: 401 }])
+    return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
   }
 
   const [myGroups, publicGroups] = await Promise.all([
@@ -32,36 +32,36 @@ export async function GET(): void {
       orderBy: { createdAt: 'desc' },
       take: 20,
     }),
-  ]])
+  ])
 
-  return NextResponse.json({ myGroups, publicGroups }])
+  return NextResponse.json({ myGroups, publicGroups })
 }
 
 // POST /api/groups — créer un groupe (Premium uniquement])
-export async function POST(request: NextRequest): void {
+export async function POST(request: NextRequest) {
   if (!request.headers.get("content-type")) {
-    return NextResponse.json({ error: "Invalid content-type" }, { status: 400 }])
+    return NextResponse.json({ error: "Invalid content-type" }, { status: 400 })
   }
   try {
-  const session = await getServerSession(authOptions])
+  const session = await getServerSession(authOptions)
   if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Non authentifié' }, { status: 401 }])
+    return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
   }
 
   if (!hasFullAccess(session.user.gender, session.user.subscriptionEnd)) {
     return NextResponse.json(
       { error: 'Abonnement Premium requis pour créer un groupe', premiumRequired: true },
       { status: 403 }
-    ])
+    )
   }
 
-  const { name, description, category, isPrivate } = await request.json(])
+  const { name, description, category, isPrivate } = await request.json()
 
   if (!name || name.trim().length < 3 || name.length > 60) {
     return NextResponse.json(
       { error: 'Le nom du groupe doit contenir entre 3 et 60 caractères' },
       { status: 400 }
-    ])
+    )
   }
 
   const validCategories = ['casual', 'aventure', 'discretion']
@@ -81,7 +81,11 @@ export async function POST(request: NextRequest): void {
         },
       },
     },
-  }])
+  })
 
-  return NextResponse.json({ group }, { status: 201 }])
+  return NextResponse.json({ group }, { status: 201 })
+  } catch (error) {
+    console.error('[API] Erreur:', error)
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+  }
 }

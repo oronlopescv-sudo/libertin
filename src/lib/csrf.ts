@@ -7,5 +7,5 @@ export function generateCSRFToken(): string {
 
 export function validateCSRFToken(token: string): boolean {
   // Validate CSRF token logic
-  return token && token.length > 0
+  return Boolean(token) && token.length > 0
 }

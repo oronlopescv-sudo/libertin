@@ -8,16 +8,16 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const session = await getServerSession(authOptions])
+  const session = await getServerSession(authOptions)
   if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Non authentifié' }, { status: 401 }])
+    return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
   }
 
   if (!hasFullAccess(session.user.gender, session.user.subscriptionEnd)) {
     return NextResponse.json(
       { error: 'Abonnement Premium requis', premiumRequired: true },
       { status: 403 }
-    ])
+    )
   }
 
   const user = await prisma.user.findUnique({
@@ -37,10 +37,10 @@ export async function GET(
       lastLoginAt: true,
       photos: { select: { url: true, isCover: true }, orderBy: { order: 'asc' } },
     },
-  }])
+  })
 
   if (!user || !user.isActive || user.isBanned) {
-    return NextResponse.json({ error: 'Profil introuvable' }, { status: 404 }])
+    return NextResponse.json({ error: 'Profil introuvable' }, { status: 404 })
   }
 
   return NextResponse.json({
@@ -57,5 +57,5 @@ export async function GET(
       lastSeen: user.lastLoginAt,
       photos: user.photos,
     },
-  }])
+  })
 }
