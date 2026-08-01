@@ -32,7 +32,11 @@ Substituições necessárias:
 | `:` | `%3A` |
 | `?` | `%3F` |
 
-Uma password como `B+&284@o` fica `B%2B%26284%40o` dentro do URL.
+Exemplo genérico: uma password como `X+&123@z` fica `X%2B%26123%40z` dentro do URL.
+
+> Nunca escrevas a tua password real em ficheiros do repositório — fica
+> guardada para sempre no histórico do Git. Usa apenas as variáveis de
+> ambiente do painel da Hostinger.
 
 ## Criar as tabelas
 

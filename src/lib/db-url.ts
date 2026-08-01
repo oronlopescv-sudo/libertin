@@ -11,9 +11,12 @@
  * Forma 2 — campos separados (a password vai tal como é, sem codificar):
  *   DB_HOST     = localhost
  *   DB_PORT     = 3306          (opcional, 3306 por omissão)
- *   DB_USER     = u128759105_SEXFR
- *   DB_PASSWORD = B+&284@o
- *   DB_NAME     = u128759105_SEX
+ *   DB_USER     = o_utilizador_da_base
+ *   DB_PASSWORD = a_password_tal_como_e
+ *   DB_NAME     = o_nome_da_base
+ *
+ * Nunca escrever credenciais reais neste ficheiro: fica tudo no histórico
+ * do Git. Os valores vivem apenas nas variáveis de ambiente do servidor.
  *
  * Se as duas estiverem presentes, os campos separados têm prioridade,
  * por serem menos propensos a erro.
