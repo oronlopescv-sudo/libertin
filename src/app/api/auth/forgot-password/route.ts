@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { randomBytes } from 'crypto'
 import { sendMail, passwordResetEmail } from '@/lib/mail'
+import { checkRateLimit, clientIp, tooManyRequests } from '@/lib/rateLimit'
 
 // Réponse identique que l'email existe ou non (évite l'énumération de comptes])
 export async function POST(request: NextRequest) {
   if (!request.headers.get("content-type")) {
     return NextResponse.json({ error: "Invalid content-type" }, { status: 400 })
+  }
+  if (!checkRateLimit(`forgot:${clientIp(request)}`, 3)) {
+    return tooManyRequests()
   }
   try {
     const { email } = await request.json()

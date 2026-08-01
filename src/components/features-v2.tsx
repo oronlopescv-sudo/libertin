@@ -6,38 +6,38 @@ const FeaturesV2 = React.memo(() => {
   const features = [
     {
       icon: '🔐',
-      title: 'Privacidade Total',
-      description: 'Seus dados e identidade são protegidos com criptografia de nível militar. Ninguém descobre sem sua permissão.',
+      title: 'Confidentialité totale',
+      description: 'Vos données et votre identité sont protégées par un chiffrement de niveau militaire. Personne ne vous découvre sans votre accord.',
       color: 'from-blue-500 to-cyan-500'
     },
     {
       icon: '✅',
-      title: 'Perfis Verificados',
-      description: 'Todos os membros passam por verificação rigorosa para garantir autenticidade e segurança.',
+      title: 'Profils vérifiés',
+      description: 'Tous les membres passent par une vérification rigoureuse garantissant authenticité et sécurité.',
       color: 'from-green-500 to-emerald-500'
     },
     {
       icon: '💬',
-      title: 'Chat em Tempo Real',
-      description: 'Converse com compatibilidade, organize encontros discretos e desenvolva conexões reais.',
+      title: 'Chat en temps réel',
+      description: 'Échangez en toute compatibilité, organisez des rencontres discrètes et créez de vraies connexions.',
       color: 'from-purple-500 to-pink-500'
     },
     {
       icon: '👥',
-      title: 'Comunidade Ativa',
-      description: 'Mais de 50.000 membros ativos todos os dias buscando conexões autênticas.',
+      title: 'Communauté active',
+      description: 'Plus de 50 000 membres actifs chaque jour à la recherche de connexions authentiques.',
       color: 'from-orange-500 to-red-500'
     },
     {
       icon: '📱',
-      title: 'Mobile Optimizado',
-      description: 'Acesse de qualquer lugar, qualquer hora. Aplicativo rápido e responsivo.',
+      title: 'Optimisé pour mobile',
+      description: 'Accédez au site partout, à toute heure. Rapide et parfaitement responsive.',
       color: 'from-indigo-500 to-purple-500'
     },
     {
       icon: '🎁',
-      title: 'Muitos Benefícios',
-      description: 'Fotos premium, filtros avançados, voz e vídeo. Tudo para encontrar conexões perfeitas.',
+      title: 'De nombreux avantages',
+      description: 'Photos premium, filtres avancés, voix et vidéo. Tout pour trouver les bonnes rencontres.',
       color: 'from-pink-500 to-rose-500'
     }
   ]
@@ -48,13 +48,13 @@ const FeaturesV2 = React.memo(() => {
         {/* Section Header */}
         <div className="text-center mb-20">
           <h2 className="text-4xl sm:text-5xl font-black text-white mb-6">
-            Por Que Escolher
+            Pourquoi choisir
             <span className="block bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400">
               Libertinelover?
             </span>
           </h2>
           <p className="text-xl text-slate-300 max-w-2xl mx-auto">
-            A plataforma mais segura, discreta e ativa para encontros de adultos no mercado
+            La plateforme la plus sûre, la plus discrète et la plus active pour les rencontres entre adultes
           </p>
         </div>
 

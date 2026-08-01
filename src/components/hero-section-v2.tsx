@@ -22,7 +22,7 @@ const HeroSectionV2 = React.memo(() => {
         {/* Tagline */}
         <div className="animate-fade-in-down">
           <span className="inline-block px-4 py-2 rounded-full bg-purple-500/10 border border-purple-400/30 text-purple-300 text-sm font-semibold tracking-wide">
-            🔥 Comunidade de Adultos Premium
+            🔥 Communauté premium pour adultes
           </span>
         </div>
 
@@ -33,7 +33,7 @@ const HeroSectionV2 = React.memo(() => {
 
         {/* Subheading */}
         <p className="animate-fade-in-down animation-delay-400 mt-6 text-lg sm:text-xl text-slate-300 text-center max-w-2xl leading-relaxed">
-          Encontros discretos, seguros e sensuais para adultos que exploram suas fantasias sem julgamento
+          Des rencontres discrètes, sûres et sensuelles pour les adultes qui explorent leurs envies sans jugement
         </p>
 
         {/* CTA Buttons */}
@@ -42,13 +42,13 @@ const HeroSectionV2 = React.memo(() => {
             href="/register"
             className="px-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-purple-500/50 hover:scale-105 transform"
           >
-            Criar Conta Grátis
+            Créer un compte gratuit
           </Link>
           <button
             onClick={handleExplore}
             className="px-8 py-4 rounded-xl border-2 border-purple-400/50 text-purple-200 font-bold text-lg hover:bg-purple-500/10 hover:border-purple-300 transition-all duration-300"
           >
-            Conhecer Mais ↓
+            En savoir plus ↓
           </button>
         </div>
 
@@ -56,17 +56,17 @@ const HeroSectionV2 = React.memo(() => {
         <div className="animate-fade-in-up animation-delay-800 mt-16 flex flex-col sm:flex-row gap-8 text-center text-sm text-slate-400">
           <div>
             <div className="text-2xl font-bold text-purple-300">50K+</div>
-            <p>Membros Verificados</p>
+            <p>Membres vérifiés</p>
           </div>
           <div className="h-8 w-px bg-slate-700 hidden sm:block" />
           <div>
             <div className="text-2xl font-bold text-purple-300">24/7</div>
-            <p>Suporte Discreto</p>
+            <p>Support discret</p>
           </div>
           <div className="h-8 w-px bg-slate-700 hidden sm:block" />
           <div>
             <div className="text-2xl font-bold text-purple-300">🔐 100%</div>
-            <p>Privado & Seguro</p>
+            <p>Privé &amp; sécurisé</p>
           </div>
         </div>
 

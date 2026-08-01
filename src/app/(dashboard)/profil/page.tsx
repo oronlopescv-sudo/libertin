@@ -143,10 +143,12 @@ export default function ProfilPage() {
       }
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
-        } finally {
+    } catch {
+      setError('Erreur réseau. Vérifiez votre connexion et réessayez.')
+    } finally {
       setSaving(false)
     }
-  }, [])
+  }, [form])
 
   if (!profile) {
     return (

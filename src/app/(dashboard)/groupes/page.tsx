@@ -39,7 +39,9 @@ export default function GroupesPage() {
         setMyGroups(data.myGroups ?? [])
         setPublicGroups(data.publicGroups ?? [])
       }
-        } finally {
+    } catch {
+      setError('Erreur réseau. Impossible de charger les groupes.')
+    } finally {
       setLoading(false)
     }
   }, [])
@@ -51,26 +53,30 @@ export default function GroupesPage() {
   const handleCreate = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    const res = await fetch('/api/groups', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
-    })
-    const data = await res.json()
+    try {
+      const res = await fetch('/api/groups', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+      const data = await res.json()
 
-    if (!res.ok) {
-      if (data.premiumRequired) {
-        router.push('/abonnements')
+      if (!res.ok) {
+        if (data.premiumRequired) {
+          router.push('/abonnements')
+          return
+        }
+        setError(data.error ?? 'Erreur lors de la création')
         return
       }
-      setError(data.error ?? 'Erreur lors de la création')
-      return
-    }
 
-    setShowCreate(false)
-    setForm({ name: '', description: '', category: 'casual', isPrivate: false })
-    fetchGroups()
-  }, [])
+      setShowCreate(false)
+      setForm({ name: '', description: '', category: 'casual', isPrivate: false })
+      fetchGroups()
+    } catch {
+      setError('Erreur réseau. Vérifiez votre connexion et réessayez.')
+    }
+  }, [form, router, fetchGroups])
 
   const handleJoin = useCallback(async (groupId: string) => {
     setError('')
@@ -95,7 +101,7 @@ export default function GroupesPage() {
     } catch {
       setError('Erreur réseau. Vérifiez votre connexion.')
     }
-  }, [])
+  }, [router])
 
   const GroupCard = ({ group, isMember }: { group: Group; isMember: boolean }) => {
     const cat = categoryLabels[group.category] ?? categoryLabels.casual

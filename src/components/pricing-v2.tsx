@@ -6,51 +6,51 @@ import Link from 'next/link'
 const PricingV2 = React.memo(() => {
   const plans = [
     {
-      name: 'Explorador',
+      name: 'Explorateur',
       price: '0',
-      description: 'Perfeito para começar',
+      description: 'Parfait pour commencer',
       features: [
-        '✓ Criação de perfil básico',
-        '✓ 10 mensagens/dia',
-        '✓ Procura simples',
-        '✓ Ver fotos de perfil',
-        '✗ Chat em tempo real',
-        '✗ Filtros avançados',
+        '✓ Création d\'un profil de base',
+        '✓ 10 messages par jour',
+        '✓ Recherche simple',
+        '✓ Voir les photos de profil',
+        '✗ Chat en temps réel',
+        '✗ Filtres avancés',
       ],
-      cta: 'Começar Grátis',
+      cta: 'Commencer gratuitement',
       badge: false
     },
     {
       name: 'Premium',
       price: '9,99',
-      period: '/mês',
-      description: 'Para conexões sérias',
+      period: '/mois',
+      description: 'Pour des rencontres sérieuses',
       features: [
-        '✓ Perfil completo',
-        '✓ Mensagens ilimitadas',
-        '✓ Chat em tempo real',
-        '✓ Ver quem gostou de você',
-        '✓ Filtros avançados',
-        '✓ Vídeo chamada',
+        '✓ Profil complet',
+        '✓ Messages illimités',
+        '✓ Chat en temps réel',
+        '✓ Voir qui vous a aimé',
+        '✓ Filtres avancés',
+        '✓ Appel vidéo',
       ],
-      cta: 'Upgrade Agora',
-      badge: 'Mais Popular'
+      cta: 'Passer au Premium',
+      badge: 'Le plus choisi'
     },
     {
       name: 'VIP',
       price: '29,99',
-      period: '/mês',
-      description: 'Experiência completa',
+      period: '/mois',
+      description: 'L\'expérience complète',
       features: [
-        '✓ Tudo no Premium +',
-        '✓ Destaque no feed',
-        '✓ Prioridade no suporte',
-        '✓ Galerias privadas',
-        '✓ Cupom de desconto 20%',
-        '✓ Acesso antecipado',
+        '✓ Tout le Premium, et plus',
+        '✓ Mise en avant de votre profil',
+        '✓ Support prioritaire',
+        '✓ Galeries privées',
+        '✓ 20 % de réduction',
+        '✓ Accès anticipé',
       ],
-      cta: 'Tornar-se VIP',
-      badge: 'Exclusive'
+      cta: 'Devenir VIP',
+      badge: 'Exclusif'
     }
   ]
 
@@ -60,13 +60,13 @@ const PricingV2 = React.memo(() => {
         {/* Header */}
         <div className="text-center mb-20">
           <h2 className="text-4xl sm:text-5xl font-black text-white mb-6">
-            Planos Transparentes
+            Des tarifs transparents
             <span className="block bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400">
-              Sem Surpresas
+              Sans surprise
             </span>
           </h2>
           <p className="text-xl text-slate-300 max-w-2xl mx-auto">
-            Escolha o plano que melhor se encaixa no seu estilo de vida
+            Choisissez la formule qui correspond le mieux à votre rythme
           </p>
         </div>
 

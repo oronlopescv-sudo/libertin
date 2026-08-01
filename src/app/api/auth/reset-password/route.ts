@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { hash } from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
+import { checkRateLimit, clientIp, tooManyRequests } from '@/lib/rateLimit'
 
 export async function POST(request: NextRequest) {
   if (!request.headers.get("content-type")) {
     return NextResponse.json({ error: "Invalid content-type" }, { status: 400 })
+  }
+  if (!checkRateLimit(`reset:${clientIp(request)}`, 5)) {
+    return tooManyRequests()
   }
   try {
     const { token, password } = await request.json()

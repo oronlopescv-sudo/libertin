@@ -7,9 +7,6 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  if (!request.headers.get("content-type")) {
-    return NextResponse.json({ error: "Invalid content-type" }, { status: 400 })
-  }
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })

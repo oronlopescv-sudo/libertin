@@ -65,3 +65,5 @@ export const Features = React.memo(() => {
     </section>
   )
 })
+
+Features.displayName = 'Features'

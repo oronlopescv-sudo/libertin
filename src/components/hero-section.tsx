@@ -45,9 +45,17 @@ export const HeroSection = React.memo(() => {
     if (!pays) return setError('Choisissez votre pays')
     if (!major || !rgpd) return setError('Vous devez accepter les conditions')
 
-    const params = new URLSearchParams({ gender, pseudo, password, pays })
+    // Le mot de passe ne transite jamais par l'URL : il finirait dans
+    // l'historique du navigateur et dans les logs d'accès du serveur.
+    try {
+      sessionStorage.setItem('inscription:password', password)
+    } catch {
+      // Mode navigation privée restrictif : on continue sans pré-remplissage.
+    }
+
+    const params = new URLSearchParams({ gender, pseudo, pays })
     router.push(`/register?${params.toString()}`)
-  }, [])
+  }, [gender, pseudo, password, pays, major, rgpd, router])
 
   return (
     <section className="bg-secondary-900 text-white">
@@ -236,3 +244,5 @@ export const HeroSection = React.memo(() => {
     </section>
   )
 })
+
+HeroSection.displayName = 'HeroSection'

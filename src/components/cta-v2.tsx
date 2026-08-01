@@ -17,12 +17,12 @@ const CTAV2 = React.memo(() => {
       <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         {/* Heading */}
         <h2 className="text-4xl sm:text-5xl font-black text-white mb-6">
-          Pronto para Encontrar Sua Próxima Conexão?
+          Prêt à faire votre prochaine rencontre ?
         </h2>
 
         {/* Description */}
         <p className="text-xl text-slate-300 mb-12 leading-relaxed max-w-2xl mx-auto">
-          Junte-se a milhares de adultos que já encontraram conexões incríveis em Libertinelover. Sem julgamento, sem surpresas, apenas diversão discreta.
+          Rejoignez des milliers d&apos;adultes qui ont déjà fait de belles rencontres sur Libertinelover. Sans jugement, sans surprise, en toute discrétion.
         </p>
 
         {/* CTA Buttons */}
@@ -31,13 +31,13 @@ const CTAV2 = React.memo(() => {
             href="/register"
             className="px-10 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-purple-500/50 hover:scale-105 transform"
           >
-            Criar Conta Agora
+            Créer un compte
           </Link>
           <Link
             href="/login"
             className="px-10 py-4 rounded-xl border-2 border-purple-400/50 text-purple-200 font-bold text-lg hover:bg-purple-500/10 hover:border-purple-300 transition-all duration-300"
           >
-            Já Tenho Conta
+            J&apos;ai déjà un compte
           </Link>
         </div>
 
@@ -45,15 +45,15 @@ const CTAV2 = React.memo(() => {
         <div className="flex flex-wrap justify-center gap-8 text-sm text-slate-400">
           <div className="flex items-center gap-2">
             <span className="text-green-400">✓</span>
-            <span>Conta anônima</span>
+            <span>Compte anonyme</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-green-400">✓</span>
-            <span>100% privado</span>
+            <span>100 % privé</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-green-400">✓</span>
-            <span>Primeiro mês grátis</span>
+            <span>Premier mois offert</span>
           </div>
         </div>
       </div>

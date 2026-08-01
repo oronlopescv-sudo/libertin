@@ -52,3 +52,5 @@ export const Footer = React.memo(() => {
     </footer>
   )
 })
+
+Footer.displayName = 'Footer'

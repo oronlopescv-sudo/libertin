@@ -1,18 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { hash } from 'bcryptjs'
+import { randomBytes } from 'crypto'
 import { prisma } from '@/lib/prisma'
 import { sendMail, welcomeEmail } from '@/lib/mail'
 import { describeDbError } from '@/lib/db-errors'
+import { checkRateLimit, clientIp, tooManyRequests } from '@/lib/rateLimit'
 
 function generateUsername(email: string): string {
-  const base = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '').slice(0, 12)
-  const suffix = require('crypto').randomBytes(32).toString('hex').toString(36).slice(2, 6)
+  const base = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '').slice(0, 12) || 'membre'
+  const suffix = randomBytes(3).toString('hex')
   return `${base}_${suffix}`
+}
+
+/** Pseudo automatique garanti libre (quelques essais suffisent). */
+async function uniqueUsername(email: string): Promise<string> {
+  for (let i = 0; i < 5; i++) {
+    const candidate = generateUsername(email)
+    const taken = await prisma.user.findUnique({ where: { username: candidate } })
+    if (!taken) return candidate
+  }
+  return `membre_${randomBytes(6).toString('hex')}`
 }
 
 export async function POST(request: NextRequest) {
   if (!request.headers.get("content-type")) {
     return NextResponse.json({ error: "Invalid content-type" }, { status: 400 })
+  }
+  if (!checkRateLimit(`register:${clientIp(request)}`, 5)) {
+    return tooManyRequests()
   }
   try {
     const { email, password, dateOfBirth, gender, sexualOrientation, username, pays } =
@@ -56,7 +71,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Pseudo choisi sur la homepage (format Libertic) — vérifier l'unicité
-    let finalUsername = generateUsername(normalizedEmail)
+    let finalUsername = await uniqueUsername(normalizedEmail)
     if (typeof username === 'string' && username.trim().length >= 4) {
       const cleaned = username.trim().slice(0, 16)
       const taken = await prisma.user.findUnique({ where: { username: cleaned } })

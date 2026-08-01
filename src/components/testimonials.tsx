@@ -43,7 +43,7 @@ export const Testimonials = React.memo(() => {
             >
               <div className="text-2xl mb-4">{testimonial.badge}</div>
               <p className="text-slate-700 dark:text-slate-300 mb-6 italic leading-relaxed">
-                "{testimonial.text}"
+                &laquo;&nbsp;{testimonial.text}&nbsp;&raquo;
               </p>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-accent-600 rounded-full"></div>
@@ -59,3 +59,5 @@ export const Testimonials = React.memo(() => {
     </section>
   )
 })
+
+Testimonials.displayName = 'Testimonials'

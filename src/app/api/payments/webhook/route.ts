@@ -9,6 +9,14 @@ async function activateSubscription(userId: string, tier: string, stripeSessionI
   if (!isValidTier(tier)) throw new Error(`Tier invalide: ${tier}`)
   const plan = PLANS[tier]
 
+  // Idempotence : Stripe rejoue les webhooks. Sans ce garde-fou, un même
+  // paiement prolongerait l'abonnement plusieurs fois.
+  const already = await prisma.subscription.findFirst({
+    where: { stripeSessionId },
+    select: { id: true },
+  })
+  if (already) return
+
   const user = await prisma.user.findUnique({ where: { id: userId } })
   if (!user) throw new Error(`Utilisateur introuvable: ${userId}`)
 

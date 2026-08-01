@@ -25,7 +25,7 @@ export default function ForgotPasswordPage() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [email])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-100 dark:from-primary-950 dark:to-secondary-900 flex items-center justify-center px-4">

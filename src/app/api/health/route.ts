@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
 import { prisma } from '@/lib/prisma'
 import { buildDatabaseUrl, hasUnencodedPassword } from '@/lib/db-url'
+import { authOptions } from '@/lib/auth'
+import { isAdminEmail } from '@/lib/admin'
 
 export const dynamic = 'force-dynamic'
 
@@ -8,8 +11,22 @@ export const dynamic = 'force-dynamic'
  * Endpoint de diagnóstico.
  * Abre /api/health no browser para ver o que falta configurar.
  * Nunca expõe valores de segredos — apenas se estão definidos ou não.
+ *
+ * O relatório completo (variáveis, estado da BD, erros) é reservado aos
+ * administradores; para toda a gente devolve apenas um estado mínimo,
+ * suficiente para monitorização de uptime.
  */
 export async function GET(request: Request) {
+  const session = await getServerSession(authOptions)
+  if (!isAdminEmail(session?.user?.email)) {
+    try {
+      await prisma.$queryRaw`SELECT 1`
+      return NextResponse.json({ status: 'ok' })
+    } catch {
+      return NextResponse.json({ status: 'degraded' }, { status: 503 })
+    }
+  }
+
   const required = ['NEXTAUTH_URL', 'NEXTAUTH_SECRET']
   const optional = [
     'SMTP_HOST',

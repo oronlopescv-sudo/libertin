@@ -70,6 +70,9 @@ const config: Config = {
         'fade-in': 'fadeIn 0.3s ease-in',
         'slide-up': 'slideUp 0.4s ease-out',
         'pulse-soft': 'pulseSoft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'fade-in-down': 'fadeInDown 0.6s ease-out both',
+        'fade-in-up': 'fadeInUp 0.6s ease-out both',
+        blob: 'blob 7s infinite',
       },
       keyframes: {
         fadeIn: {
@@ -84,9 +87,32 @@ const config: Config = {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0.8' },
         },
+        fadeInDown: {
+          '0%': { transform: 'translateY(-16px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        fadeInUp: {
+          '0%': { transform: 'translateY(16px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        blob: {
+          '0%, 100%': { transform: 'translate(0, 0) scale(1)' },
+          '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+          '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+        },
       },
     },
   },
-  plugins: [],
+  plugins: [
+    // Utilitaires animation-delay-* utilisés par les composants animés
+    ({ addUtilities }: { addUtilities: (u: Record<string, Record<string, string>>) => void }) => {
+      const delays = [200, 400, 600, 800, 2000, 4000]
+      addUtilities(
+        Object.fromEntries(
+          delays.map((ms) => [`.animation-delay-${ms}`, { 'animation-delay': `${ms}ms` }])
+        )
+      )
+    },
+  ],
 }
 export default config

@@ -16,3 +16,5 @@ export const Providers = React.memo(({ children }: ProvidersProps) => {
     </SessionProvider>
   )
 })
+
+Providers.displayName = 'Providers'

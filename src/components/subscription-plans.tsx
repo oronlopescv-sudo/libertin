@@ -163,3 +163,5 @@ export const SubscriptionPlans = React.memo(() => {
     </div>
   )
 })
+
+SubscriptionPlans.displayName = 'SubscriptionPlans'

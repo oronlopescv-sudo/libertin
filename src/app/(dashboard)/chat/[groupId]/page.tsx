@@ -124,10 +124,10 @@ export default function ChatPage() {
       setTimeout(scrollToBottom, 100)
     } catch {
       setError("Erreur réseau. Message non envoyé.")
-        } finally {
+    } finally {
       setSending(false)
     }
-  }, [])
+  }, [input, sending, groupId, router])
 
   if (accessDenied) {
     return (

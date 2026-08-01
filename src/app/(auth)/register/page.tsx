@@ -29,10 +29,20 @@ function RegisterForm() {
   // Pré-remplissage depuis le formulaire rapide de la homepage (format Libertic)
   useEffect(() => {
     const email = searchParams.get('email')
-    const password = searchParams.get('password')
     const gender = searchParams.get('gender')
     const p = searchParams.get('pseudo')
     const c = searchParams.get('pays')
+
+    // Le mot de passe vient du sessionStorage (jamais de l'URL) et n'est
+    // lu qu'une seule fois.
+    let password: string | null = null
+    try {
+      password = sessionStorage.getItem('inscription:password')
+      if (password) sessionStorage.removeItem('inscription:password')
+    } catch {
+      password = null
+    }
+
     if (p) setPseudo(p)
     if (c) setPays(c)
     if (email || gender || password) {
@@ -159,12 +169,12 @@ function RegisterForm() {
                     <li>✓ Confidentialité garantie de vos photos et données</li>
                     <li>✓ Zéro tolérance pour le harcèlement et les abus</li>
                     <li>✓ Profils vérifiés : sécurité au cœur de notre plateforme</li>
-                    <li>✓ Communauté bienveillante d'adultes responsables</li>
+                    <li>✓ Communauté bienveillante d&apos;adultes responsables</li>
                   </ul>
                 </div>
 
                 <p className="text-xs text-slate-600 dark:text-slate-400 italic">
-                  Si vous êtes ici, c'est que vous recherchez des rencontres sérieuses et respectueuses. Nous ne tolérons pas les contrefacteurs, les mensonges sur l'âge, ou le non-consentement. Bienvenue parmi nous.
+                  Si vous êtes ici, c&apos;est que vous recherchez des rencontres sérieuses et respectueuses. Nous ne tolérons pas les contrefacteurs, les mensonges sur l&apos;âge, ou le non-consentement. Bienvenue parmi nous.
                 </p>
               </div>
             </div>
@@ -177,7 +187,7 @@ function RegisterForm() {
                 className="w-5 h-5 mt-0.5 rounded border-slate-300"
               />
               <span className="text-sm text-slate-900 dark:text-slate-100">
-                Je confirme avoir 18 ans ou plus et j'accepte les règles de respect de cette communauté
+                Je confirme avoir 18 ans ou plus et j&apos;accepte les règles de respect de cette communauté
               </span>
             </label>
 
@@ -190,14 +200,14 @@ function RegisterForm() {
               disabled={!ruleCheckbox}
               className="w-full py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white font-bold rounded-lg hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Je comprends et j'accepte
+              Je comprends et j&apos;accepte
             </button>
 
             <button
               onClick={() => router.push('/')}
               className="w-full py-2 mt-3 text-slate-600 dark:text-slate-400 font-semibold hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
             >
-              Retourner à la page d'accueil
+              Retourner à la page d&apos;accueil
             </button>
           </div>
         </div>
@@ -295,7 +305,7 @@ function RegisterForm() {
                 <div className="flex items-start gap-3 mt-6">
                   <input type="checkbox" required className="mt-1" />
                   <label className="text-xs text-slate-600 dark:text-slate-400">
-                    Je certifie être âgé de 18 ans minimum et j'accepte les{' '}
+                    Je certifie être âgé de 18 ans minimum et j&apos;accepte les{' '}
                     <Link href="/cgv" className="text-primary-600 hover:text-primary-700 underline">
                       conditions générales
                     </Link>

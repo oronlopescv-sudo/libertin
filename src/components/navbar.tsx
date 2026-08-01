@@ -160,3 +160,5 @@ export const Navbar = React.memo(() => {
     </header>
   )
 })
+
+Navbar.displayName = 'Navbar'
