@@ -1,4 +1,4 @@
-# 🚀 GUIA COMPLETO - Deploy RencontresPremium.fr no Hostinger
+# 🚀 GUIA COMPLETO - Deploy Libertinelover.com no Hostinger
 
 **Site atual**: https://green-toad-192382.hostingersite.com  
 **Status**: ✅ Compilado, ⏳ Awaiting Configuration
@@ -144,7 +144,7 @@ Contacte suporte Hostinger para executar o comando acima.
 Visite: https://green-toad-192382.hostingersite.com
 
 Deve ver:
-- ✅ Logo "RP" (RencontresPremium)
+- ✅ Logo "RP" (Libertinelover)
 - ✅ Navbar com Login/Register
 - ✅ Hero section com cores roxas/rosa
 - ✅ Seção "Features" com 6 benefícios
@@ -268,5 +268,5 @@ Se tudo funcionar, o site está **PRONTO PARA PRODUÇÃO**! 🚀
 ---
 
 **Última atualização**: 2026-07-26  
-**Projeto**: RencontresPremium.fr  
+**Projeto**: Libertinelover.com  
 **Version**: 1.0.0

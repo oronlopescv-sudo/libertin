@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Conditions Générales de Vente - RencontresPremium.fr',
+  title: 'Conditions Générales de Vente - Libertinelover.com',
 }
 
 export default function CGVPage(): void {
@@ -14,7 +14,7 @@ export default function CGVPage(): void {
           <h2 className="text-xl font-bold font-heading mb-3">1. Objet</h2>
           <p>
             Les présentes conditions régissent l&apos;utilisation de la plateforme
-            RencontresPremium.fr, service de mise en relation entre adultes consentants. En
+            Libertinelover.com, service de mise en relation entre adultes consentants. En
             créant un compte, vous acceptez intégralement ces conditions.
           </p>
         </section>
@@ -38,7 +38,7 @@ export default function CGVPage(): void {
           </ul>
           <p className="mt-2">
             Le paiement est traité par Stripe. Aucune coordonnée bancaire n&apos;est stockée par
-            RencontresPremium.fr. L&apos;abonnement est activé immédiatement après confirmation
+            Libertinelover.com. L&apos;abonnement est activé immédiatement après confirmation
             du paiement.
           </p>
         </section>
@@ -77,7 +77,7 @@ export default function CGVPage(): void {
         <section>
           <h2 className="text-xl font-bold font-heading mb-3">7. Contact</h2>
           <p>
-            Pour toute question : support@rencontres-premium.fr
+            Pour toute question : support@libertinelover.com
           </p>
         </section>
       </div>

@@ -6,7 +6,7 @@ import nodemailer from 'nodemailer'
  * Configuração (variáveis de ambiente):
  *   SMTP_HOST      ex: smtp.hostinger.com
  *   SMTP_PORT      465 (SSL) ou 587 (TLS)
- *   SMTP_USER      ex: contact@rencontres-premium.fr
+ *   SMTP_USER      ex: contact@libertinelover.com
  *   SMTP_PASSWORD  password da conta de email
  *   SMTP_FROM      remetente (opcional, usa SMTP_USER se vazio)
  *
@@ -80,7 +80,7 @@ function layout(title: string, body: string, cta?: { url: string; label: string 
         : ''
     }
     <hr style="border:none;border-top:1px solid #e2e8f0;margin:28px 0;">
-    <p style="font-size:12px;color:#94a3b8;margin:0;">RencontresPremium — vous recevez cet email car une action a été demandée avec votre adresse.</p>
+    <p style="font-size:12px;color:#94a3b8;margin:0;">Libertinelover — vous recevez cet email car une action a été demandée avec votre adresse.</p>
   </div>
 </body></html>`
 }
@@ -102,7 +102,7 @@ export function passwordResetEmail(resetUrl: string): void {
 /** Email de boas-vindas após o registo. */
 export function welcomeEmail(username: string, loginUrl: string): void {
   return {
-    subject: 'Bienvenue sur RencontresPremium',
+    subject: 'Bienvenue sur Libertinelover',
     text: `Bonjour ${username},\n\nVotre compte est actif. Connectez-vous ici :\n${loginUrl}`,
     html: layout(
       `Bienvenue, ${username}`,

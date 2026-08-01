@@ -35,7 +35,7 @@ export const Footer = React.memo(() {
         </nav>
 
         <p className="text-[11px] text-slate-400 mb-4 leading-relaxed">
-          Copyright © 2026-{currentYear} — RencontresPremium.fr est une marque déposée ·
+          Copyright © 2026-{currentYear} — Libertinelover.com est une marque déposée ·
           Reproduction interdite sans autorisation · Site réservé aux adultes 18+
         </p>
 

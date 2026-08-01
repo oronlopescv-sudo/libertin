@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/api/', '/decouvrir', '/groupes', '/chat/', '/profil', '/abonnements'],
       },
     ],
-    sitemap: 'https://rencontres-premium.fr/sitemap.xml',
+    sitemap: 'https://libertinelover.com/sitemap.xml',
   }
 }

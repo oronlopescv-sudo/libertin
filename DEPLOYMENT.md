@@ -1,4 +1,4 @@
-# 🚀 DEPLOYMENT CHECKLIST - RencontresPremium.fr
+# 🚀 DEPLOYMENT CHECKLIST - Libertinelover.com
 
 ## ✅ PRÉ-DEPLOYMENT (5 minutos)
 
@@ -52,7 +52,7 @@
 ```
 DATABASE_URL = postgresql://u128759105:SUA_PASSWORD@localhost:5432/rencontres_premium
 
-NEXTAUTH_URL = https://rencontres-premium.fr
+NEXTAUTH_URL = https://libertinelover.com
 
 NEXTAUTH_SECRET = (o valor gerado acima)
 
@@ -64,7 +64,7 @@ STRIPE_WEBHOOK_SECRET = whsec_test_fake
 
 NODE_ENV = production
 
-ADMIN_EMAIL = admin@rencontres-premium.fr
+ADMIN_EMAIL = admin@libertinelover.com
 ```
 
 ### 4. Storage/Volumes
@@ -77,7 +77,7 @@ Host Path:    /home/u128759105/libertin-uploads
 ### 5. Domain
 
 ```
-Domain:   rencontres-premium.fr
+Domain:   libertinelover.com
 Auto SSL: ✅ Enabled
 ```
 
@@ -105,7 +105,7 @@ App "libertin" → "View Logs" → procura por:
 ### 2. Acede ao Site
 
 ```
-https://rencontres-premium.fr
+https://libertinelover.com
 ```
 
 Deve aparecer:
@@ -189,7 +189,7 @@ openssl rand -base64 32  # Gera novo valor
 
 | Componente | Status | Como Verificar |
 |-----------|--------|----------------|
-| Site | 🟢 Online | https://rencontres-premium.fr |
+| Site | 🟢 Online | https://libertinelover.com |
 | HTTPS | 🟢 Ativo | Lock 🔒 no navegador |
 | Database | 🟢 Conectado | Login funciona |
 | Auth | 🟢 Working | alice@test.fr / Test1234! |

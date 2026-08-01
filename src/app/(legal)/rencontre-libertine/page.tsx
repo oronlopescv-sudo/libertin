@@ -3,13 +3,13 @@ import Link from 'next/link'
 import { villes } from '@/lib/villes'
 
 export const metadata: Metadata = {
-  title: 'Rencontre Libertine par Ville : Paris, Lyon, Marseille... | RencontresPremium',
+  title: 'Rencontre Libertine par Ville : Paris, Lyon, Marseille... | Libertinelover',
   description:
     'Trouvez des couples libertins et célibataires dans votre ville : Paris, Lyon, Marseille, Toulouse, Bordeaux et toute la France. Inscription gratuite femmes et couples.',
   keywords:
     'rencontre libertine france, libertins par ville, couple échangiste région, site libertin local',
   alternates: {
-    canonical: 'https://rencontres-premium.fr/rencontre-libertine',
+    canonical: 'https://libertinelover.com/rencontre-libertine',
   },
 }
 

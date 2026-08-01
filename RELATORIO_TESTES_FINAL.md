@@ -1,7 +1,7 @@
-# 📋 Relatório Final de Testes - RencontresPremium.fr
+# 📋 Relatório Final de Testes - Libertinelover.com
 
 **Data**: 2026-07-26  
-**Projeto**: RencontresPremium.fr (Plataforma de Encontros Libertinos)  
+**Projeto**: Libertinelover.com (Plataforma de Encontros Libertinos)  
 **Stack**: Next.js 14.2.35 + React 18 + TypeScript 5 + Tailwind CSS 3.4
 
 ---

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 export const metadata = {
-  title: 'Glossaire du Libertinage : Échangisme, Mélangisme, Candaulisme... | RencontresPremium',
+  title: 'Glossaire du Libertinage : Échangisme, Mélangisme, Candaulisme... | Libertinelover',
   description:
     'Toutes les pratiques libertines expliquées simplement : échangisme, mélangisme, côte-à-côtisme, triolisme, candaulisme et plus. Guide pour débutants et confirmés.',
   keywords:
@@ -90,7 +90,7 @@ export default function PratiquesPage(): void {
         </h1>
         <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
           Débutant ou confirmé, chacun avance à son rythme. Voici toutes les pratiques
-          expliquées simplement, sans jugement. Sur RencontresPremium, vous indiquez vos envies
+          expliquées simplement, sans jugement. Sur Libertinelover, vous indiquez vos envies
           sur votre profil et ne rencontrez que des personnes compatibles.
         </p>
       </div>

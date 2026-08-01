@@ -41,7 +41,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <span className="text-white font-bold">RP</span>
             </div>
             <span className="font-bold font-heading text-primary-900 dark:text-primary-100">
-              LIBERTINESEX
+              Libertinelover
             </span>
           </Link>
 

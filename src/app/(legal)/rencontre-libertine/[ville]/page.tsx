@@ -17,11 +17,11 @@ export function generateMetadata({ params }: Props): Metadata {
   if (!ville) return {}
 
   return {
-    title: `Rencontre Libertine ${ville.nom} (${ville.departement}) : Couples et Célibataires | RencontresPremium`,
+    title: `Rencontre Libertine ${ville.nom} (${ville.departement}) : Couples et Célibataires | Libertinelover`,
     description: `Rencontrez des couples libertins et célibataires à ${ville.nom} et en ${ville.region}. Inscription gratuite pour les femmes et couples. Profils vérifiés, discrétion garantie.`,
     keywords: `rencontre libertine ${ville.nom.toLowerCase()}, libertins ${ville.nom.toLowerCase()}, couple échangiste ${ville.nom.toLowerCase()}, club libertin ${ville.departement}, ${ville.region.toLowerCase()}`,
     alternates: {
-      canonical: `https://rencontres-premium.fr/rencontre-libertine/${ville.slug}`,
+      canonical: `https://libertinelover.com/rencontre-libertine/${ville.slug}`,
     },
     openGraph: {
       title: `Rencontres libertines à ${ville.nom} — Couples et célibataires`,
@@ -85,7 +85,7 @@ export default function VillePage({ params }: Props): void {
             Avec environ {ville.habitants} d&apos;habitants, {ville.nom} ({ville.departement})
             compte une communauté libertine active de couples, femmes et hommes de tous âges.
             Que vous habitiez {ville.quartiers[0]}, {ville.quartiers[1]} ou{' '}
-            {ville.quartiers[2]}, vous trouverez sur RencontresPremium des membres vérifiés
+            {ville.quartiers[2]}, vous trouverez sur Libertinelover des membres vérifiés
             près de chez vous, du côte-à-côtisme pour débuter jusqu&apos;à l&apos;échangisme
             pour les plus expérimentés.
           </p>

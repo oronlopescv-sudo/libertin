@@ -5,12 +5,12 @@ import { Footer } from '@/components/footer'
 import '@/styles/globals.css'
 
 export const metadata: Metadata = {
-  title: 'LIBERTINESEX - Rencontres Libertines entre Couples',
-  description: 'LIBERTINESEX - Site de rencontres premium pour couples et libertins. Discrétion garantie. Chat privé sécurisé.',
+  title: 'Libertinelover - Rencontres Libertines entre Couples',
+  description: 'Libertinelover - Site de rencontres premium pour couples et libertins. Discrétion garantie. Chat privé sécurisé.',
   keywords: 'libertinesex, rencontre, libertine, couple, adulte, chat privé, France',
   openGraph: {
-    title: 'LIBERTINESEX - Rencontres Libertines',
-    description: 'LIBERTINESEX - Plateforme premium de rencontres libertines avec discrétion garantie.',
+    title: 'Libertinelover - Rencontres Libertines',
+    description: 'Libertinelover - Plateforme premium de rencontres libertines avec discrétion garantie.',
     type: 'website',
     url: 'https://green-toad-192382.hostingersite.com',
   },

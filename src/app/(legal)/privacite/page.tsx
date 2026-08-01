@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Politique de Confidentialité - RencontresPremium.fr',
+  title: 'Politique de Confidentialité - Libertinelover.com',
 }
 
 export default function PrivacitePage(): void {
@@ -57,7 +57,7 @@ export default function PrivacitePage(): void {
             <li>Droit d&apos;opposition au traitement</li>
           </ul>
           <p className="mt-2">
-            Pour exercer ces droits : privacy@rencontres-premium.fr. Réponse sous 30 jours
+            Pour exercer ces droits : privacy@libertinelover.com. Réponse sous 30 jours
             maximum.
           </p>
         </section>

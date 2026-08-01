@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Mentions Légales - RencontresPremium.fr',
+  title: 'Mentions Légales - Libertinelover.com',
 }
 
 export default function MentionsLegalesPage(): void {
@@ -19,7 +19,7 @@ export default function MentionsLegalesPage(): void {
             <br />
             [Numéro SIRET / RCS]
             <br />
-            Email : contact@rencontres-premium.fr
+            Email : contact@libertinelover.com
           </p>
         </section>
 
@@ -58,7 +58,7 @@ export default function MentionsLegalesPage(): void {
           <h2 className="text-xl font-bold font-heading mb-3">Signalement</h2>
           <p>
             Pour signaler un contenu illicite ou un comportement inapproprié :
-            signalement@rencontres-premium.fr. Les signalements sont traités sous 24 heures.
+            signalement@libertinelover.com. Les signalements sont traités sous 24 heures.
           </p>
         </section>
       </div>

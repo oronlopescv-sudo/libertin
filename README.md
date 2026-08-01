@@ -1,4 +1,4 @@
-# 🔥 RencontresPremium.fr - Site de Encontros Libertines
+# 🔥 Libertinelover.com - Site de Encontros Libertines
 
 Site de encontros premium para adultos com modelo de negócio inspirado no Libertic.
 **Mulheres e casais: acesso GRÁTIS total | Homens: Premium obrigatório.**
@@ -68,13 +68,13 @@ Keep Running:     ✅ YES
 
 ```
 DATABASE_URL          = postgresql://u128759105:PASSWORD@localhost:5432/rencontres_premium
-NEXTAUTH_URL          = https://rencontres-premium.fr
+NEXTAUTH_URL          = https://libertinelover.com
 NEXTAUTH_SECRET       = (openssl rand -base64 32)
 STRIPE_PUBLIC_KEY     = pk_test_...
 STRIPE_SECRET_KEY     = sk_test_...
 STRIPE_WEBHOOK_SECRET = whsec_test_...
 NODE_ENV              = production
-ADMIN_EMAIL           = admin@rencontres-premium.fr
+ADMIN_EMAIL           = admin@libertinelover.com
 ```
 
 ### PASSO 4: Storage
@@ -87,7 +87,7 @@ Target: /home/u128759105/libertin-uploads
 ### PASSO 5: Domain
 
 ```
-Domain: rencontres-premium.fr
+Domain: libertinelover.com
 Auto SSL: ✅
 ```
 
@@ -96,7 +96,7 @@ Auto SSL: ✅
 ## ✅ Verificar
 
 ```
-https://rencontres-premium.fr
+https://libertinelover.com
 ```
 
 **Contas teste:**

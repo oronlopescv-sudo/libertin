@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
 import { villes } from '@/lib/villes'
 
-const BASE = 'https://rencontres-premium.fr'
+const BASE = 'https://libertinelover.com'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date()
