@@ -124,7 +124,10 @@ function RegisterForm() {
       })
 
       if (signInResult?.ok) {
-        router.push('/decouvrir')
+        // Rechargement complet : le routeur client a pu mettre en cache la
+        // redirection du middleware émise pendant que le visiteur était
+        // encore déconnecté. Voir le commentaire détaillé dans /login.
+        window.location.assign('/decouvrir')
       } else {
         // Le compte est créé : on renvoie vers la connexion manuelle
         router.push('/login?registered=1')

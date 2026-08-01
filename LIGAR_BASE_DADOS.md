@@ -115,6 +115,46 @@ estado da base e o número de utilizadores.
 
 ---
 
+## ⚠️ Armadilha do `#` na password
+
+Num ficheiro `.env`, o `#` inicia um comentário. Uma password que contenha
+`#` — como muitas das que a Hostinger gera — escrita assim:
+
+```
+DB_PASSWORD=abc+3D#ef1G
+```
+
+é lida como `abc+3D` — silenciosamente truncada. O erro que aparece a seguir
+é apenas «Access denied», sem qualquer pista sobre a causa.
+
+**Verificado em teste**: `X+9Z#qw2K` chegou à aplicação como `X+9Z`.
+
+Solução: pôr aspas.
+
+```
+DB_PASSWORD="abc+3D#ef1G"
+```
+
+No painel da Hostinger (campos de formulário) o problema não se coloca —
+só afeta ficheiros `.env`.
+
+---
+
+## Criar as tabelas sem SSH
+
+Se não tiveres acesso SSH, importa `base-de-dados-completa.sql` pelo
+phpMyAdmin (hPanel → Bases de dados → phpMyAdmin → separador «Importar»).
+
+Esse ficheiro é gerado a partir de `prisma/schema.prisma`, por isso está
+sincronizado com o código, e já inclui as três formulas de abonnement.
+Foi testado por importação real numa base MySQL vazia.
+
+Destina-se a uma base **vazia**. Se as tabelas já existirem, a importação
+para com «Table already exists» — é propositado, para não escrever por
+cima de dados reais.
+
+---
+
 ## ⚠️ Segurança — ação necessária
 
 A password da base estava escrita em `src/lib/db-url.ts` e commitada no

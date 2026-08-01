@@ -59,13 +59,21 @@ function LoginForm() {
         return
       }
 
-      router.push('/decouvrir')
+      // Navigation « dure » volontaire, pas router.push.
+      // La navbar présente sur cette page préfetche /decouvrir pendant que
+      // le visiteur est encore déconnecté ; le middleware répond alors par
+      // une redirection vers /login, que le routeur client met en cache.
+      // Un router.push rejouerait cette redirection en cache sans refaire
+      // de requête — l'utilisateur connecté serait renvoyé sur /login en
+      // boucle. Un rechargement complet repasse par le middleware avec le
+      // cookie de session tout juste posé.
+      window.location.assign('/decouvrir')
     } catch (error) {
       setError(error instanceof Error ? error.message : "Erreur inconnue")
     } finally {
       setLoading(false)
     }
-  }, [formData, router])
+  }, [formData])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-100 dark:from-primary-950 dark:to-secondary-900 flex items-center justify-center px-4 py-12">
