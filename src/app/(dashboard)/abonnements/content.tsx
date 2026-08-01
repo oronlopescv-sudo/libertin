@@ -3,38 +3,12 @@
 import { useState, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
+import { PLANS, BENEFITS } from '@/config/plans'
 
-const plans = [
-  {
-    tier: 'PREMIUM_3M',
-    name: 'Premium 3 mois',
-    price: 16,
-    monthly: '5,33€/mois',
-    highlighted: false,
-  },
-  {
-    tier: 'PREMIUM_12M',
-    name: 'Premium 1 an',
-    price: 25,
-    monthly: '2,08€/mois',
-    highlighted: true,
-  },
-  {
-    tier: 'PREMIUM_24M',
-    name: 'Premium 2 ans',
-    price: 70,
-    monthly: '2,92€/mois',
-    highlighted: false,
-  },
-]
+// Source unique de vérité : voir src/config/plans.ts
+const plans = PLANS
+const benefits = BENEFITS
 
-const benefits = [
-  'Voir tous les profils (couples et célibataires)',
-  'Créer et rejoindre des groupes de discussion',
-  'Chat illimité en temps réel',
-  'Filtres de recherche avancés',
-  'Badge Premium sur votre profil',
-]
 
 export default function AbonnementsContent() {
   const { data: session } = useSession()
@@ -182,7 +156,7 @@ export default function AbonnementsContent() {
               </span>
             )}
             <h3 className="font-bold font-heading text-lg mb-1">{plan.name}</h3>
-            <p className="text-3xl font-bold text-primary-600 mb-1">{plan.price}€</p>
+            <p className="text-3xl font-bold text-primary-600 mb-1">{plan.priceEuro}€</p>
             <p className="text-sm text-slate-500 mb-6">soit {plan.monthly}</p>
             <button
               onClick={() => handleCheckout(plan.tier)}

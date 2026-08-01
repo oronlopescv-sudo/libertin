@@ -64,7 +64,7 @@ fi
 # 5. Seed pricing plans
 echo ""
 echo -e "${YELLOW}5️⃣  Populando planos de preço...${NC}"
-if npx ts-node prisma/seed-pricing.ts; then
+if npx tsx prisma/seed-pricing.ts; then
   echo -e "${GREEN}✅ Planos de preço inseridos${NC}"
 else
   echo -e "${YELLOW}⚠️  Planos de preço podem já existir${NC}"

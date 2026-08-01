@@ -99,7 +99,7 @@ async function main() {
   // 3. Instalar dependências
   log('blue', '\n3️⃣  Instalando dependências...\n')
   try {
-    execSync('npm install --production', { stdio: 'inherit' })
+    execSync('npm install', { stdio: 'inherit' })
     success('Dependências instaladas')
   } catch (e) {
     error('Erro ao instalar dependências')
@@ -118,7 +118,7 @@ async function main() {
   // 5. Seed pricing plans
   log('blue', '\n5️⃣  Populando planos de preço...\n')
   try {
-    execSync('npx ts-node prisma/seed-pricing.ts', { stdio: 'inherit' })
+    execSync('npx tsx prisma/seed-pricing.ts', { stdio: 'inherit' })
     success('Planos de preço inseridos')
   } catch (e) {
     warning('Planos de preço podem já existir (isso é ok)')
