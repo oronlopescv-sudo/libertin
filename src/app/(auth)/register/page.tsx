@@ -70,16 +70,31 @@ function RegisterForm() {
       // Étape 1: Valider données
       if (!formData.email || !formData.password) {
         setError('Tous les champs sont obligatoires')
+        setLoading(false)
+        return
+      }
+
+      if (!formData.gender) {
+        setError('Veuillez sélectionner votre type de profil')
+        setLoading(false)
+        return
+      }
+
+      if (!formData.sexualOrientation) {
+        setError('Veuillez sélectionner votre orientation')
+        setLoading(false)
         return
       }
 
       if (formData.password.length < 8) {
         setError('Le mot de passe doit avoir au moins 8 caractères')
+        setLoading(false)
         return
       }
 
       if (formData.password !== formData.confirmPassword) {
         setError('Les mots de passe ne correspondent pas')
+        setLoading(false)
         return
       }
 
