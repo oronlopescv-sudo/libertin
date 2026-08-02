@@ -26,7 +26,7 @@ RUN npm run build
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
 # Folder uploads
-RUN mkdir -p /app/public/uploads && chown -R nextjs:nodejs /app/public /app/.next
+RUN mkdir -p /app/uploads /app/public/uploads && chown -R nextjs:nodejs /app/uploads /app/public /app/.next
 
 # Muda user
 USER nextjs

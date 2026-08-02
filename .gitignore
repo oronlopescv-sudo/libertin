@@ -37,4 +37,7 @@ yarn-error.log*
 # Uploads (generated at runtime)
 public/uploads/*
 !public/uploads/.gitkeep
+
+# Fotos enviadas pelos membros (ver src/lib/uploads.ts)
+/uploads/
 tsconfig.tsbuildinfo

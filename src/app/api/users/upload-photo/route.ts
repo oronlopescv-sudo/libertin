@@ -2,12 +2,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { writeFile, mkdir } from 'fs/promises'
+import { writeFile, mkdir, unlink } from 'fs/promises'
 import path from 'path'
 import { randomBytes } from 'crypto'
+import {
+  uploadsDir,
+  legacyUploadsDir,
+  resolveUploadPath,
+  sniffImageType,
+} from '@/lib/uploads'
 
 const MAX_SIZE = 5 * 1024 * 1024 // 5 Mo
 const ALLOWED = ['image/jpeg', 'image/png', 'image/webp']
+const MAX_PHOTOS = 20
+const MAX_VERIFICATION_PENDING = 3
 
 export async function POST(request: NextRequest) {
   if (!request.headers.get("content-type")) {
@@ -36,16 +44,49 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Fichier trop volumineux (max 5 Mo)' }, { status: 400 })
   }
 
-  const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg'
+  // O tipo anunciado pelo cliente não é de confiança: confirmamos pelos
+  // primeiros bytes do ficheiro.
+  const buffer = Buffer.from(await file.arrayBuffer())
+  const ext = sniffImageType(buffer)
+  if (!ext) {
+    return NextResponse.json(
+      { error: 'Le fichier ne semble pas être une image (JPEG, PNG ou WebP)' },
+      { status: 400 }
+    )
+  }
+
   const filename = `${session.user.id.slice(0, 8)}-${randomBytes(8).toString('hex')}.${ext}`
 
-  const uploadDir = path.join(process.cwd(), 'public', 'uploads')
+  // Quota antes de escrever no disco, para um membro não o encher.
+  if (type === 'verification') {
+    const pendentes = await prisma.verificationPhoto.count({
+      where: { userId: session.user.id, status: 'pending' },
+    })
+    if (pendentes >= MAX_VERIFICATION_PENDING) {
+      return NextResponse.json(
+        { error: 'Vous avez déjà des photos de vérification en attente' },
+        { status: 429 }
+      )
+    }
+  } else {
+    const existentes = await prisma.photo.count({ where: { userId: session.user.id } })
+    if (existentes >= MAX_PHOTOS) {
+      return NextResponse.json(
+        { error: `Maximum ${MAX_PHOTOS} photos par profil` },
+        { status: 400 }
+      )
+    }
+  }
+
+  const uploadDir = uploadsDir()
   await mkdir(uploadDir, { recursive: true })
 
-  const buffer = Buffer.from(await file.arrayBuffer())
   await writeFile(path.join(uploadDir, filename), buffer)
 
-  const url = `/uploads/${filename}`
+  // Servida por /api/uploads: o Next só serve os ficheiros que estavam em
+  // public/ quando arrancou, por isso um upload feito com o servidor a
+  // correr devolvia 404 até ao reinício.
+  const url = `/api/uploads/${filename}`
 
   if (type === 'verification') {
     await prisma.verificationPhoto.create({
@@ -98,5 +139,19 @@ export async function DELETE(request: NextRequest) {
   }
 
   await prisma.photo.delete({ where: { id: photo.id } })
+
+  // Apagar o ficheiro, senão fica lixo no disco para sempre.
+  const filename = photo.url.split('/').pop() ?? ''
+  for (const base of [uploadsDir(), legacyUploadsDir()]) {
+    const full = resolveUploadPath(base, filename)
+    if (!full) continue
+    try {
+      await unlink(full)
+      break
+    } catch {
+      // já não existe nesta pasta
+    }
+  }
+
   return NextResponse.json({ message: 'Photo supprimée' })
 }
