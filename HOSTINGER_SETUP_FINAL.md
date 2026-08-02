@@ -23,7 +23,7 @@ A aplicação está **deployada**, mas não consegue ligar à base de dados porq
 
 1. Vai a https://hpanel.hostinger.com
 2. Faz login com tua conta
-3. Clica no teu site: `green-toad-192382.hostingersite.com`
+3. Clica no teu site no hPanel
 
 ### Passo 2: Definir Variáveis de Ambiente
 
@@ -36,14 +36,14 @@ Esta é a forma mais segura. Clica "Adicionar Variável" para cada uma:
 ```
 DB_HOST = localhost
 DB_PORT = 3306
-DB_USER = (o teu utilizador MySQL - ex: u128759105_SEXFR)
+DB_USER = (o teu utilizador MySQL - encontra em Bases de dados → MySQL)
 DB_PASSWORD = (a tua password MySQL)
-DB_NAME = (o nome da base - ex: u128759105_SEX)
+DB_NAME = (o nome da tua base de dados)
 
-NEXTAUTH_URL = https://green-toad-192382.hostingersite.com
+NEXTAUTH_URL = https://seu-dominio.hostingersite.com
 NEXTAUTH_SECRET = (gerar com: openssl rand -base64 32)
 NODE_ENV = production
-ADMIN_EMAILS = oronlopescv@gmail.com
+ADMIN_EMAILS = seu-email@exemplo.com
 ```
 
 **⚠️ ARMADILHA**: Se a password contiver `#`, no ficheiro `.env` esse carácter inicia um comentário e a password fica truncada. No hPanel isto não é problema — os campos de formulário funcionam bem.
@@ -108,7 +108,7 @@ Depois do deploy estar completo (1-2 minutos), testa:
 
 **Com sessão admin:**
 ```
-https://green-toad-192382.hostingersite.com/api/health
+https://seu-dominio.hostingersite.com/api/health
 ```
 
 Deve mostrar:
@@ -136,7 +136,7 @@ Deve mostrar:
 ### 1. Registar uma conta
 
 ```
-https://green-toad-192382.hostingersite.com/register
+https://seu-dominio.hostingersite.com/register
 ```
 
 Se vires erros "Database connection error", as variáveis ainda não foram carregadas. Aguarda 1-2 minutos e tenta outra vez.
@@ -144,13 +144,13 @@ Se vires erros "Database connection error", as variáveis ainda não foram carre
 ### 2. Fazer login
 
 ```
-https://green-toad-192382.hostingersite.com/login
+https://seu-dominio.hostingersite.com/login
 ```
 
 ### 3. Ir para o dashboard
 
 ```
-https://green-toad-192382.hostingersite.com/decouvrir
+https://seu-dominio.hostingersite.com/decouvrir
 ```
 
 ### 4. Testar upload de foto
