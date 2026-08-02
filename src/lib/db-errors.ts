@@ -64,7 +64,10 @@ export function describeDbError(error: unknown): DbError {
   if (raw.includes('Environment variable not found: DATABASE_URL')) {
     return {
       code: 'NO_DATABASE_URL',
-      message: "La variable DATABASE_URL n'est pas définie sur le serveur.",
+      message:
+        "La base de données n'est pas configurée sur le serveur. " +
+        "Définissez DB_HOST, DB_USER, DB_PASSWORD et DB_NAME (ou DATABASE_URL) " +
+        "dans les variables d'environnement de l'hébergeur, puis relancez un déploiement.",
     }
   }
 
