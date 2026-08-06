@@ -2,7 +2,6 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { User, SubscriptionTier } from '@/lib/types';
-import { Store } from '@/lib/store';
 import {
   supabase,
   signUpWithSupabase,
@@ -43,12 +42,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (current) {
         setUser(current);
         setUsersList(list);
-        // Sync to local Store for components that still read localStorage
-        Store.setCurrentUser(current.id);
         return true;
       }
     } catch (e) {
-      console.warn('Supabase load failed, falling back to local Store', e);
+      console.warn('Supabase load failed', e);
     }
     return false;
   }, []);
@@ -95,7 +92,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(profile);
         const list = await getSupabaseUsersList();
         setUsersList(list);
-        Store.setCurrentUser(profile.id);
         return true;
       }
     }
@@ -104,14 +100,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     signOutWithSupabase();
-    Store.clearCurrentUser();
     setUser(null);
     setUsersList([]);
   };
 
-  const switchUser = (userId: string) => {
-    Store.setCurrentUser(userId);
-    refreshUser();
+  const switchUser = async (userId: string) => {
+    console.warn('switchUser is deprecated; use Supabase Auth login');
   };
 
   const register = async (userData: any): Promise<User> => {
@@ -139,7 +133,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(profile);
         const list = await getSupabaseUsersList();
         setUsersList(list);
-        Store.setCurrentUser(profile.id);
         return profile;
       }
     }

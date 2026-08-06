@@ -1,27 +1,14 @@
 import { User, Group, Message, VerificationPhoto, SubscriptionTier } from './types';
-import { INITIAL_USERS, INITIAL_GROUPS, INITIAL_MESSAGES } from './seedData';
 import { calculateSubscriptionEndDate } from './stripe';
 
+// NOTE: legacy localStorage data store.
+// Most app logic now uses Supabase directly. This file remains only for
+// backwards-compatible helpers (block lists, drafts) that have no backend yet.
+
 const STORAGE_KEYS = {
-  USERS: 'rp_users_v2',
-  GROUPS: 'rp_groups_v2',
-  MESSAGES: 'rp_messages_v2',
-  CURRENT_USER_ID: 'rp_current_user_id_v2',
+  BLOCKED_IDS: 'rp_blocked_ids_v2',
 };
 
-const OLD_KEYS = ['rp_users_v1', 'rp_groups_v1', 'rp_messages_v1', 'rp_current_user_id_v1'];
-
-// Clear legacy mocked data from localStorage
-function clearLegacyStorage(): void {
-  if (typeof window === 'undefined') return;
-  try {
-    OLD_KEYS.forEach((key) => localStorage.removeItem(key));
-  } catch (err) {
-    console.error('Error clearing legacy localStorage:', err);
-  }
-}
-
-// Helper for safe localStorage access
 function getItem<T>(key: string, defaultValue: T): T {
   if (typeof window === 'undefined') return defaultValue;
   try {
@@ -37,247 +24,41 @@ function setItem<T>(key: string, value: T): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(key, JSON.stringify(value));
-    // Broadcast event for multi-tab sync
-    window.dispatchEvent(new Event('rp_storage_update'));
   } catch (err) {
     console.error(`Error saving ${key} to localStorage:`, err);
   }
 }
 
-// Execute cleanup once on module load in browser
-if (typeof window !== 'undefined') {
-  clearLegacyStorage();
-}
-
 export const Store = {
-  getUsers(): User[] {
-    return getItem<User[]>(STORAGE_KEYS.USERS, INITIAL_USERS);
+  // Block list helpers (kept in localStorage until backend supports it)
+  getBlockedIds(): string[] {
+    return getItem<string[]>(STORAGE_KEYS.BLOCKED_IDS, []);
   },
 
-  saveUsers(users: User[]): void {
-    setItem(STORAGE_KEYS.USERS, users);
+  setBlockedIds(ids: string[]): void {
+    setItem(STORAGE_KEYS.BLOCKED_IDS, ids);
   },
 
-  getUserById(id: string): User | undefined {
-    const users = this.getUsers();
-    return users.find((u) => u.id === id);
-  },
-
-  getCurrentUser(): User | null {
-    const currentId = getItem<string>(STORAGE_KEYS.CURRENT_USER_ID, '');
-    if (!currentId) return null;
-    return this.getUserById(currentId) || null;
-  },
-
-  setCurrentUser(id: string): void {
-    setItem(STORAGE_KEYS.CURRENT_USER_ID, id);
-  },
-
-  clearCurrentUser(): void {
-    setItem(STORAGE_KEYS.CURRENT_USER_ID, '');
-  },
-
-  updateUser(updated: Partial<User> & { id: string }): User {
-    const users = this.getUsers();
-    const index = users.findIndex((u) => u.id === updated.id);
-    if (index === -1) throw new Error('User not found');
-    const newUser = { ...users[index], ...updated, updatedAt: new Date().toISOString() };
-    users[index] = newUser;
-    this.saveUsers(users);
-    return newUser;
-  },
-
-  deleteUser(id: string): void {
-    const users = this.getUsers().filter((u) => u.id !== id);
-    this.saveUsers(users);
-  },
-
-  registerUser(userData: Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'photos' | 'verificationPhotos' | 'isVerified' | 'isActive' | 'subscriptionTier'> & { subscriptionTier?: SubscriptionTier }): User {
-    const users = this.getUsers();
-    const newUser: User = {
-      id: `user-${Date.now()}`,
-      ...userData,
-      subscriptionTier: userData.subscriptionTier || 'FREE',
-      photos: [],
-      verificationPhotos: [],
-      isVerified: false,
-      isActive: true,
-      isNSFW: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    users.unshift(newUser);
-    this.saveUsers(users);
-    this.setCurrentUser(newUser.id);
-    return newUser;
-  },
-
-  uploadVerificationPhoto(userId: string, photoUrl: string): VerificationPhoto {
-    const user = this.getUserById(userId);
-    if (!user) throw new Error('User not found');
-
-    const vPhoto: VerificationPhoto = {
-      id: `verif-${Date.now()}`,
-      userId,
-      url: photoUrl,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-    };
-
-    user.verificationPhotos.unshift(vPhoto);
-    this.updateUser(user);
-    return vPhoto;
-  },
-
-  approveVerificationPhoto(userId: string, photoId: string): void {
-    const user = this.getUserById(userId);
-    if (!user) return;
-
-    user.verificationPhotos = user.verificationPhotos.map((vp) =>
-      vp.id === photoId ? { ...vp, status: 'approved' as const } : vp
-    );
-    user.isVerified = true;
-    this.updateUser(user);
-  },
-
-  upgradeSubscription(userId: string, tier: SubscriptionTier): User {
-    const user = this.getUserById(userId);
-    if (!user) throw new Error('User not found');
-
-    const now = new Date();
-    let durationMonths = 0;
-    if (tier === 'PREMIUM_3M') durationMonths = 3;
-    else if (tier === 'PREMIUM_12M') durationMonths = 12;
-    else if (tier === 'PREMIUM_24M') durationMonths = 24;
-
-    const endDate = durationMonths > 0 ? calculateSubscriptionEndDate(now, durationMonths) : undefined;
-
-    return this.updateUser({
-      id: userId,
-      subscriptionTier: tier,
-      subscriptionStart: now.toISOString(),
-      subscriptionEnd: endDate ? endDate.toISOString() : undefined,
-      stripeCustomerId: `cus_${Math.random().toString(36).substring(2, 9)}`,
-    });
-  },
-
-  // User Blocking Management
-  blockUser(currentUserId: string, targetUserId: string): User {
-    const user = this.getUserById(currentUserId);
-    if (!user) throw new Error('User not found');
-
-    const blocked = user.blockedUserIds || [];
+  blockUser(currentUserId: string, targetUserId: string): string[] {
+    const blocked = this.getBlockedIds();
     if (!blocked.includes(targetUserId)) {
-      const updatedBlocked = [...blocked, targetUserId];
-      return this.updateUser({
-        id: currentUserId,
-        blockedUserIds: updatedBlocked,
-      });
+      const updated = [...blocked, targetUserId];
+      this.setBlockedIds(updated);
+      return updated;
     }
-    return user;
+    return blocked;
   },
 
-  unblockUser(currentUserId: string, targetUserId: string): User {
-    const user = this.getUserById(currentUserId);
-    if (!user) throw new Error('User not found');
-
-    const blocked = user.blockedUserIds || [];
-    const updatedBlocked = blocked.filter((id) => id !== targetUserId);
-    return this.updateUser({
-      id: currentUserId,
-      blockedUserIds: updatedBlocked,
-    });
+  unblockUser(currentUserId: string, targetUserId: string): string[] {
+    const blocked = this.getBlockedIds().filter((id) => id !== targetUserId);
+    this.setBlockedIds(blocked);
+    return blocked;
   },
 
   isBlocked(currentUserId: string, targetUserId: string): boolean {
-    const user = this.getUserById(currentUserId);
-    if (!user) return false;
-    return (user.blockedUserIds || []).includes(targetUserId);
+    return this.getBlockedIds().includes(targetUserId);
   },
 
-  getBlockedUserIds(currentUserId: string): string[] {
-    const user = this.getUserById(currentUserId);
-    return user?.blockedUserIds || [];
-  },
-
-  // Groups
-  getGroups(): Group[] {
-    return getItem<Group[]>(STORAGE_KEYS.GROUPS, INITIAL_GROUPS);
-  },
-
-  saveGroups(groups: Group[]): void {
-    setItem(STORAGE_KEYS.GROUPS, groups);
-  },
-
-  createGroup(data: Omit<Group, 'id' | 'createdAt' | 'updatedAt' | 'memberCount'>): Group {
-    const groups = this.getGroups();
-    const newGroup: Group = {
-      id: `group-${Date.now()}`,
-      ...data,
-      memberCount: 1,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    groups.unshift(newGroup);
-    this.saveGroups(groups);
-    return newGroup;
-  },
-
-  updateGroup(updated: Partial<Group> & { id: string }): Group {
-    const groups = this.getGroups();
-    const index = groups.findIndex((g) => g.id === updated.id);
-    if (index === -1) throw new Error('Group not found');
-    const newGroup = { ...groups[index], ...updated, updatedAt: new Date().toISOString() };
-    groups[index] = newGroup;
-    this.saveGroups(groups);
-    return newGroup;
-  },
-
-  deleteGroup(id: string): void {
-    const groups = this.getGroups().filter((g) => g.id !== id);
-    this.saveGroups(groups);
-  },
-
-  joinGroup(groupId: string): void {
-    const groups = this.getGroups();
-    const group = groups.find((g) => g.id === groupId);
-    if (group && group.memberCount < group.maxMembers) {
-      group.memberCount += 1;
-      this.saveGroups(groups);
-    }
-  },
-
-  // Messages
-  getMessages(): Record<string, Message[]> {
-    return getItem<Record<string, Message[]>>(STORAGE_KEYS.MESSAGES, INITIAL_MESSAGES);
-  },
-
-  getGroupMessages(groupId: string): Message[] {
-    const all = this.getMessages();
-    return all[groupId] || [];
-  },
-
-  sendMessage(groupId: string, user: User, content: string, mediaUrl?: string): Message {
-    const all = this.getMessages();
-    const groupMsgs = all[groupId] || [];
-
-    const newMsg: Message = {
-      id: `msg-${Date.now()}`,
-      userId: user.id,
-      userName: user.username,
-      userAvatar: user.photos[0]?.url,
-      userGender: user.gender,
-      userIsVerified: user.isVerified,
-      groupId,
-      content,
-      mediaUrl,
-      createdAt: new Date().toISOString(),
-    };
-
-    groupMsgs.push(newMsg);
-    all[groupId] = groupMsgs;
-    setItem(STORAGE_KEYS.MESSAGES, all);
-
-    return newMsg;
-  },
+  // Helper for subscription end date calculation
+  calculateSubscriptionEndDate,
 };

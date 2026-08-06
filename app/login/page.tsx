@@ -6,11 +6,11 @@ import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { useAuth } from '@/context/auth-context';
-import { Flame, Lock, ShieldCheck, Mail, Key, Sparkles, ArrowRight } from 'lucide-react';
+import { Flame, Lock, Mail, Key, ArrowRight } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, usersList, switchUser } = useAuth();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -45,45 +45,6 @@ export default function LoginPage() {
             <p className="text-xs text-zinc-400">
               Connectez-vous pour accéder à la communauté libertine
             </p>
-          </div>
-
-          {/* Quick Access Account Selector */}
-          <div className="p-3 rounded-2xl bg-[#2C1B3D]/80 border border-[#3D2654] space-y-2">
-            <div className="text-[11px] font-bold text-[#E86B7A] uppercase tracking-wider flex items-center gap-1.5">
-              <Flame className="w-3.5 h-3.5" />
-              <span>Accès Membres Express</span>
-            </div>
-            <div className="grid grid-cols-1 gap-2">
-              {usersList.slice(0, 3).map((u) => (
-                <button
-                  key={u.id}
-                  onClick={() => {
-                    switchUser(u.id);
-                    router.push('/decouvrir');
-                  }}
-                  className="w-full p-2.5 rounded-xl bg-[#12091A] hover:bg-[#D4145A]/20 border border-[#3D2654] hover:border-[#D4145A] text-left text-xs transition-colors flex items-center justify-between group"
-                >
-                  <div>
-                    <div className="font-bold text-white group-hover:text-[#E86B7A] flex items-center gap-1">
-                      {u.username}
-                      {u.isVerified && <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />}
-                    </div>
-                    <div className="text-[10px] text-zinc-400 capitalize">
-                      {u.gender} • {u.location}
-                    </div>
-                  </div>
-                  <span
-                    className={`text-[10px] px-2 py-0.5 rounded font-bold ${
-                      u.subscriptionTier === 'FREE'
-                        ? 'bg-zinc-700 text-zinc-300'
-                        : 'bg-[#D4145A] text-white'
-                    }`}
-                  >
-                    {u.subscriptionTier}
-                  </span>
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Error Banner */}
