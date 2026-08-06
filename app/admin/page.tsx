@@ -1,18 +1,33 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { useAuth } from '@/context/auth-context';
-import { Store } from '@/lib/store';
-import { User, Group, SubscriptionTier, GenderType } from '@/lib/types';
+import {
+  User,
+  Group,
+  SubscriptionTier,
+  GenderType,
+} from '@/lib/types';
+import {
+  getSupabaseUsersList,
+  getSupabaseGroups,
+  updateSupabaseProfile,
+  deleteSupabaseUser,
+  getPendingVerifications,
+  approveVerification,
+  rejectVerification,
+  createSupabaseGroup,
+  updateSupabaseGroup,
+  deleteSupabaseGroup,
+} from '@/lib/supabase';
 import {
   ShieldCheck,
   Check,
   X,
   UserCheck,
   TrendingUp,
-  CreditCard,
   Users,
   AlertCircle,
   Edit3,
@@ -22,23 +37,22 @@ import {
   Search,
   MessageSquare,
   Sparkles,
-  Database,
-  Lock,
-  Globe,
-  Settings,
 } from 'lucide-react';
 import Image from 'next/image';
 
 export default function AdminPage() {
-  const { user, usersList, refreshUser } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [activeTab, setActiveTab] = useState<'users' | 'groups' | 'verification' | 'stats'>('users');
-  
-  // Search & Filter for Users
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Users
+  const [usersList, setUsersList] = useState<User[]>([]);
   const [userSearch, setUserSearch] = useState('');
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
-  // Group Management state
-  const [groups, setGroups] = useState<Group[]>(Store.getGroups());
+  // Groups
+  const [groups, setGroups] = useState<Group[]>([]);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const [newGroupData, setNewGroupData] = useState({
@@ -47,12 +61,34 @@ export default function AdminPage() {
     category: 'clubs',
     maxMembers: 50,
     isPrivate: false,
-    coverUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80',
+    coverUrl: '',
   });
 
-  const refreshGroups = () => {
-    setGroups(Store.getGroups());
+  // Verifications
+  const [pendingVerifications, setPendingVerifications] = useState<any[]>([]);
+
+  const loadData = async () => {
+    setIsLoading(true);
+    setErrorMsg(null);
+    try {
+      const [users, groupsData, verifications] = await Promise.all([
+        getSupabaseUsersList(200),
+        getSupabaseGroups(),
+        getPendingVerifications(),
+      ]);
+      setUsersList(users);
+      setGroups(groupsData);
+      setPendingVerifications(verifications);
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'Erreur lors du chargement des données.');
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  useEffect(() => {
+    loadData();
+  }, []);
 
   if (user?.role !== 'admin') {
     return (
@@ -72,54 +108,84 @@ export default function AdminPage() {
     );
   }
 
-  // Pending Verifications List
-  const pendingUsers = usersList.filter((u) =>
-    u.verificationPhotos.some((vp) => vp.status === 'pending')
-  );
-
-  const handleApproveVerification = (userId: string, photoId: string) => {
-    Store.approveVerificationPhoto(userId, photoId);
-    refreshUser();
-  };
-
   // User Actions
-  const handleSaveUserEdit = (e: React.FormEvent) => {
+  const handleSaveUserEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingUser) return;
-    Store.updateUser(editingUser);
-    refreshUser();
-    setEditingUser(null);
-  };
+    const endDate = new Date();
+    if (editingUser.subscriptionTier === 'PREMIUM_3M') endDate.setMonth(endDate.getMonth() + 3);
+    else if (editingUser.subscriptionTier === 'PREMIUM_12M') endDate.setMonth(endDate.getMonth() + 12);
+    else if (editingUser.subscriptionTier === 'PREMIUM_24M') endDate.setMonth(endDate.getMonth() + 24);
 
-  const handleDeleteUser = (userId: string) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer définitivement ce membre ?')) {
-      Store.deleteUser(userId);
-      refreshUser();
+    const ok = await updateSupabaseProfile(editingUser.id, {
+      username: editingUser.username,
+      email: editingUser.email,
+      gender: editingUser.gender,
+      role: editingUser.role,
+      location: editingUser.location,
+      bio: editingUser.bio,
+      isVerified: editingUser.isVerified,
+      subscriptionTier: editingUser.subscriptionTier,
+      subscriptionEnd: editingUser.subscriptionTier === 'FREE' ? undefined : endDate.toISOString(),
+    });
+
+    if (ok) {
+      await loadData();
+      await refreshUser();
+      setEditingUser(null);
+    } else {
+      alert('Erreur lors de la mise à jour du membre.');
     }
   };
 
-  const handleQuickToggleVerified = (u: User) => {
-    Store.updateUser({ id: u.id, isVerified: !u.isVerified });
-    refreshUser();
+  const handleDeleteUser = async (userId: string) => {
+    if (confirm('Êtes-vous sûr de vouloir supprimer définitivement ce membre ?')) {
+      const ok = await deleteSupabaseUser(userId);
+      if (ok) await loadData();
+      else alert('Erreur lors de la suppression.');
+    }
   };
 
-  const handleQuickUpgradeSubscription = (u: User, tier: SubscriptionTier) => {
-    Store.upgradeSubscription(u.id, tier);
-    refreshUser();
+  const handleQuickToggleVerified = async (u: User) => {
+    const ok = await updateSupabaseProfile(u.id, { isVerified: !u.isVerified });
+    if (ok) await loadData();
+  };
+
+  const handleQuickUpgradeSubscription = async (u: User, tier: SubscriptionTier) => {
+    const endDate = new Date();
+    if (tier === 'PREMIUM_3M') endDate.setMonth(endDate.getMonth() + 3);
+    else if (tier === 'PREMIUM_12M') endDate.setMonth(endDate.getMonth() + 12);
+    else if (tier === 'PREMIUM_24M') endDate.setMonth(endDate.getMonth() + 24);
+
+    const ok = await updateSupabaseProfile(u.id, {
+      subscriptionTier: tier,
+      subscriptionEnd: tier === 'FREE' ? undefined : endDate.toISOString(),
+    });
+    if (ok) await loadData();
   };
 
   // Group Actions
-  const handleSaveGroupEdit = (e: React.FormEvent) => {
+  const handleSaveGroupEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingGroup) return;
-    Store.updateGroup(editingGroup);
-    refreshGroups();
-    setEditingGroup(null);
+    const ok = await updateSupabaseGroup(editingGroup.id, {
+      name: editingGroup.name,
+      description: editingGroup.description,
+      category: editingGroup.category,
+      coverUrl: editingGroup.coverUrl,
+    });
+    if (ok) {
+      await loadData();
+      setEditingGroup(null);
+    } else {
+      alert('Erreur lors de la mise à jour du club.');
+    }
   };
 
-  const handleCreateGroupSubmit = (e: React.FormEvent) => {
+  const handleCreateGroupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    Store.createGroup({
+    if (!user) return;
+    const created = await createSupabaseGroup({
       name: newGroupData.name,
       description: newGroupData.description,
       creatorId: user.id,
@@ -129,23 +195,44 @@ export default function AdminPage() {
       isPrivate: newGroupData.isPrivate,
       coverUrl: newGroupData.coverUrl,
     });
-    refreshGroups();
-    setIsCreatingGroup(false);
-    setNewGroupData({
-      name: '',
-      description: '',
-      category: 'clubs',
-      maxMembers: 50,
-      isPrivate: false,
-      coverUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80',
-    });
+    if (created) {
+      await loadData();
+      setIsCreatingGroup(false);
+      setNewGroupData({
+        name: '',
+        description: '',
+        category: 'clubs',
+        maxMembers: 50,
+        isPrivate: false,
+        coverUrl: '',
+      });
+    } else {
+      alert('Erreur lors de la création du club.');
+    }
   };
 
-  const handleDeleteGroup = (groupId: string) => {
+  const handleDeleteGroup = async (groupId: string) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce club/groupe ?')) {
-      Store.deleteGroup(groupId);
-      refreshGroups();
+      const ok = await deleteSupabaseGroup(groupId);
+      if (ok) await loadData();
+      else alert('Erreur lors de la suppression.');
     }
+  };
+
+  const handleApproveVerification = async (photoId: string, userId: string) => {
+    const ok = await approveVerification(photoId);
+    if (ok) {
+      await updateSupabaseProfile(userId, { isVerified: true });
+      await loadData();
+    } else {
+      alert('Erreur lors de l\'approbation.');
+    }
+  };
+
+  const handleRejectVerification = async (photoId: string) => {
+    const ok = await rejectVerification(photoId);
+    if (ok) await loadData();
+    else alert('Erreur lors du rejet.');
   };
 
   // Filtered Users List
@@ -154,6 +241,13 @@ export default function AdminPage() {
     u.email.toLowerCase().includes(userSearch.toLowerCase()) ||
     u.location.toLowerCase().includes(userSearch.toLowerCase())
   );
+
+  const totalRevenue = usersList.reduce((acc, u) => {
+    if (u.subscriptionTier === 'PREMIUM_3M') return acc + 16;
+    if (u.subscriptionTier === 'PREMIUM_12M') return acc + 25;
+    if (u.subscriptionTier === 'PREMIUM_24M') return acc + 70;
+    return acc;
+  }, 0);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#12091A] text-[#F5F0F8]">
@@ -209,9 +303,9 @@ export default function AdminPage() {
             >
               <UserCheck className="w-4 h-4" />
               <span>Vérifications</span>
-              {pendingUsers.length > 0 && (
+              {pendingVerifications.length > 0 && (
                 <span className="w-5 h-5 rounded-full bg-amber-500 text-black font-extrabold text-[10px] flex items-center justify-center">
-                  {pendingUsers.length}
+                  {pendingVerifications.length}
                 </span>
               )}
             </button>
@@ -230,6 +324,17 @@ export default function AdminPage() {
           </div>
         </div>
 
+        {isLoading && (
+          <div className="p-4 rounded-xl bg-[#1C102B] border border-[#2C1B3D] text-center text-xs text-zinc-400">Chargement des données...</div>
+        )}
+
+        {errorMsg && (
+          <div className="p-4 rounded-xl bg-rose-950/60 border border-rose-800/40 text-rose-300 text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{errorMsg}</span>
+          </div>
+        )}
+
         {/* TAB 1: USER MANAGEMENT */}
         {activeTab === 'users' && (
           <div className="space-y-6">
@@ -240,6 +345,13 @@ export default function AdminPage() {
                   {filteredUsers.length} affichés
                 </span>
               </h2>
+
+              <button
+                onClick={loadData}
+                className="px-3 py-2 rounded-xl bg-[#2C1B3D] hover:bg-[#3D2654] text-white text-xs font-bold"
+              >
+                Rafraîchir
+              </button>
 
               <div className="relative w-full sm:w-72">
                 <Search className="w-4 h-4 text-zinc-500 absolute left-3 top-3" />
@@ -452,10 +564,10 @@ export default function AdminPage() {
         {activeTab === 'verification' && (
           <div className="space-y-4">
             <h2 className="text-base font-bold text-white">
-              Demandes de Vérification d&apos;Identité en Attente ({pendingUsers.length})
+              Demandes de Vérification d&apos;Identité en Attente ({pendingVerifications.length})
             </h2>
 
-            {pendingUsers.length === 0 ? (
+            {pendingVerifications.length === 0 ? (
               <div className="p-8 rounded-2xl bg-[#1C102B] border border-[#2C1B3D] text-center text-xs text-zinc-400 space-y-2">
                 <UserCheck className="w-8 h-8 text-emerald-400 mx-auto" />
                 <p className="font-bold text-white">Toutes les vérifications sont à jour !</p>
@@ -463,48 +575,47 @@ export default function AdminPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {pendingUsers.map((u) => {
-                  const pendingPhoto = u.verificationPhotos.find((vp) => vp.status === 'pending');
-                  if (!pendingPhoto) return null;
-
-                  return (
-                    <div
-                      key={u.id}
-                      className="p-5 rounded-2xl bg-[#1C102B] border border-[#2C1B3D] space-y-4 flex flex-col justify-between"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-bold text-white text-sm">{u.username}</h3>
-                          <div className="text-xs text-zinc-400 capitalize">
-                            {u.gender} • {u.location}
-                          </div>
-                        </div>
-                        <span className="text-[10px] px-2 py-0.5 rounded bg-amber-950 text-amber-300 font-bold">
-                          En attente
-                        </span>
+                {pendingVerifications.map((v) => (
+                  <div
+                    key={v.id}
+                    className="p-5 rounded-2xl bg-[#1C102B] border border-[#2C1B3D] space-y-4 flex flex-col justify-between"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-bold text-white text-sm">{v.profiles?.username || 'Membre'}</h3>
+                        <div className="text-xs text-zinc-400">{v.profiles?.email}</div>
                       </div>
-
-                      <div className="aspect-video w-full rounded-xl overflow-hidden bg-black border border-[#3D2654] relative">
-                        <Image
-                          src={pendingPhoto.url}
-                          alt="Selfie de vérification"
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-
-                      <div className="flex gap-2 pt-2">
-                        <button
-                          onClick={() => handleApproveVerification(u.id, pendingPhoto.id)}
-                          className="flex-1 py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-500 shadow-md flex items-center justify-center gap-1.5"
-                        >
-                          <Check className="w-4 h-4" />
-                          <span>Approuver & Accorder Badge</span>
-                        </button>
-                      </div>
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-amber-950 text-amber-300 font-bold">
+                        En attente
+                      </span>
                     </div>
-                  );
-                })}
+
+                    <div className="aspect-video w-full rounded-xl overflow-hidden bg-black border border-[#3D2654] relative">
+                      <Image
+                        src={v.url}
+                        alt="Selfie de vérification"
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+
+                    <div className="flex gap-2 pt-2">
+                      <button
+                        onClick={() => handleApproveVerification(v.id, v.user_id)}
+                        className="flex-1 py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-500 shadow-md flex items-center justify-center gap-1.5"
+                      >
+                        <Check className="w-4 h-4" />
+                        <span>Approuver</span>
+                      </button>
+                      <button
+                        onClick={() => handleRejectVerification(v.id)}
+                        className="py-2.5 px-3 rounded-xl bg-rose-950 text-rose-300 font-bold text-xs hover:bg-rose-900 border border-rose-800/60"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -516,11 +627,11 @@ export default function AdminPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="p-5 rounded-2xl bg-[#1C102B] border border-[#2C1B3D] space-y-2">
                 <div className="flex items-center justify-between text-zinc-400 text-xs">
-                  <span>Revenu Mensuel Récurrent (MRR)</span>
+                  <span>Revenu estimé (plans actifs)</span>
                   <TrendingUp className="w-4 h-4 text-emerald-400" />
                 </div>
-                <div className="text-2xl font-extrabold text-white">4 820 €</div>
-                <div className="text-[10px] text-emerald-400 font-semibold">+18.5% ce mois-ci</div>
+                <div className="text-2xl font-extrabold text-white">{totalRevenue} €</div>
+                <div className="text-[10px] text-zinc-500 font-semibold">Simulation basée sur les formules</div>
               </div>
 
               <div className="p-5 rounded-2xl bg-[#1C102B] border border-[#2C1B3D] space-y-2">
@@ -540,7 +651,7 @@ export default function AdminPage() {
                 <div className="text-2xl font-extrabold text-white">
                   {Math.round((usersList.filter((u) => u.isVerified).length / (usersList.length || 1)) * 100)} %
                 </div>
-                <div className="text-[10px] text-emerald-400 font-semibold">Haute confiance</div>
+                <div className="text-[10px] text-zinc-500 font-semibold">{usersList.filter((u) => u.isVerified).length} sur {usersList.length}</div>
               </div>
             </div>
 

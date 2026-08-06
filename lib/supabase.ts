@@ -250,12 +250,167 @@ export async function updateSupabaseProfile(
     if (payload.lng !== undefined) dbPayload.lng = payload.lng;
     if (payload.interests !== undefined) dbPayload.interests = payload.interests;
     if (payload.subscriptionTier !== undefined) dbPayload.subscription_tier = payload.subscriptionTier;
+    if (payload.subscriptionStart !== undefined) dbPayload.subscription_start = payload.subscriptionStart;
     if (payload.subscriptionEnd !== undefined) dbPayload.subscription_end = payload.subscriptionEnd;
     if (payload.isVerified !== undefined) dbPayload.is_verified = payload.isVerified;
     if (payload.isActive !== undefined) dbPayload.is_active = payload.isActive;
+    if (payload.role !== undefined) dbPayload.role = payload.role;
     dbPayload.updated_at = new Date().toISOString();
 
     const { error } = await supabase.from('profiles').update(dbPayload).eq('id', userId);
+    return !error;
+  } catch (e) {
+    return false;
+  }
+}
+
+export async function deleteSupabaseUser(userId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase.from('profiles').delete().eq('id', userId);
+    return !error;
+  } catch (e) {
+    return false;
+  }
+}
+
+export async function getPendingVerifications(): Promise<any[]> {
+  try {
+    const { data, error } = await supabase
+      .from('verification_photos')
+      .select('*, profiles(id, username, email)')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+    if (error || !data) return [];
+    return data;
+  } catch (e) {
+    return [];
+  }
+}
+
+export async function approveVerification(photoId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('verification_photos')
+      .update({ status: 'approved', updated_at: new Date().toISOString() })
+      .eq('id', photoId);
+    if (error) return false;
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+export async function rejectVerification(photoId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('verification_photos')
+      .update({ status: 'rejected', updated_at: new Date().toISOString() })
+      .eq('id', photoId);
+    if (error) return false;
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+// ========================================================
+// GROUPS HELPERS
+// ========================================================
+
+export async function getSupabaseGroups(): Promise<Group[]> {
+  try {
+    const { data, error } = await supabase.from('groups').select('*').order('created_at', { ascending: false });
+    if (error || !data) return [];
+    return data.map((row: any) => ({
+      id: row.id,
+      name: row.name,
+      description: row.description,
+      creatorId: row.creator_id,
+      creatorName: row.creator_name,
+      isPrivate: row.is_private,
+      maxMembers: row.max_members,
+      memberCount: row.member_count,
+      category: row.category,
+      coverUrl: row.cover_url,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    }));
+  } catch (e) {
+    return [];
+  }
+}
+
+export async function createSupabaseGroup(payload: {
+  name: string;
+  description?: string;
+  creatorId: string;
+  creatorName: string;
+  category: Group['category'];
+  maxMembers: number;
+  isPrivate: boolean;
+  coverUrl?: string;
+}): Promise<Group | null> {
+  try {
+    const { data, error } = await supabase
+      .from('groups')
+      .insert({
+        name: payload.name,
+        description: payload.description,
+        creator_id: payload.creatorId,
+        creator_name: payload.creatorName,
+        category: payload.category,
+        max_members: payload.maxMembers,
+        is_private: payload.isPrivate,
+        cover_url: payload.coverUrl,
+        member_count: 1,
+      })
+      .select()
+      .single();
+    if (error || !data) return null;
+    return {
+      id: data.id,
+      name: data.name,
+      description: data.description,
+      creatorId: data.creator_id,
+      creatorName: data.creator_name,
+      isPrivate: data.is_private,
+      maxMembers: data.max_members,
+      memberCount: data.member_count,
+      category: data.category,
+      coverUrl: data.cover_url,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+    };
+  } catch (e) {
+    return null;
+  }
+}
+
+export async function updateSupabaseGroup(
+  groupId: string,
+  payload: Partial<Group>
+): Promise<boolean> {
+  try {
+    const dbPayload: any = {};
+    if (payload.name !== undefined) dbPayload.name = payload.name;
+    if (payload.description !== undefined) dbPayload.description = payload.description;
+    if (payload.category !== undefined) dbPayload.category = payload.category;
+    if (payload.maxMembers !== undefined) dbPayload.max_members = payload.maxMembers;
+    if (payload.isPrivate !== undefined) dbPayload.is_private = payload.isPrivate;
+    if (payload.coverUrl !== undefined) dbPayload.cover_url = payload.coverUrl;
+    if (payload.memberCount !== undefined) dbPayload.member_count = payload.memberCount;
+    dbPayload.updated_at = new Date().toISOString();
+
+    const { error } = await supabase.from('groups').update(dbPayload).eq('id', groupId);
+    return !error;
+  } catch (e) {
+    return false;
+  }
+}
+
+export async function deleteSupabaseGroup(groupId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase.from('groups').delete().eq('id', groupId);
     return !error;
   } catch (e) {
     return false;
