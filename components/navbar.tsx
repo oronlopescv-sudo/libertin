@@ -10,19 +10,16 @@ import {
   MessageSquare,
   Crown,
   ShieldCheck,
-  User as UserIcon,
   LogOut,
   Menu,
   X,
-  ChevronDown,
   Database,
 } from 'lucide-react';
 
 export function Navbar() {
   const pathname = usePathname();
-  const { user, usersList, switchUser, isPremium, logout } = useAuth();
+  const { user, isPremium, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [accountSwitcherOpen, setAccountSwitcherOpen] = useState(false);
 
   const navLinks = [
     { href: '/decouvrir', label: 'Découvrir', icon: Flame, badge: isPremium ? null : 'Premium' },
@@ -81,64 +78,8 @@ export function Navbar() {
             })}
           </nav>
 
-          {/* User & Demo Switcher Controls */}
+          {/* User Controls */}
           <div className="hidden md:flex items-center gap-3">
-            {/* Account Switcher Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setAccountSwitcherOpen(!accountSwitcherOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#2C1B3D]/80 border border-[#3D2654] hover:border-[#D4145A]/50 text-xs font-medium text-zinc-200 transition-colors"
-                title="Changer de compte"
-              >
-                <UserIcon className="w-3.5 h-3.5 text-[#E86B7A]" />
-                <span>Changer de profil</span>
-                <ChevronDown className="w-3 h-3 text-zinc-400" />
-              </button>
-
-              {accountSwitcherOpen && (
-                <div className="absolute right-0 mt-2 w-72 rounded-xl bg-[#1C102B] border border-[#3D2654] shadow-2xl p-2 z-50">
-                  <div className="px-3 py-1.5 text-[11px] font-semibold uppercase text-zinc-400 tracking-wider">
-                    Sélecteur de Profils
-                  </div>
-                  <div className="space-y-1">
-                    {usersList.map((u) => (
-                      <button
-                        key={u.id}
-                        onClick={() => {
-                          switchUser(u.id);
-                          setAccountSwitcherOpen(false);
-                        }}
-                        className={`w-full flex items-center justify-between p-2 rounded-lg text-left text-xs transition-colors ${
-                          user?.id === u.id
-                            ? 'bg-[#D4145A]/20 text-white border border-[#D4145A]/40'
-                            : 'hover:bg-[#2C1B3D] text-zinc-300'
-                        }`}
-                      >
-                        <div className="truncate">
-                          <div className="font-semibold text-white flex items-center gap-1">
-                            {u.username}
-                            {u.isVerified && <ShieldCheck className="w-3 h-3 text-emerald-400 inline" />}
-                          </div>
-                          <div className="text-[10px] text-zinc-400 capitalize">
-                            {u.gender} • {u.location}
-                          </div>
-                        </div>
-                        <span
-                          className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${
-                            u.subscriptionTier === 'FREE'
-                              ? 'bg-zinc-700 text-zinc-300'
-                              : 'bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white'
-                          }`}
-                        >
-                          {u.subscriptionTier}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
             {/* Current User Profile Pill */}
             {user ? (
               <div className="flex items-center gap-2">
@@ -250,28 +191,6 @@ export function Navbar() {
             })}
           </div>
 
-          <div className="pt-2 border-t border-[#3D2654] space-y-2">
-            <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-              Changer de Profil Membre
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              {usersList.map((u) => (
-                <button
-                  key={u.id}
-                  onClick={() => {
-                    switchUser(u.id);
-                    setMobileMenuOpen(false);
-                  }}
-                  className={`p-2 rounded-lg text-left text-xs ${
-                    user?.id === u.id ? 'bg-[#D4145A] text-white' : 'bg-[#2C1B3D] text-zinc-300'
-                  }`}
-                >
-                  <div className="font-semibold truncate">{u.username}</div>
-                  <div className="text-[10px] opacity-80">{u.subscriptionTier}</div>
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       )}
     </header>

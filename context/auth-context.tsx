@@ -20,7 +20,6 @@ interface AuthContextType {
   isPremium: boolean;
   login: (email: string, password?: string) => Promise<boolean>;
   logout: () => void;
-  switchUser: (userId: string) => void;
   register: (userData: any) => Promise<User>;
   upgradeSubscription: (tier: SubscriptionTier) => void;
   refreshUser: () => void;
@@ -104,9 +103,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUsersList([]);
   };
 
-  const switchUser = async (userId: string) => {
-    console.warn('switchUser is deprecated; use Supabase Auth login');
-  };
 
   const register = async (userData: any): Promise<User> => {
     const password = userData.password || userData.hashedPassword;
@@ -176,7 +172,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isPremium,
         login,
         logout,
-        switchUser,
         register,
         upgradeSubscription,
         refreshUser,
