@@ -4,8 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
-import { supabase, SUPABASE_SQL_SCHEMA } from '@/lib/supabase';
-import { Store } from '@/lib/store';
+import { supabase, SUPABASE_SQL_SCHEMA, getSupabaseUsersList, getSupabaseGroups, getSupabaseMessages } from '@/lib/supabase';
+import { User, Group } from '@/lib/types';
 import {
   Database,
   Copy,
@@ -65,6 +65,8 @@ export default function SupabaseDataPage() {
   const [photosCount, setPhotosCount] = useState<number>(0);
   const [groupsCount, setGroupsCount] = useState<number>(0);
   const [messagesCount, setMessagesCount] = useState<number>(0);
+  const [liveUsers, setLiveUsers] = useState<User[]>([]);
+  const [liveGroups, setLiveGroups] = useState<Group[]>([]);
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -88,14 +90,20 @@ export default function SupabaseDataPage() {
       setPingMessage(`Supabase URL valide. Script SQL disponible ci-dessous pour créer les tables. (${err?.message || 'Ready'})`);
     }
 
-    // Load store metrics for live inspector
-    const users = Store.getUsers();
+    // Load real metrics from Supabase
+    const users = await getSupabaseUsersList(100);
     setProfilesCount(users.length);
-    setPhotosCount(users.reduce((acc, u) => acc + (u.photos?.length || 0), 0));
-    setGroupsCount(Store.getGroups().length);
-    const allMsgsMap = Store.getMessages();
-    const totalMsgsCount = Object.values(allMsgsMap).reduce((acc, msgs) => acc + (msgs?.length || 0), 0);
-    setMessagesCount(totalMsgsCount);
+    setLiveUsers(users);
+    setPhotosCount(0);
+    const groups = await getSupabaseGroups();
+    setGroupsCount(groups.length);
+    setLiveGroups(groups);
+    let totalMsgs = 0;
+    for (const g of groups) {
+      const msgs = await getSupabaseMessages(g.id);
+      totalMsgs += msgs.length;
+    }
+    setMessagesCount(totalMsgs);
   }, []);
 
   useEffect(() => {
@@ -539,10 +547,10 @@ export default function SupabaseDataPage() {
                 <div>
                   <h3 className="text-base font-bold text-white flex items-center gap-2">
                     <Users className="w-4 h-4 text-[#D4145A]" />
-                    Aperçu des Données Utilisateurs Enregistrés ({Store.getUsers().length})
+                    Aperçu des Données Utilisateurs ({profilesCount})
                   </h3>
                   <p className="text-xs text-zinc-400">
-                    Ces enregistrements sont synchronisés avec le store principal et prêts à être poussés vers Supabase Postgres.
+                    Données lues directement depuis Supabase.
                   </p>
                 </div>
 
@@ -564,7 +572,7 @@ export default function SupabaseDataPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#2C1B3D]">
-                    {Store.getUsers().map((u) => (
+                    {liveUsers.map((u) => (
                       <tr key={u.id} className="hover:bg-[#25153A]">
                         <td className="py-2.5 px-3 font-bold text-white">{u.username}</td>
                         <td className="py-2.5 px-3 font-mono text-zinc-300">{u.email}</td>

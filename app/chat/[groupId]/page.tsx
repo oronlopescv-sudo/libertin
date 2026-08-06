@@ -1,17 +1,36 @@
 'use client';
 
-import React, { use } from 'react';
+import React, { use, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { ChatBox } from '@/components/chat-box';
-import { Store } from '@/lib/store';
-import { ArrowLeft, Users, ShieldCheck } from 'lucide-react';
+import { getSupabaseGroups } from '@/lib/supabase';
+import { Group } from '@/lib/types';
+import { ArrowLeft, Users } from 'lucide-react';
 
 export default function GroupChatPage({ params }: { params: Promise<{ groupId: string }> }) {
   const { groupId } = use(params);
-  const groups = Store.getGroups();
-  const group = groups.find((g) => g.id === groupId) || groups[0];
+  const [group, setGroup] = useState<Group | null>(null);
+
+  useEffect(() => {
+    getSupabaseGroups().then((groups) => {
+      const found = groups.find((g) => g.id === groupId) || null;
+      setGroup(found);
+    });
+  }, [groupId]);
+
+  if (!group) {
+    return (
+      <div className="min-h-screen flex flex-col bg-[#12091A] text-white">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-xs text-zinc-400">Chargement du groupe...</div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#12091A] text-[#F5F0F8]">

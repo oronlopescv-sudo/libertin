@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Message, User } from '@/lib/types';
 import { Store } from '@/lib/store';
+import { getSupabaseMessages, sendSupabaseMessage } from '@/lib/supabase';
 import { useAuth } from '@/context/auth-context';
 import {
   Send,
@@ -26,7 +27,7 @@ interface ChatBoxProps {
 
 export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
   const { user, isPremium } = useAuth();
-  const [messages, setMessages] = useState<Message[]>(() => Store.getGroupMessages(groupId));
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputContent, setInputContent] = useState('');
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
@@ -35,18 +36,13 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
 
   const EMOJIS = ['🥂', '🌶️', '💋', '🍸', '✨', '🔥', '🖤', '🍓', '🔒', '🌹'];
 
-  const loadMessages = React.useCallback(() => {
-    const msgs = Store.getGroupMessages(groupId);
+  const loadMessages = React.useCallback(async () => {
+    const msgs = await getSupabaseMessages(groupId);
     setMessages(msgs);
   }, [groupId]);
 
   useEffect(() => {
-    const handleStorage = () => {
-      loadMessages();
-    };
-
-    window.addEventListener('rp_storage_update', handleStorage);
-    return () => window.removeEventListener('rp_storage_update', handleStorage);
+    loadMessages();
   }, [loadMessages]);
 
   useEffect(() => {
@@ -57,26 +53,32 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
     if (e) e.preventDefault();
     if (!inputContent.trim() || !user) return;
 
-    // Premium check: Free members cannot send messages (Fix #1)
     if (!isPremium && user.role !== 'admin') {
       setUpgradeModalOpen(true);
       return;
     }
 
-    try {
-      // Send via Store
-      Store.sendMessage(groupId, user, inputContent);
-      setInputContent('');
-      loadMessages();
+    const ok = await sendSupabaseMessage({
+      groupId,
+      userId: user.id,
+      userName: user.username,
+      userAvatar: user.photos[0]?.url,
+      userGender: user.gender,
+      userIsVerified: user.isVerified,
+      content: inputContent.trim(),
+    });
 
-      // Play soft notification chime if enabled
+    if (ok) {
+      setInputContent('');
+      await loadMessages();
+
       if (soundEnabled && typeof Audio !== 'undefined') {
         try {
           const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
           osc.type = 'sine';
-          osc.frequency.value = 587.33; // D5
+          osc.frequency.value = 587.33;
           gain.gain.setValueAtTime(0.05, ctx.currentTime);
           gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
           osc.connect(gain);
@@ -87,8 +89,6 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
           // ignore audio context restrictions
         }
       }
-    } catch (err) {
-      console.error('Error sending message:', err);
     }
   };
 

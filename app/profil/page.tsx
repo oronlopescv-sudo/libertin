@@ -5,7 +5,7 @@ import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { PhotoVerificationModal } from '@/components/photo-verification-modal';
 import { useAuth } from '@/context/auth-context';
-import { Store } from '@/lib/store';
+import { updateSupabaseProfile, addSupabasePhoto, deleteSupabasePhoto, setSupabaseCoverPhoto } from '@/lib/supabase';
 import { getPlanDetails } from '@/lib/stripe';
 import { CITIES, COUNTRIES } from '@/lib/geo';
 import {
@@ -56,43 +56,37 @@ export default function ProfilPage() {
     );
   }
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     const cityCoords = CITIES[location] || { lat: 48.8566, lng: 2.3522 };
 
-    Store.updateUser({
-      id: user.id,
+    const ok = await updateSupabaseProfile(user.id, {
       bio,
       location,
       lat: cityCoords.lat,
       lng: cityCoords.lng,
     });
 
-    refreshUser();
-    setSaveSuccess(true);
-    setTimeout(() => setSaveSuccess(false), 2500);
+    if (ok) {
+      await refreshUser();
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 2500);
+    } else {
+      alert('Erreur lors de la mise à jour du profil.');
+    }
   };
 
-  const handleAddPhoto = (urlToAdd?: string) => {
+  const handleAddPhoto = async (urlToAdd?: string) => {
     const url = urlToAdd || newPhotoUrl;
     if (!url || !url.trim()) return;
 
-    const newPhoto = {
-      id: `photo-${Date.now()}`,
-      userId: user.id,
-      url: url,
-      isCover: user.photos.length === 0,
-      order: user.photos.length,
-      uploadedAt: new Date().toISOString(),
-    };
-
-    Store.updateUser({
-      id: user.id,
-      photos: [...user.photos, newPhoto],
-    });
-
-    setNewPhotoUrl('');
-    refreshUser();
+    const ok = await addSupabasePhoto(user.id, url);
+    if (ok) {
+      setNewPhotoUrl('');
+      await refreshUser();
+    } else {
+      alert("Erreur lors de l'ajout de la photo.");
+    }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -108,34 +102,16 @@ export default function ProfilPage() {
     }
   };
 
-  const handleDeletePhoto = (photoId: string) => {
-    const updatedPhotos = user.photos.filter((p) => p.id !== photoId);
-    // If deleted photo was cover and there are other photos, set first as cover
-    if (updatedPhotos.length > 0 && !updatedPhotos.some((p) => p.isCover)) {
-      updatedPhotos[0].isCover = true;
-    }
-    Store.updateUser({
-      id: user.id,
-      photos: updatedPhotos,
-    });
-    refreshUser();
+  const handleDeletePhoto = async (photoId: string) => {
+    const ok = await deleteSupabasePhoto(photoId);
+    if (ok) await refreshUser();
+    else alert('Erreur lors de la suppression de la photo.');
   };
 
-  const handleSetCoverPhoto = (photoId: string) => {
-    const updatedPhotos = user.photos.map((p) => ({
-      ...p,
-      isCover: p.id === photoId,
-    }));
-    Store.updateUser({
-      id: user.id,
-      photos: updatedPhotos,
-    });
-    refreshUser();
-  };
-
-  const handleUnblockUser = (targetId: string) => {
-    Store.unblockUser(user.id, targetId);
-    refreshUser();
+  const handleSetCoverPhoto = async (photoId: string) => {
+    const ok = await setSupabaseCoverPhoto(user.id, photoId);
+    if (ok) await refreshUser();
+    else alert('Erreur lors de la mise à jour de la couverture.');
   };
 
   return (
@@ -279,7 +255,7 @@ export default function ProfilPage() {
             {user.photos.map((photo) => (
               <div key={photo.id} className="relative rounded-2xl overflow-hidden aspect-square border border-[#3D2654] group">
                 <img src={photo.url} alt="Gallery" className="w-full h-full object-cover" />
-                
+
                 {photo.isCover ? (
                   <span className="absolute top-2 left-2 text-[9px] px-2 py-0.5 rounded bg-[#D4145A] text-white font-bold shadow">
                     Couverture
@@ -337,66 +313,21 @@ export default function ProfilPage() {
           </div>
         </div>
 
-        {/* Confidentiality & Blocked Users Section */}
+        {/* Confidentiality Notice */}
         <div className="p-6 rounded-3xl bg-[#1C102B] border border-[#2C1B3D] space-y-4 text-xs">
           <h3 className="text-sm font-bold text-white uppercase tracking-wider border-b border-[#2C1B3D] pb-3 flex items-center justify-between">
             <span className="flex items-center gap-2">
               <UserX className="w-4 h-4 text-red-400" />
-              <span>Confidentialité & Membres Bloqués ({(user.blockedUserIds || []).length})</span>
-            </span>
-            <span className="text-[10px] text-zinc-400 font-normal">
-              Les membres bloqués ne peuvent plus interagir avec vous ni voir vos messages
+              <span>Confidentialité</span>
             </span>
           </h3>
-
-          {(user.blockedUserIds || []).length === 0 ? (
-            <div className="p-4 rounded-xl bg-[#12091A] border border-[#2C1B3D] text-center text-zinc-400">
-              <Shield className="w-6 h-6 text-emerald-400 mx-auto mb-1 opacity-80" />
-              <p className="font-medium text-zinc-300">Aucun membre bloqué</p>
-              <p className="text-[11px] text-zinc-500 mt-0.5">
-                Vous pouvez bloquer un profil à tout moment depuis sa fiche pour protéger votre tranquillité.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {(user.blockedUserIds || []).map((blockedId) => {
-                const blockedUser = Store.getUserById(blockedId);
-                const avatar =
-                  blockedUser?.photos?.[0]?.url ||
-                  'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80';
-
-                return (
-                  <div
-                    key={blockedId}
-                    className="flex items-center justify-between p-3 rounded-xl bg-[#12091A] border border-[#2C1B3D]"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <img
-                        src={avatar}
-                        alt={blockedUser?.username || 'Membre'}
-                        className="w-10 h-10 rounded-full object-cover border border-red-500/40 shrink-0"
-                      />
-                      <div className="truncate">
-                        <div className="font-bold text-white text-xs truncate">
-                          {blockedUser?.username || 'Membre restreint'}
-                        </div>
-                        <div className="text-[10px] text-zinc-400 truncate">
-                          {blockedUser?.location || 'Localisation privée'}
-                        </div>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => handleUnblockUser(blockedId)}
-                      className="px-3 py-1.5 rounded-lg bg-emerald-950/80 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-900 text-[11px] font-semibold shrink-0"
-                    >
-                      Débloquer
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          <div className="p-4 rounded-xl bg-[#12091A] border border-[#2C1B3D] text-center text-zinc-400">
+            <Shield className="w-6 h-6 text-emerald-400 mx-auto mb-1 opacity-80" />
+            <p className="font-medium text-zinc-300">Gestion des blocages</p>
+            <p className="text-[11px] text-zinc-500 mt-0.5">
+              Vous pourrez bientôt bloquer des profils directement depuis leur fiche.
+            </p>
+          </div>
         </div>
 
         {/* Photo Verification Modal */}

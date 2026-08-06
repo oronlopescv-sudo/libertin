@@ -1,26 +1,22 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { GroupCard } from '@/components/group-card';
 import { useAuth } from '@/context/auth-context';
-import { Store } from '@/lib/store';
 import { Group } from '@/lib/types';
+import { getSupabaseGroups, createSupabaseGroup } from '@/lib/supabase';
 import {
   Users,
   Plus,
   Search,
-  Filter,
-  ShieldCheck,
-  Lock,
   X,
-  Sparkles,
 } from 'lucide-react';
 
 export default function GroupesPage() {
   const { user } = useAuth();
-  const [groups, setGroups] = useState<Group[]>(Store.getGroups());
+  const [groups, setGroups] = useState<Group[]>([]);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [createModalOpen, setCreateModalOpen] = useState<boolean>(false);
@@ -32,17 +28,26 @@ export default function GroupesPage() {
   const [newGroupIsPrivate, setNewGroupIsPrivate] = useState(false);
   const [newGroupMaxMembers, setNewGroupMaxMembers] = useState(50);
 
+  const loadGroups = async () => {
+    const data = await getSupabaseGroups();
+    setGroups(data);
+  };
+
+  useEffect(() => {
+    loadGroups();
+  }, []);
+
   const filteredGroups = groups.filter((g) => {
     if (categoryFilter !== 'all' && g.category !== categoryFilter) return false;
     if (searchQuery && !g.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
 
-  const handleCreateGroup = (e: React.FormEvent) => {
+  const handleCreateGroup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newGroupTitle || !user) return;
 
-    const created = Store.createGroup({
+    const created = await createSupabaseGroup({
       name: newGroupTitle,
       category: newGroupCategory,
       description: newGroupDesc,
@@ -50,13 +55,17 @@ export default function GroupesPage() {
       maxMembers: newGroupMaxMembers,
       creatorId: user.id,
       creatorName: user.username,
-      coverUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=80',
+      coverUrl: '',
     });
 
-    setGroups(Store.getGroups());
-    setCreateModalOpen(false);
-    setNewGroupTitle('');
-    setNewGroupDesc('');
+    if (created) {
+      await loadGroups();
+      setCreateModalOpen(false);
+      setNewGroupTitle('');
+      setNewGroupDesc('');
+    } else {
+      alert('Erreur lors de la création du groupe.');
+    }
   };
 
   return (

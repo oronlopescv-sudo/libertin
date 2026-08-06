@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { User, GenderType, SexualOrientationType, SubscriptionTier } from './types';
+import { User, GenderType, SexualOrientationType, SubscriptionTier, Group, Message } from './types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -244,10 +244,12 @@ export async function updateSupabaseProfile(
   try {
     const dbPayload: any = {};
     if (payload.username !== undefined) dbPayload.username = payload.username;
+    if (payload.email !== undefined) dbPayload.email = payload.email;
     if (payload.bio !== undefined) dbPayload.bio = payload.bio;
     if (payload.location !== undefined) dbPayload.location = payload.location;
     if (payload.lat !== undefined) dbPayload.lat = payload.lat;
     if (payload.lng !== undefined) dbPayload.lng = payload.lng;
+    if (payload.gender !== undefined) dbPayload.gender = payload.gender;
     if (payload.interests !== undefined) dbPayload.interests = payload.interests;
     if (payload.subscriptionTier !== undefined) dbPayload.subscription_tier = payload.subscriptionTier;
     if (payload.subscriptionStart !== undefined) dbPayload.subscription_start = payload.subscriptionStart;
@@ -308,6 +310,59 @@ export async function rejectVerification(photoId: string): Promise<boolean> {
       .eq('id', photoId);
     if (error) return false;
     return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+// ========================================================
+// PHOTOS HELPERS
+// ========================================================
+
+export async function getSupabasePhotos(userId: string): Promise<any[]> {
+  try {
+    const { data, error } = await supabase
+      .from('photos')
+      .select('*')
+      .eq('user_id', userId)
+      .order('display_order', { ascending: true });
+    if (error || !data) return [];
+    return data;
+  } catch (e) {
+    return [];
+  }
+}
+
+export async function addSupabasePhoto(userId: string, url: string): Promise<boolean> {
+  try {
+    const { data: existing } = await supabase.from('photos').select('id').eq('user_id', userId);
+    const isFirst = !existing || existing.length === 0;
+    const { error } = await supabase.from('photos').insert({
+      user_id: userId,
+      url,
+      is_cover: isFirst,
+      display_order: existing?.length || 0,
+    });
+    return !error;
+  } catch (e) {
+    return false;
+  }
+}
+
+export async function deleteSupabasePhoto(photoId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase.from('photos').delete().eq('id', photoId);
+    return !error;
+  } catch (e) {
+    return false;
+  }
+}
+
+export async function setSupabaseCoverPhoto(userId: string, photoId: string): Promise<boolean> {
+  try {
+    await supabase.from('photos').update({ is_cover: false }).eq('user_id', userId);
+    const { error } = await supabase.from('photos').update({ is_cover: true }).eq('id', photoId);
+    return !error;
   } catch (e) {
     return false;
   }
@@ -411,6 +466,62 @@ export async function updateSupabaseGroup(
 export async function deleteSupabaseGroup(groupId: string): Promise<boolean> {
   try {
     const { error } = await supabase.from('groups').delete().eq('id', groupId);
+    return !error;
+  } catch (e) {
+    return false;
+  }
+}
+
+// ========================================================
+// MESSAGES HELPERS
+// ========================================================
+
+export async function getSupabaseMessages(groupId: string): Promise<Message[]> {
+  try {
+    const { data, error } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('group_id', groupId)
+      .order('created_at', { ascending: true });
+    if (error || !data) return [];
+    return data.map((row: any) => ({
+      id: row.id,
+      userId: row.user_id,
+      userName: row.user_name,
+      userAvatar: row.user_avatar,
+      userGender: row.user_gender,
+      userIsVerified: row.user_is_verified,
+      groupId: row.group_id,
+      content: row.content,
+      mediaUrl: row.media_url,
+      createdAt: row.created_at,
+    }));
+  } catch (e) {
+    return [];
+  }
+}
+
+export async function sendSupabaseMessage(payload: {
+  groupId: string;
+  userId: string;
+  userName: string;
+  userAvatar?: string;
+  userGender?: GenderType;
+  userIsVerified?: boolean;
+  content: string;
+  mediaUrl?: string;
+}): Promise<boolean> {
+  try {
+    const { error } = await supabase.from('messages').insert({
+      group_id: payload.groupId,
+      user_id: payload.userId,
+      user_name: payload.userName,
+      user_avatar: payload.userAvatar,
+      user_gender: payload.userGender,
+      user_is_verified: payload.userIsVerified,
+      content: payload.content,
+      media_url: payload.mediaUrl,
+    });
     return !error;
   } catch (e) {
     return false;
@@ -548,4 +659,3 @@ ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public subscriptions read" ON public.subscriptions FOR SELECT USING (true);
 CREATE POLICY "Allow subscriptions insert" ON public.subscriptions FOR INSERT WITH CHECK (true);
 `;
-
