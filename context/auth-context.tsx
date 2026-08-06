@@ -3,7 +3,16 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { User, SubscriptionTier } from '@/lib/types';
 import { Store } from '@/lib/store';
-import { signUpWithSupabase, signInWithSupabase, signOutWithSupabase } from '@/lib/supabase';
+import {
+  supabase,
+  signUpWithSupabase,
+  signInWithSupabase,
+  signOutWithSupabase,
+  getCurrentSupabaseUser,
+  getSupabaseUserByEmail,
+  getSupabaseUsersList,
+  updateSupabaseProfile,
+} from '@/lib/supabase';
 
 interface AuthContextType {
   user: User | null;
@@ -27,26 +36,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [usersList, setUsersList] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const refreshUser = useCallback(() => {
-    const currentUser = Store.getCurrentUser();
-    const allUsers = Store.getUsers();
-    setUser(currentUser);
-    setUsersList(allUsers);
-    setIsLoading(false);
+  const loadFromSupabase = useCallback(async () => {
+    try {
+      const current = await getCurrentSupabaseUser();
+      const list = await getSupabaseUsersList();
+      if (current) {
+        setUser(current);
+        setUsersList(list);
+        // Sync to local Store for components that still read localStorage
+        Store.setCurrentUser(current.id);
+        return true;
+      }
+    } catch (e) {
+      console.warn('Supabase load failed, falling back to local Store', e);
+    }
+    return false;
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    setIsLoading(true);
+    const ok = await loadFromSupabase();
+    if (!ok) {
+      // Fallback to local Store
+      const currentUser = Store.getCurrentUser();
+      const allUsers = Store.getUsers();
+      setUser(currentUser);
+      setUsersList(allUsers);
+    }
+    setIsLoading(false);
+  }, [loadFromSupabase]);
+
   useEffect(() => {
-    const timer = setTimeout(() => {
+    refreshUser();
+
+    // Listen for Supabase auth changes
+    const { data: listener } = supabase.auth.onAuthStateChange(() => {
       refreshUser();
-    }, 0);
+    });
 
     const handleStorage = () => {
       refreshUser();
     };
-
     window.addEventListener('rp_storage_update', handleStorage);
+
     return () => {
-      clearTimeout(timer);
+      listener?.subscription?.unsubscribe?.();
       window.removeEventListener('rp_storage_update', handleStorage);
     };
   }, [refreshUser]);
@@ -55,19 +89,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!user) return false;
     if (user.role === 'admin') return true;
     if (user.subscriptionTier === 'FREE') return false;
-    if (!user.subscriptionEnd) return true; // Lifetime/active
+    if (!user.subscriptionEnd) return true;
     return new Date(user.subscriptionEnd) > new Date();
   }, [user]);
 
-  const login = async (email: string, password?: string) => {
-    // 1. Try Supabase Login
-    await signInWithSupabase(email, password);
+  const login = async (email: string, password?: string): Promise<boolean> => {
+    // 1. Try Supabase real login
+    const result = await signInWithSupabase(email, password);
+    if (result.success && result.user) {
+      const profile = await getSupabaseUserByEmail(email);
+      if (profile) {
+        setUser(profile);
+        const list = await getSupabaseUsersList();
+        setUsersList(list);
+        Store.setCurrentUser(profile.id);
+        return true;
+      }
+    }
 
-    // 2. Sync local user list
+    // 2. Fallback to local Store demo users
     const found = usersList.find((u) => u.email.toLowerCase() === email.toLowerCase());
     if (found) {
       Store.setCurrentUser(found.id);
-      refreshUser();
+      await refreshUser();
       return true;
     }
     return false;
@@ -75,7 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     signOutWithSupabase();
-    Store.setCurrentUser('user-homme-lyon'); // Fallback to free account
+    Store.setCurrentUser('user-homme-lyon');
     refreshUser();
   };
 
@@ -85,42 +129,61 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const register = async (userData: any): Promise<User> => {
-    // 1. Register with local Store
-    const newUser = Store.registerUser(userData);
+    const password = userData.password || userData.hashedPassword || 'Libertine2026!';
 
-    // 2. Register asynchronously with Supabase
-    try {
-      await signUpWithSupabase({
-        email: userData.email,
-        password: userData.hashedPassword || userData.password,
-        username: userData.username,
-        dateOfBirth: userData.dateOfBirth,
-        gender: userData.gender,
-        sexualOrientation: userData.sexualOrientation,
-        location: userData.location,
-        lat: userData.lat,
-        lng: userData.lng,
-        bio: userData.bio,
-        interests: userData.interests,
-        photoUrl: userData.photos?.[0]?.url,
-      });
-    } catch (e) {
-      console.warn('Supabase sync warning:', e);
+    // 1. Try real Supabase registration
+    const sbResult = await signUpWithSupabase({
+      email: userData.email,
+      password,
+      username: userData.username,
+      dateOfBirth: userData.dateOfBirth,
+      gender: userData.gender,
+      sexualOrientation: userData.sexualOrientation,
+      location: userData.location,
+      lat: userData.lat,
+      lng: userData.lng,
+      bio: userData.bio,
+      interests: userData.interests,
+      photoUrl: userData.photos?.[0]?.url,
+    });
+
+    if (sbResult.success) {
+      const profile = await getSupabaseUserByEmail(userData.email);
+      if (profile) {
+        setUser(profile);
+        const list = await getSupabaseUsersList();
+        setUsersList(list);
+        Store.setCurrentUser(profile.id);
+        return profile;
+      }
     }
 
-    refreshUser();
+    // 2. Fallback to local Store
+    const newUser = Store.registerUser(userData);
+    await refreshUser();
     return newUser;
   };
 
-  const upgradeSubscription = (tier: SubscriptionTier) => {
+  const upgradeSubscription = async (tier: SubscriptionTier) => {
     if (!user) return;
+
+    const endDate = new Date();
+    endDate.setMonth(endDate.getMonth() + (tier === 'PREMIUM_24M' ? 24 : tier === 'PREMIUM_12M' ? 12 : 3));
+
+    // Update Supabase if online
+    await updateSupabaseProfile(user.id, {
+      subscriptionTier: tier,
+      subscriptionEnd: endDate.toISOString(),
+    });
+
+    // Update local Store
     Store.upgradeSubscription(user.id, tier);
-    refreshUser();
+    await refreshUser();
   };
 
   const canSeeProfile = (targetUserId: string) => {
     if (!user) return false;
-    if (user.id === targetUserId) return true; // Own profile always visible
+    if (user.id === targetUserId) return true;
     if (user.role === 'admin') return true;
     return isPremium;
   };

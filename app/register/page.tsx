@@ -94,24 +94,28 @@ export default function RegisterPage() {
 
     const cityCoords = CITIES[location] || { lat: 48.8566, lng: 2.3522 };
 
-    await register({
-      email,
-      username,
-      hashedPassword: password,
-      dateOfBirth,
-      age: new Date().getFullYear() - new Date(dateOfBirth).getFullYear(),
-      gender,
-      sexualOrientation,
-      location,
-      lat: cityCoords.lat,
-      lng: cityCoords.lng,
-      bio,
-      interests: selectedInterests,
-      subscriptionTier: 'FREE',
-      photos: photoUrl ? [{ id: `photo-${Date.now()}`, userId: '', url: photoUrl, isCover: true, order: 0, uploadedAt: new Date().toISOString() }] : [],
-    });
-
-    router.push('/decouvrir');
+    setErrorMsg('');
+    try {
+      await register({
+        email,
+        username,
+        password,
+        dateOfBirth,
+        age: new Date().getFullYear() - new Date(dateOfBirth).getFullYear(),
+        gender,
+        sexualOrientation,
+        location,
+        lat: cityCoords.lat,
+        lng: cityCoords.lng,
+        bio,
+        interests: selectedInterests,
+        subscriptionTier: 'FREE',
+        photos: photoUrl ? [{ id: `photo-${Date.now()}`, userId: '', url: photoUrl, isCover: true, order: 0, uploadedAt: new Date().toISOString() }] : [],
+      });
+      router.push('/decouvrir');
+    } catch (err: any) {
+      setErrorMsg(err?.message || "Erreur lors de l'inscription. Veuillez réessayer.");
+    }
   };
 
   return (

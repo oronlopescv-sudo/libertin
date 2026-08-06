@@ -1,10 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
 import { User, GenderType, SexualOrientationType, SubscriptionTier } from './types';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mfchfnsekoluicxnguoh.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mY2hmbnNla29sdWljeG5ndW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU4NTI4NjcsImV4cCI6MjEwMTQyODg2N30.oGzeDkpo2KU1PSIn1l0RPSto-KfuNICQdtXpjVULutw';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.warn(
+    '[Supabase] NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY não estão definidos.'
+  );
+}
+
+export const supabase = createClient(
+  supabaseUrl || 'https://example.supabase.co',
+  supabaseAnonKey || 'dummy-key'
+);
 
 /**
  * Register a user in Supabase Auth & insert record into public.profiles
@@ -129,6 +138,118 @@ export async function signOutWithSupabase() {
     await supabase.auth.signOut();
   } catch (e) {
     console.warn('Supabase signout warning:', e);
+  }
+}
+
+// ========================================================
+// PROFILE HELPERS
+// ========================================================
+
+function snakeToCamelProfile(row: any): User {
+  return {
+    id: row.id,
+    email: row.email,
+    phone: row.phone || undefined,
+    username: row.username,
+    dateOfBirth: row.date_of_birth,
+    age: row.date_of_birth
+      ? new Date().getFullYear() - new Date(row.date_of_birth).getFullYear()
+      : 25,
+    gender: row.gender,
+    sexualOrientation: row.sexual_orientation,
+    location: row.location,
+    lat: row.lat,
+    lng: row.lng,
+    subscriptionTier: row.subscription_tier,
+    subscriptionStart: row.subscription_start,
+    subscriptionEnd: row.subscription_end,
+    stripeCustomerId: row.stripe_customer_id,
+    bio: row.bio,
+    interests: row.interests || [],
+    photos: [], // fetched separately if needed
+    verificationPhotos: [],
+    isVerified: row.is_verified,
+    isActive: row.is_active,
+    isNSFW: row.is_nsfw,
+    role: row.role,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export async function getCurrentSupabaseUser(): Promise<User | null> {
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session?.user) return null;
+
+    const userId = sessionData.session.user.id;
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (error || !profile) {
+      console.warn('getCurrentSupabaseUser:', error?.message);
+      return null;
+    }
+    return snakeToCamelProfile(profile);
+  } catch (e: any) {
+    console.warn('getCurrentSupabaseUser error:', e.message);
+    return null;
+  }
+}
+
+export async function getSupabaseUserByEmail(email: string): Promise<User | null> {
+  try {
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('email', email)
+      .single();
+    if (error || !profile) return null;
+    return snakeToCamelProfile(profile);
+  } catch (e) {
+    return null;
+  }
+}
+
+export async function getSupabaseUsersList(limit = 50): Promise<User[]> {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('is_active', true)
+      .limit(limit);
+    if (error || !data) return [];
+    return data.map(snakeToCamelProfile);
+  } catch (e) {
+    return [];
+  }
+}
+
+export async function updateSupabaseProfile(
+  userId: string,
+  payload: Partial<User>
+): Promise<boolean> {
+  try {
+    const dbPayload: any = {};
+    if (payload.username !== undefined) dbPayload.username = payload.username;
+    if (payload.bio !== undefined) dbPayload.bio = payload.bio;
+    if (payload.location !== undefined) dbPayload.location = payload.location;
+    if (payload.lat !== undefined) dbPayload.lat = payload.lat;
+    if (payload.lng !== undefined) dbPayload.lng = payload.lng;
+    if (payload.interests !== undefined) dbPayload.interests = payload.interests;
+    if (payload.subscriptionTier !== undefined) dbPayload.subscription_tier = payload.subscriptionTier;
+    if (payload.subscriptionEnd !== undefined) dbPayload.subscription_end = payload.subscriptionEnd;
+    if (payload.isVerified !== undefined) dbPayload.is_verified = payload.isVerified;
+    if (payload.isActive !== undefined) dbPayload.is_active = payload.isActive;
+    dbPayload.updated_at = new Date().toISOString();
+
+    const { error } = await supabase.from('profiles').update(dbPayload).eq('id', userId);
+    return !error;
+  } catch (e) {
+    return false;
   }
 }
 
