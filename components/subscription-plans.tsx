@@ -2,60 +2,46 @@
 
 import React, { useState } from 'react';
 import { SUBSCRIPTION_PLANS, getPlanDetails } from '@/lib/stripe';
-import { SubscriptionTier, SubscriptionPlan } from '@/lib/types';
+import { SubscriptionPlan } from '@/lib/types';
 import { useAuth } from '@/context/auth-context';
 import {
   Crown,
   Check,
   Zap,
   ShieldCheck,
-  CreditCard,
   Sparkles,
-  Lock,
   ArrowRight,
   X,
+  AlertCircle,
 } from 'lucide-react';
 
 export function SubscriptionPlans() {
   const { user, upgradeSubscription, isPremium } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
-  const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const handleOpenCheckout = (plan: SubscriptionPlan) => {
+  const handleOpenConfirm = (plan: SubscriptionPlan) => {
     if (plan.id === 'FREE') return;
     setSelectedPlan(plan);
-    setCheckoutModalOpen(true);
+    setConfirmModalOpen(true);
   };
 
-  const handleConfirmPayment = async () => {
+  const handleConfirmUpgrade = async () => {
     if (!selectedPlan || !user) return;
     setIsProcessing(true);
 
     try {
-      // Simulate API call to Stripe checkout
-      const res = await fetch('/api/payments/create-checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tier: selectedPlan.id,
-          userId: user.id,
-          email: user.email,
-        }),
-      });
-
-      const data = await res.json();
-
-      setTimeout(() => {
-        upgradeSubscription(selectedPlan.id);
-        setIsProcessing(false);
-        setCheckoutModalOpen(false);
-        setSuccessMessage(`Félicitations ! Votre abonnement ${selectedPlan.title} est désormais actif.`);
-      }, 1200);
+      await upgradeSubscription(selectedPlan.id);
+      setSuccessMessage(`Votre abonnement ${selectedPlan.title} est désormais actif.`);
     } catch (err) {
+      setSuccessMessage(null);
+      alert('Une erreur est survenue lors de l\'activation.');
+    } finally {
       setIsProcessing(false);
-      alert('Une erreur est survenue lors du paiement.');
+      setConfirmModalOpen(false);
+      setSelectedPlan(null);
     }
   };
 
@@ -89,10 +75,6 @@ export function SubscriptionPlans() {
             ) : (
               <div>Inscrit le {new Date(user.createdAt).toLocaleDateString('fr-FR')}</div>
             )}
-            <div className="text-[11px] text-emerald-400 mt-0.5 flex items-center gap-1 justify-end">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Facturation 100% anonyme garantie</span>
-            </div>
           </div>
         </div>
       )}
@@ -112,6 +94,18 @@ export function SubscriptionPlans() {
           </button>
         </div>
       )}
+
+      {/* Payment Notice */}
+      <div className="p-4 rounded-xl bg-amber-950/40 border border-amber-800/40 text-amber-200 text-xs flex items-start gap-3">
+        <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+        <div>
+          <strong className="text-white block mb-1">Passerelle de paiement non configurée</strong>
+          <span>
+            Le module de paiement en ligne (Stripe) n&apos;est pas encore activé.
+            L&apos;activation ci-dessous met à jour votre statut localement à des fins de test.
+          </span>
+        </div>
+      </div>
 
       {/* Grid of Pricing Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -201,7 +195,7 @@ export function SubscriptionPlans() {
                   </button>
                 ) : (
                   <button
-                    onClick={() => handleOpenCheckout(plan)}
+                    onClick={() => handleOpenConfirm(plan)}
                     className={`w-full py-3 rounded-xl text-xs font-bold transition-all shadow-lg flex items-center justify-center gap-2 ${
                       isPopular
                         ? 'bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white hover:opacity-95 shadow-[#D4145A]/30'
@@ -209,7 +203,7 @@ export function SubscriptionPlans() {
                     }`}
                   >
                     <Crown className="w-4 h-4" />
-                    <span>Choisir cette offre</span>
+                    <span>Activer {plan.title}</span>
                   </button>
                 )}
               </div>
@@ -218,109 +212,57 @@ export function SubscriptionPlans() {
         })}
       </div>
 
-      {/* Stripe Checkout Simulation Modal */}
-      {checkoutModalOpen && selectedPlan && (
+      {/* Activation Confirmation Modal */}
+      {confirmModalOpen && selectedPlan && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
           <div className="relative w-full max-w-md bg-[#1C102B] border border-[#3D2654] rounded-2xl shadow-2xl p-6 text-white space-y-6">
             <button
-              onClick={() => setCheckoutModalOpen(false)}
+              onClick={() => setConfirmModalOpen(false)}
               className="absolute top-4 right-4 p-2 rounded-full bg-[#2C1B3D] text-zinc-400 hover:text-white"
             >
               <X className="w-5 h-5" />
             </button>
 
-            {/* Modal Header */}
             <div className="text-center space-y-2">
               <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#D4145A] to-[#E86B7A] flex items-center justify-center mx-auto shadow-lg shadow-[#D4145A]/25">
-                <CreditCard className="w-6 h-6 text-white" />
+                <ShieldCheck className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-xl font-bold">Paiement Sécurisé Stripe</h3>
+              <h3 className="text-xl font-bold">Confirmer l&apos;activation</h3>
               <p className="text-xs text-zinc-400">
-                L&apos;intitulé sur votre relevé bancaire sera discret : <strong className="text-white">RP-SERVICES</strong>
+                Le module de paiement n&apos;est pas encore activé.
+                Cette action mettra à jour votre formule sans débiter votre compte.
               </p>
             </div>
 
-            {/* Summary Box */}
             <div className="p-4 rounded-xl bg-[#2C1B3D] border border-[#3D2654] space-y-2 text-xs">
               <div className="flex justify-between text-zinc-300">
                 <span>Offre sélectionnée:</span>
                 <span className="font-bold text-white">{selectedPlan.title}</span>
               </div>
               <div className="flex justify-between text-zinc-300">
-                <span>Durée de validité:</span>
+                <span>Durée:</span>
                 <span className="font-bold text-white">{selectedPlan.durationMonths} Mois</span>
               </div>
               <div className="pt-2 border-t border-[#3D2654] flex justify-between text-sm">
-                <span className="font-bold text-white">Montant Total :</span>
+                <span className="font-bold text-white">Montant indicatif :</span>
                 <span className="font-extrabold text-[#E86B7A]">{selectedPlan.totalPrice} €</span>
               </div>
             </div>
 
-            {/* Simulated Card Form */}
-            <div className="space-y-3 text-xs">
-              <div>
-                <label className="block text-zinc-400 mb-1 font-medium">Titulaire de la carte</label>
-                <input
-                  type="text"
-                  readOnly
-                  value={user?.username || 'Membre Premium'}
-                  className="w-full px-3 py-2 rounded-lg bg-[#12091A] border border-[#3D2654] text-zinc-300 cursor-not-allowed"
-                />
-              </div>
-
-              <div>
-                <label className="block text-zinc-400 mb-1 font-medium">Numéro de carte bancaire (Sécurisé)</label>
-                <input
-                  type="text"
-                  readOnly
-                  value="4242 •••• •••• 4242"
-                  className="w-full px-3 py-2 rounded-lg bg-[#12091A] border border-[#3D2654] text-white font-mono"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-zinc-400 mb-1 font-medium">Expiration</label>
-                  <input
-                    type="text"
-                    readOnly
-                    value="12 / 28"
-                    className="w-full px-3 py-2 rounded-lg bg-[#12091A] border border-[#3D2654] text-white font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="block text-zinc-400 mb-1 font-medium">CVC</label>
-                  <input
-                    type="text"
-                    readOnly
-                    value="•••"
-                    className="w-full px-3 py-2 rounded-lg bg-[#12091A] border border-[#3D2654] text-white font-mono"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Security Guarantee */}
-            <div className="flex items-center gap-2 text-[11px] text-emerald-400 bg-emerald-950/40 p-2.5 rounded-lg border border-emerald-800/40">
-              <ShieldCheck className="w-4 h-4 shrink-0" />
-              <span>Chiffrement SSL 256 bits • Annulation en 1 clic sans engagement</span>
-            </div>
-
-            {/* Submit Action */}
             <button
-              onClick={handleConfirmPayment}
+              onClick={handleConfirmUpgrade}
               disabled={isProcessing}
               className="w-full py-3 rounded-xl bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white text-xs font-bold hover:opacity-95 shadow-lg shadow-[#D4145A]/30 flex items-center justify-center gap-2"
             >
               {isProcessing ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Traitement sécurisé en cours...</span>
+                  <span>Activation en cours...</span>
                 </>
               ) : (
                 <>
-                  <Lock className="w-4 h-4" />
-                  <span>Payer {selectedPlan.totalPrice} € & Activer mon Pass</span>
+                  <ArrowRight className="w-4 h-4" />
+                  <span>Confirmer l&apos;activation</span>
                 </>
               )}
             </button>
