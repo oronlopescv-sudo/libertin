@@ -3,11 +3,23 @@ import { INITIAL_USERS, INITIAL_GROUPS, INITIAL_MESSAGES } from './seedData';
 import { calculateSubscriptionEndDate } from './stripe';
 
 const STORAGE_KEYS = {
-  USERS: 'rp_users_v1',
-  GROUPS: 'rp_groups_v1',
-  MESSAGES: 'rp_messages_v1',
-  CURRENT_USER_ID: 'rp_current_user_id_v1',
+  USERS: 'rp_users_v2',
+  GROUPS: 'rp_groups_v2',
+  MESSAGES: 'rp_messages_v2',
+  CURRENT_USER_ID: 'rp_current_user_id_v2',
 };
+
+const OLD_KEYS = ['rp_users_v1', 'rp_groups_v1', 'rp_messages_v1', 'rp_current_user_id_v1'];
+
+// Clear legacy mocked data from localStorage
+function clearLegacyStorage(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    OLD_KEYS.forEach((key) => localStorage.removeItem(key));
+  } catch (err) {
+    console.error('Error clearing legacy localStorage:', err);
+  }
+}
 
 // Helper for safe localStorage access
 function getItem<T>(key: string, defaultValue: T): T {
@@ -30,6 +42,11 @@ function setItem<T>(key: string, value: T): void {
   } catch (err) {
     console.error(`Error saving ${key} to localStorage:`, err);
   }
+}
+
+// Execute cleanup once on module load in browser
+if (typeof window !== 'undefined') {
+  clearLegacyStorage();
 }
 
 export const Store = {
