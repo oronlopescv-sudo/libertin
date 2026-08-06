@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '@/context/auth-context';
-import { Store } from '@/lib/store';
-import { ShieldCheck, Upload, Check, Camera, Lock, X } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { ShieldCheck, Upload, Check, Camera, Lock, X, AlertCircle } from 'lucide-react';
 
 interface PhotoVerificationModalProps {
   isOpen: boolean;
@@ -15,25 +15,36 @@ export function PhotoVerificationModal({ isOpen, onClose }: PhotoVerificationMod
   const [photoUrl, setPhotoUrl] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   if (!isOpen || !user) return null;
 
-  const handleSimulateUpload = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg(null);
+
+    if (!photoUrl) {
+      setErrorMsg('Veuillez sélectionner ou fournir une photo.');
+      return;
+    }
+
     setIsUploading(true);
 
     try {
-      const mockPhoto =
-        photoUrl ||
-        'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=800&auto=format&fit=crop&q=80';
+      const { error } = await supabase.from('verification_photos').insert({
+        user_id: user.id,
+        url: photoUrl,
+        status: 'pending',
+      });
 
-      Store.uploadVerificationPhoto(user.id, mockPhoto);
-      refreshUser();
+      if (error) throw error;
+
+      await refreshUser();
       setIsUploading(false);
       setSubmitted(true);
-    } catch (err) {
+    } catch (err: any) {
       setIsUploading(false);
-      alert('Erreur lors de l\'envoi');
+      setErrorMsg(err?.message || "Erreur lors de l'envoi de la photo.");
     }
   };
 
@@ -53,9 +64,7 @@ export function PhotoVerificationModal({ isOpen, onClose }: PhotoVerificationMod
           </div>
           <div>
             <h3 className="text-lg font-bold">Vérification de Profil</h3>
-            <p className="text-xs text-zinc-400">
-              Badge réservé aux profils authentiques
-            </p>
+            <p className="text-xs text-zinc-400">Badge réservé aux profils authentiques</p>
           </div>
         </div>
 
@@ -76,7 +85,7 @@ export function PhotoVerificationModal({ isOpen, onClose }: PhotoVerificationMod
             </button>
           </div>
         ) : (
-          <form onSubmit={handleSimulateUpload} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="p-3 rounded-xl bg-[#2C1B3D] border border-[#3D2654] text-xs text-zinc-300 space-y-2">
               <div className="font-semibold text-white flex items-center gap-1.5">
                 <Camera className="w-4 h-4 text-[#E86B7A]" />
@@ -89,11 +98,18 @@ export function PhotoVerificationModal({ isOpen, onClose }: PhotoVerificationMod
               </ul>
             </div>
 
+            {errorMsg && (
+              <div className="p-3 rounded-xl bg-rose-950/60 border border-rose-800/40 text-rose-300 text-xs flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{errorMsg}</span>
+              </div>
+            )}
+
             <div>
               <label className="block text-xs font-medium text-zinc-300 mb-1">
                 Transmettre votre selfie de vérification
               </label>
-              
+
               <div className="space-y-2">
                 <label className="flex items-center justify-center gap-2 p-3 rounded-xl bg-[#12091A] border border-dashed border-[#3D2654] hover:border-[#D4145A] cursor-pointer text-zinc-300 text-xs transition-colors">
                   <Upload className="w-4 h-4 text-[#E86B7A]" />
@@ -131,6 +147,14 @@ export function PhotoVerificationModal({ isOpen, onClose }: PhotoVerificationMod
                   className="w-full px-3.5 py-2 rounded-xl bg-[#12091A] border border-[#3D2654] text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#D4145A]"
                 />
               </div>
+            </div>
+
+            <div className="p-2.5 rounded-lg bg-amber-950/40 border border-amber-800/40 text-[11px] text-amber-200 flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>
+                Le stockage de fichiers (Supabase Storage) n&apos;est pas encore configuré.
+                Pour tester, utilisez un lien URL direct ou converta a imagem em base64.
+              </span>
             </div>
 
             <div className="flex items-center gap-2 text-[11px] text-zinc-400">
