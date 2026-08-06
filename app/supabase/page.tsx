@@ -66,8 +66,8 @@ export default function SupabaseDataPage() {
   const [groupsCount, setGroupsCount] = useState<number>(0);
   const [messagesCount, setMessagesCount] = useState<number>(0);
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mfchfnsekoluicxnguoh.supabase.co';
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mY2hmbnNla29sdWljeG5ndW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU4NTI4NjcsImV4cCI6MjEwMTQyODg2N30.oGzeDkpo2KU1PSIn1l0RPSto-KfuNICQdtXpjVULutw';
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
   // Test Supabase connection
   const testConnection = React.useCallback(async () => {

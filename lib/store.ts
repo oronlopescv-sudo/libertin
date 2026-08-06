@@ -46,16 +46,18 @@ export const Store = {
     return users.find((u) => u.id === id);
   },
 
-  getCurrentUser(): User {
-    const currentId = getItem<string>(STORAGE_KEYS.CURRENT_USER_ID, 'user-couple-paris');
-    const user = this.getUserById(currentId);
-    if (user) return user;
-    const all = this.getUsers();
-    return all[0] || INITIAL_USERS[0];
+  getCurrentUser(): User | null {
+    const currentId = getItem<string>(STORAGE_KEYS.CURRENT_USER_ID, '');
+    if (!currentId) return null;
+    return this.getUserById(currentId) || null;
   },
 
   setCurrentUser(id: string): void {
     setItem(STORAGE_KEYS.CURRENT_USER_ID, id);
+  },
+
+  clearCurrentUser(): void {
+    setItem(STORAGE_KEYS.CURRENT_USER_ID, '');
   },
 
   updateUser(updated: Partial<User> & { id: string }): User {

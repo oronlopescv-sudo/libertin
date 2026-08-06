@@ -33,12 +33,18 @@ export async function signUpWithSupabase(userData: {
   photoUrl?: string;
 }) {
   try {
-    const password = userData.password || 'Libertine2026!';
+    const password = userData.password;
+    if (!password) {
+      return {
+        success: false,
+        error: 'Mot de passe requis pour la création de compte.',
+      };
+    }
 
     // 1. Supabase Auth Registration
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: userData.email,
-      password: password,
+      password,
       options: {
         data: {
           username: userData.username,
@@ -114,9 +120,12 @@ export async function signUpWithSupabase(userData: {
  */
 export async function signInWithSupabase(email: string, password?: string) {
   try {
+    if (!password) {
+      return { success: false, error: 'Mot de passe requis.' };
+    }
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
-      password: password || 'Libertine2026!',
+      password,
     });
 
     if (error) {

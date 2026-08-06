@@ -17,13 +17,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Email et mot de passe requis' }, { status: 400 });
     }
 
-    return NextResponse.json({
-      token: `jwt_session_${Date.now()}`,
-      user: {
-        email,
-        username: email.split('@')[0],
-      },
-    });
+    return NextResponse.json(
+      { error: 'Utilisez /register ou /login avec Supabase Auth.' },
+      { status: 501 }
+    );
   } catch (err) {
     return NextResponse.json({ error: 'Erreur d\'authentification' }, { status: 500 });
   }

@@ -583,11 +583,11 @@ export default function AdminPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-mono bg-[#12091A] p-3 rounded-xl border border-[#2C1B3D]">
                 <div>
                   <span className="text-zinc-500 block text-[10px]">Project Ref:</span>
-                  <span className="text-emerald-400">mfchfnsekoluicxnguoh</span>
+                  <span className="text-emerald-400">{process.env.NEXT_PUBLIC_SUPABASE_URL?.replace('https://', '').replace('.supabase.co', '') || 'Non configuré'}</span>
                 </div>
                 <div>
                   <span className="text-zinc-500 block text-[10px]">Endpoint API:</span>
-                  <span className="text-zinc-300 truncate block">https://mfchfnsekoluicxnguoh.supabase.co</span>
+                  <span className="text-zinc-300 truncate block">{process.env.NEXT_PUBLIC_SUPABASE_URL || 'Non configuré'}</span>
                 </div>
               </div>
 

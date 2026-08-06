@@ -55,14 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshUser = useCallback(async () => {
     setIsLoading(true);
-    const ok = await loadFromSupabase();
-    if (!ok) {
-      // Fallback to local Store
-      const currentUser = Store.getCurrentUser();
-      const allUsers = Store.getUsers();
-      setUser(currentUser);
-      setUsersList(allUsers);
-    }
+    await loadFromSupabase();
     setIsLoading(false);
   }, [loadFromSupabase]);
 
@@ -94,7 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   const login = async (email: string, password?: string): Promise<boolean> => {
-    // 1. Try Supabase real login
+    // Real Supabase login only
     const result = await signInWithSupabase(email, password);
     if (result.success && result.user) {
       const profile = await getSupabaseUserByEmail(email);
@@ -106,21 +99,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return true;
       }
     }
-
-    // 2. Fallback to local Store demo users
-    const found = usersList.find((u) => u.email.toLowerCase() === email.toLowerCase());
-    if (found) {
-      Store.setCurrentUser(found.id);
-      await refreshUser();
-      return true;
-    }
     return false;
   };
 
   const logout = () => {
     signOutWithSupabase();
-    Store.setCurrentUser('user-homme-lyon');
-    refreshUser();
+    Store.clearCurrentUser();
+    setUser(null);
+    setUsersList([]);
   };
 
   const switchUser = (userId: string) => {
@@ -129,12 +115,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const register = async (userData: any): Promise<User> => {
-    const password = userData.password || userData.hashedPassword || 'Libertine2026!';
+    const password = userData.password || userData.hashedPassword;
 
     // 1. Try real Supabase registration
     const sbResult = await signUpWithSupabase({
       email: userData.email,
-      password,
+      password: password || '',
       username: userData.username,
       dateOfBirth: userData.dateOfBirth,
       gender: userData.gender,
@@ -158,10 +144,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // 2. Fallback to local Store
-    const newUser = Store.registerUser(userData);
-    await refreshUser();
-    return newUser;
+    throw new Error(sbResult.error || "Échec de l'inscription. Veuillez réessayer.");
   };
 
   const upgradeSubscription = async (tier: SubscriptionTier) => {
@@ -170,14 +153,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const endDate = new Date();
     endDate.setMonth(endDate.getMonth() + (tier === 'PREMIUM_24M' ? 24 : tier === 'PREMIUM_12M' ? 12 : 3));
 
-    // Update Supabase if online
     await updateSupabaseProfile(user.id, {
       subscriptionTier: tier,
       subscriptionEnd: endDate.toISOString(),
     });
 
-    // Update local Store
-    Store.upgradeSubscription(user.id, tier);
     await refreshUser();
   };
 

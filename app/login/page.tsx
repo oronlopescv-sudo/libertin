@@ -17,8 +17,8 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) {
-      setErrorMsg('Veuillez renseigner votre adresse e-mail.');
+    if (!email || !password) {
+      setErrorMsg('Veuillez renseigner votre adresse e-mail et votre mot de passe.');
       return;
     }
 
