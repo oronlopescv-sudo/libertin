@@ -1,0 +1,332 @@
+'use client';
+
+import React, { useState } from 'react';
+import { SUBSCRIPTION_PLANS, getPlanDetails } from '@/lib/stripe';
+import { SubscriptionTier, SubscriptionPlan } from '@/lib/types';
+import { useAuth } from '@/context/auth-context';
+import {
+  Crown,
+  Check,
+  Zap,
+  ShieldCheck,
+  CreditCard,
+  Sparkles,
+  Lock,
+  ArrowRight,
+  X,
+} from 'lucide-react';
+
+export function SubscriptionPlans() {
+  const { user, upgradeSubscription, isPremium } = useAuth();
+  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
+  const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const handleOpenCheckout = (plan: SubscriptionPlan) => {
+    if (plan.id === 'FREE') return;
+    setSelectedPlan(plan);
+    setCheckoutModalOpen(true);
+  };
+
+  const handleConfirmPayment = async () => {
+    if (!selectedPlan || !user) return;
+    setIsProcessing(true);
+
+    try {
+      // Simulate API call to Stripe checkout
+      const res = await fetch('/api/payments/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tier: selectedPlan.id,
+          userId: user.id,
+          email: user.email,
+        }),
+      });
+
+      const data = await res.json();
+
+      setTimeout(() => {
+        upgradeSubscription(selectedPlan.id);
+        setIsProcessing(false);
+        setCheckoutModalOpen(false);
+        setSuccessMessage(`Félicitations ! Votre abonnement ${selectedPlan.title} est désormais actif.`);
+      }, 1200);
+    } catch (err) {
+      setIsProcessing(false);
+      alert('Une erreur est survenue lors du paiement.');
+    }
+  };
+
+  return (
+    <div className="space-y-10">
+      {/* Current Subscription Status Badge */}
+      {user && (
+        <div className="p-4 rounded-2xl bg-[#1C102B] border border-[#2C1B3D] flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-[#D4145A]/20 border border-[#D4145A]/40 flex items-center justify-center">
+              <Crown className="w-6 h-6 text-[#E86B7A]" />
+            </div>
+            <div>
+              <div className="text-xs text-zinc-400 font-medium">Votre Formule Actuelle</div>
+              <div className="text-lg font-bold text-white flex items-center gap-2">
+                <span>{getPlanDetails(user.subscriptionTier).title}</span>
+                {isPremium && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white font-bold uppercase tracking-wider">
+                    Actif
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="text-right text-xs text-zinc-400">
+            {user.subscriptionEnd ? (
+              <div>
+                Valide jusqu&apos;au <strong className="text-white">{new Date(user.subscriptionEnd).toLocaleDateString('fr-FR')}</strong>
+              </div>
+            ) : (
+              <div>Inscrit le {new Date(user.createdAt).toLocaleDateString('fr-FR')}</div>
+            )}
+            <div className="text-[11px] text-emerald-400 mt-0.5 flex items-center gap-1 justify-end">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Facturation 100% anonyme garantie</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Notification */}
+      {successMessage && (
+        <div className="p-4 rounded-xl bg-emerald-950/80 border border-emerald-500/50 text-emerald-200 text-sm flex items-center justify-between animate-fade-in">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-emerald-400" />
+            <span>{successMessage}</span>
+          </div>
+          <button
+            onClick={() => setSuccessMessage(null)}
+            className="p-1 hover:text-white"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Grid of Pricing Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {SUBSCRIPTION_PLANS.map((plan) => {
+          const isCurrent = user?.subscriptionTier === plan.id;
+          const isPopular = plan.popular;
+
+          return (
+            <div
+              key={plan.id}
+              className={`relative rounded-2xl bg-[#1C102B] border transition-all duration-300 flex flex-col justify-between overflow-hidden ${
+                isPopular
+                  ? 'border-[#D4145A] shadow-2xl shadow-[#D4145A]/20 scale-105 z-10'
+                  : isCurrent
+                  ? 'border-emerald-500/50'
+                  : 'border-[#2C1B3D] hover:border-[#3D2654]'
+              }`}
+            >
+              {/* Popular / Best Value Ribbon */}
+              {isPopular && (
+                <div className="bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white text-[11px] font-bold uppercase tracking-wider py-1.5 text-center shadow-md flex items-center justify-center gap-1">
+                  <Zap className="w-3.5 h-3.5 fill-white" />
+                  <span>{plan.savings}</span>
+                </div>
+              )}
+
+              <div className="p-6 space-y-5">
+                <div>
+                  <h3 className="text-lg font-bold text-white">{plan.title}</h3>
+                  <div className="text-xs text-zinc-400 mt-0.5">
+                    {plan.durationMonths > 0
+                      ? `Engagement sur ${plan.durationMonths} mois`
+                      : 'Accès basique gratuit'}
+                  </div>
+                </div>
+
+                {/* Price Display */}
+                <div className="space-y-1">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-extrabold text-white tracking-tight">
+                      {plan.totalPrice === 0 ? '0€' : `${plan.totalPrice}€`}
+                    </span>
+                    {plan.durationMonths > 0 && (
+                      <span className="text-xs text-zinc-400">
+                        / au total
+                      </span>
+                    )}
+                  </div>
+
+                  {plan.durationMonths > 0 && (
+                    <div className="text-xs text-[#E86B7A] font-semibold flex items-center gap-1">
+                      <span>soit seulement</span>
+                      <span className="px-1.5 py-0.5 rounded bg-[#D4145A]/20 font-bold text-white">
+                        {plan.pricePerMonth.toFixed(2)}€ / mois
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Features List */}
+                <ul className="space-y-2.5 text-xs text-zinc-300 pt-3 border-t border-[#2C1B3D]">
+                  {plan.features.map((feat, idx) => (
+                    <li key={idx} className="flex items-start gap-2 leading-snug">
+                      <Check className="w-4 h-4 text-[#D4145A] shrink-0 mt-0.5" />
+                      <span>{feat}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Card Footer / CTA Button */}
+              <div className="p-6 pt-0">
+                {isCurrent ? (
+                  <button
+                    disabled
+                    className="w-full py-3 rounded-xl bg-emerald-950/80 text-emerald-300 border border-emerald-800/40 text-xs font-bold flex items-center justify-center gap-2 cursor-default"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>Formule Actuelle</span>
+                  </button>
+                ) : plan.id === 'FREE' ? (
+                  <button
+                    disabled
+                    className="w-full py-3 rounded-xl bg-[#2C1B3D] text-zinc-500 text-xs font-bold cursor-default"
+                  >
+                    Offre par défaut
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleOpenCheckout(plan)}
+                    className={`w-full py-3 rounded-xl text-xs font-bold transition-all shadow-lg flex items-center justify-center gap-2 ${
+                      isPopular
+                        ? 'bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white hover:opacity-95 shadow-[#D4145A]/30'
+                        : 'bg-[#D4145A] text-white hover:bg-[#B50E4A]'
+                    }`}
+                  >
+                    <Crown className="w-4 h-4" />
+                    <span>Choisir cette offre</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Stripe Checkout Simulation Modal */}
+      {checkoutModalOpen && selectedPlan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="relative w-full max-w-md bg-[#1C102B] border border-[#3D2654] rounded-2xl shadow-2xl p-6 text-white space-y-6">
+            <button
+              onClick={() => setCheckoutModalOpen(false)}
+              className="absolute top-4 right-4 p-2 rounded-full bg-[#2C1B3D] text-zinc-400 hover:text-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Modal Header */}
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#D4145A] to-[#E86B7A] flex items-center justify-center mx-auto shadow-lg shadow-[#D4145A]/25">
+                <CreditCard className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-xl font-bold">Paiement Sécurisé Stripe</h3>
+              <p className="text-xs text-zinc-400">
+                L&apos;intitulé sur votre relevé bancaire sera discret : <strong className="text-white">RP-SERVICES</strong>
+              </p>
+            </div>
+
+            {/* Summary Box */}
+            <div className="p-4 rounded-xl bg-[#2C1B3D] border border-[#3D2654] space-y-2 text-xs">
+              <div className="flex justify-between text-zinc-300">
+                <span>Offre sélectionnée:</span>
+                <span className="font-bold text-white">{selectedPlan.title}</span>
+              </div>
+              <div className="flex justify-between text-zinc-300">
+                <span>Durée de validité:</span>
+                <span className="font-bold text-white">{selectedPlan.durationMonths} Mois</span>
+              </div>
+              <div className="pt-2 border-t border-[#3D2654] flex justify-between text-sm">
+                <span className="font-bold text-white">Montant Total :</span>
+                <span className="font-extrabold text-[#E86B7A]">{selectedPlan.totalPrice} €</span>
+              </div>
+            </div>
+
+            {/* Simulated Card Form */}
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block text-zinc-400 mb-1 font-medium">Titulaire de la carte</label>
+                <input
+                  type="text"
+                  readOnly
+                  value={user?.username || 'Membre Premium'}
+                  className="w-full px-3 py-2 rounded-lg bg-[#12091A] border border-[#3D2654] text-zinc-300 cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <label className="block text-zinc-400 mb-1 font-medium">Numéro de carte bancaire (Sécurisé)</label>
+                <input
+                  type="text"
+                  readOnly
+                  value="4242 •••• •••• 4242"
+                  className="w-full px-3 py-2 rounded-lg bg-[#12091A] border border-[#3D2654] text-white font-mono"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-zinc-400 mb-1 font-medium">Expiration</label>
+                  <input
+                    type="text"
+                    readOnly
+                    value="12 / 28"
+                    className="w-full px-3 py-2 rounded-lg bg-[#12091A] border border-[#3D2654] text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-zinc-400 mb-1 font-medium">CVC</label>
+                  <input
+                    type="text"
+                    readOnly
+                    value="•••"
+                    className="w-full px-3 py-2 rounded-lg bg-[#12091A] border border-[#3D2654] text-white font-mono"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Security Guarantee */}
+            <div className="flex items-center gap-2 text-[11px] text-emerald-400 bg-emerald-950/40 p-2.5 rounded-lg border border-emerald-800/40">
+              <ShieldCheck className="w-4 h-4 shrink-0" />
+              <span>Chiffrement SSL 256 bits • Annulation en 1 clic sans engagement</span>
+            </div>
+
+            {/* Submit Action */}
+            <button
+              onClick={handleConfirmPayment}
+              disabled={isProcessing}
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white text-xs font-bold hover:opacity-95 shadow-lg shadow-[#D4145A]/30 flex items-center justify-center gap-2"
+            >
+              {isProcessing ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Traitement sécurisé en cours...</span>
+                </>
+              ) : (
+                <>
+                  <Lock className="w-4 h-4" />
+                  <span>Payer {selectedPlan.totalPrice} € & Activer mon Pass</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
