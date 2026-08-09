@@ -4,12 +4,17 @@ import { AuthProvider } from '@/context/auth-context';
 
 export const metadata: Metadata = {
   title: 'xlibertine - Rencontres Libertines, Casais & Solteiros',
-  description: 'Le site de rencontres libertines n°1 pour couples et célibataires exigeants en France. Discrétion absolue, profils vérifiés et clubs privés.',
+  description: 'La plateforme française de référence pour rencontres libertines. Couples, célibataires, profils vérifiés, discrétion absolue et communauté 100% francophone.',
   openGraph: {
-    title: 'xlibertine - Site Libertin Premium',
+    title: 'xlibertine - Site Libertine Premium',
     description: 'Rencontres libertines vérifiées, soirées privées, tchat en temps réel et communauté bienveillante.',
     locale: 'fr_FR',
     type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'xlibertine - Rencontres Libertines',
+    description: 'Rencontres libertines vérifiées, soirées privées, tchat en temps réel et communauté bienveillante.',
   },
 };
 
