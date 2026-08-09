@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { SUBSCRIPTION_PLANS, getPlanDetails } from '@/lib/stripe';
 import { SubscriptionPlan } from '@/lib/types';
-import { useAuth } from '@/context/auth-context';
 import {
   Crown,
   Check,
@@ -16,7 +15,12 @@ import {
 } from 'lucide-react';
 
 export function SubscriptionPlans() {
-  const { user, upgradeSubscription, isPremium } = useAuth();
+  // const { ... } = useAuth();
+  const user = null;
+  const isPremium = false;
+  const logout = () => {};
+  const upgradeSubscription = () => {};
+  const refreshUser = () => {};
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);

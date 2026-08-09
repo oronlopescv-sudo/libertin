@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
-import { useAuth } from '@/context/auth-context';
 import { GenderType, SexualOrientationType } from '@/lib/types';
 import { CITIES, COUNTRIES } from '@/lib/geo';
 import {
@@ -23,7 +22,10 @@ import {
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { register } = useAuth();
+  // const { ... } = useAuth();
+  const user = null;
+  const usersList = [];
+  const isPremium = false;
   const [step, setStep] = useState<1 | 2>(1);
 
   // Form State

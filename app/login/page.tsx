@@ -5,12 +5,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
-import { useAuth } from '@/context/auth-context';
 import { Flame, Lock, Mail, Key, ArrowRight } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  // const { ... } = useAuth();
+  const user = null;
+  const usersList = [];
+  const isPremium = false;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');

@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { User } from '@/lib/types';
 import { Store } from '@/lib/store';
-import { useAuth } from '@/context/auth-context';
 import { getDistance, resolveLocationCoords, CITIES } from '@/lib/geo';
 import {
   ShieldCheck,
@@ -35,7 +34,12 @@ export function ProfileCard({
   onOpenMessageModal,
   onBlockStatusChange,
 }: ProfileCardProps) {
-  const { refreshUser } = useAuth();
+  // const { ... } = useAuth();
+  const user = null;
+  const isPremium = false;
+  const logout = () => {};
+  const upgradeSubscription = () => {};
+  const refreshUser = () => {};
   const [liked, setLiked] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
 

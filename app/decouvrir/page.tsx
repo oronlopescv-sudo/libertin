@@ -4,7 +4,6 @@ import React, { useState, useMemo } from 'react';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { ProfileCard } from '@/components/profile-card';
-import { useAuth } from '@/context/auth-context';
 import { User, GenderType } from '@/lib/types';
 import { getDistance, resolveLocationCoords, CITIES, COUNTRIES } from '@/lib/geo';
 import {
@@ -25,7 +24,10 @@ import {
 import Link from 'next/link';
 
 export default function DecouvrirPage() {
-  const { user, usersList, isPremium, refreshUser } = useAuth();
+  // const { ... } = useAuth();
+  const user = null;
+  const usersList = [];
+  const isPremium = false;
 
   // Filters state
   const [selectedGender, setSelectedGender] = useState<string>('all');

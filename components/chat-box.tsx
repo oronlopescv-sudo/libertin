@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Message, User } from '@/lib/types';
 import { Store } from '@/lib/store';
 import { getSupabaseMessages, sendSupabaseMessage } from '@/lib/supabase';
-import { useAuth } from '@/context/auth-context';
 import {
   Send,
   ShieldCheck,
@@ -26,7 +25,12 @@ interface ChatBoxProps {
 }
 
 export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
-  const { user, isPremium } = useAuth();
+  // const { ... } = useAuth();
+  const user = null;
+  const isPremium = false;
+  const logout = () => {};
+  const upgradeSubscription = () => {};
+  const refreshUser = () => {};
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputContent, setInputContent] = useState('');
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);

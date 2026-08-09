@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useAuth } from '@/context/auth-context';
 import { supabase } from '@/lib/supabase';
 import { ShieldCheck, Upload, Check, Camera, Lock, X, AlertCircle } from 'lucide-react';
 
@@ -11,7 +10,12 @@ interface PhotoVerificationModalProps {
 }
 
 export function PhotoVerificationModal({ isOpen, onClose }: PhotoVerificationModalProps) {
-  const { user, refreshUser } = useAuth();
+  // const { ... } = useAuth();
+  const user = null;
+  const isPremium = false;
+  const logout = () => {};
+  const upgradeSubscription = () => {};
+  const refreshUser = () => {};
   const [photoUrl, setPhotoUrl] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
