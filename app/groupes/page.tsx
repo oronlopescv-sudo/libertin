@@ -1,242 +1,194 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navbar } from '@/components/navbar';
-import { Footer } from '@/components/footer';
-import { GroupCard } from '@/components/group-card';
-import { useAuth } from '@/context/auth-context';
-import { Group } from '@/lib/types';
-import { getSupabaseGroups, createSupabaseGroup } from '@/lib/supabase';
-import {
-  Users,
-  Plus,
-  Search,
-  X,
-} from 'lucide-react';
+import { CreateGroupModal } from '@/components/create-group-modal';
+import { Plus } from 'lucide-react';
+
+interface Group {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  maxMembers: number;
+  isPrivate: boolean;
+  createdAt: string;
+}
+
+interface UserData {
+  id: string;
+  username: string;
+  subscriptionTier: string;
+  subscriptionEnd: string | null;
+}
 
 export default function GroupesPage() {
-  const { user } = useAuth();
   const [groups, setGroups] = useState<Group[]>([]);
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [createModalOpen, setCreateModalOpen] = useState<boolean>(false);
+  const [user, setUser] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [filter, setFilter] = useState<string>('all');
 
-  // New Group Form State
-  const [newGroupTitle, setNewGroupTitle] = useState('');
-  const [newGroupCategory, setNewGroupCategory] = useState<'clubs' | 'soirees' | 'discretion' | 'aventure'>('clubs');
-  const [newGroupDesc, setNewGroupDesc] = useState('');
-  const [newGroupIsPrivate, setNewGroupIsPrivate] = useState(false);
-  const [newGroupMaxMembers, setNewGroupMaxMembers] = useState(50);
-
-  const loadGroups = async () => {
-    const data = await getSupabaseGroups();
-    setGroups(data);
-  };
+  // Verificar se é premium
+  const isPremium = user && ['PREMIUM_3M', 'PREMIUM_12M', 'VIP_24M'].includes(user.subscriptionTier);
 
   useEffect(() => {
-    loadGroups();
+    const loadData = async () => {
+      try {
+        // Buscar user
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+          try {
+            const userData = JSON.parse(Buffer.from(token, 'base64').toString());
+            setUser(userData);
+          } catch {
+            // Token inválido
+          }
+        }
+
+        // Buscar grupos
+        const res = await fetch('/api/groups');
+        const data = await res.json();
+        setGroups(data.groups || []);
+      } catch (error) {
+        console.error('Error loading data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
   }, []);
 
-  const filteredGroups = groups.filter((g) => {
-    if (categoryFilter !== 'all' && g.category !== categoryFilter) return false;
-    if (searchQuery && !g.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+  const filteredGroups = groups.filter((group) => {
+    if (filter === 'private') return group.isPrivate;
+    if (filter === 'public') return !group.isPrivate;
     return true;
   });
 
-  const handleCreateGroup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newGroupTitle || !user) return;
-
-    const created = await createSupabaseGroup({
-      name: newGroupTitle,
-      category: newGroupCategory,
-      description: newGroupDesc,
-      isPrivate: newGroupIsPrivate,
-      maxMembers: newGroupMaxMembers,
-      creatorId: user.id,
-      creatorName: user.username,
-      coverUrl: '',
-    });
-
-    if (created) {
-      await loadGroups();
-      setCreateModalOpen(false);
-      setNewGroupTitle('');
-      setNewGroupDesc('');
-    } else {
-      alert('Erreur lors de la création du groupe.');
-    }
-  };
-
   return (
-    <div className="min-h-screen flex flex-col bg-[#12091A] text-[#F5F0F8]">
+    <div className="min-h-screen bg-gradient-to-br from-[#12091A] to-[#1C102B]">
       <Navbar />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <div className="max-w-6xl mx-auto px-4 py-12">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[#1C102B] border border-[#2C1B3D] p-6 rounded-3xl shadow-xl">
-          <div className="space-y-1">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white flex items-center gap-2">
-              <Users className="w-8 h-8 text-[#D4145A]" />
-              <span>Groupes & Cercle Libertins</span>
-            </h1>
-            <p className="text-xs text-zinc-400">
-              Échangez avec les habitués des clubs libertins, organisez des soirées privées et partagez vos expériences.
-            </p>
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-4xl font-bold text-white mb-2">Grupos</h1>
+            <p className="text-zinc-400">Encontra ou cria grupos de interesse</p>
           </div>
+          {user && (
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className={`flex items-center gap-2 px-6 py-2 rounded-lg font-semibold transition ${
+                isPremium
+                  ? 'bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white hover:opacity-90'
+                  : 'bg-zinc-700 text-zinc-400 cursor-not-allowed opacity-50'
+              }`}
+              title={isPremium ? 'Criar novo grupo' : 'Premium apenas'}
+            >
+              <Plus className="w-5 h-5" />
+              Criar Grupo
+            </button>
+          )}
+        </div>
 
+        {/* Filters */}
+        <div className="flex gap-2 mb-8">
           <button
-            onClick={() => setCreateModalOpen(true)}
-            className="px-5 py-3 rounded-xl bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white text-xs font-bold hover:opacity-95 shadow-lg shadow-[#D4145A]/25 flex items-center gap-2 shrink-0"
+            onClick={() => setFilter('all')}
+            className={`px-4 py-2 rounded-lg font-semibold transition ${
+              filter === 'all'
+                ? 'bg-[#D4145A] text-white'
+                : 'bg-[#2C1B3D] text-zinc-400 hover:bg-[#3C2B4D]'
+            }`}
           >
-            <Plus className="w-4 h-4" />
-            <span>Créer un Groupe</span>
+            Todos
+          </button>
+          <button
+            onClick={() => setFilter('public')}
+            className={`px-4 py-2 rounded-lg font-semibold transition ${
+              filter === 'public'
+                ? 'bg-[#D4145A] text-white'
+                : 'bg-[#2C1B3D] text-zinc-400 hover:bg-[#3C2B4D]'
+            }`}
+          >
+            Públicos
+          </button>
+          <button
+            onClick={() => setFilter('private')}
+            className={`px-4 py-2 rounded-lg font-semibold transition ${
+              filter === 'private'
+                ? 'bg-[#D4145A] text-white'
+                : 'bg-[#2C1B3D] text-zinc-400 hover:bg-[#3C2B4D]'
+            }`}
+          >
+            Privados
           </button>
         </div>
 
-        {/* Filter & Search Bar */}
-        <div className="p-4 rounded-2xl bg-[#1C102B] border border-[#2C1B3D] flex flex-col md:flex-row items-center justify-between gap-4">
-          {/* Categories */}
-          <div className="flex flex-wrap gap-1.5 w-full md:w-auto">
-            {[
-              { id: 'all', label: 'Tous les groupes' },
-              { id: 'clubs', label: 'Clubs Libertins' },
-              { id: 'soirees', label: 'Soirées Privées' },
-              { id: 'discretion', label: 'Conseils & Débutants' },
-            ].map((cat) => (
+        {/* Groups Grid */}
+        {loading ? (
+          <div className="text-center text-zinc-400">Carregando grupos...</div>
+        ) : filteredGroups.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-zinc-400 mb-4">Nenhum grupo encontrado</p>
+            {user && isPremium && (
               <button
-                key={cat.id}
-                onClick={() => setCategoryFilter(cat.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors ${
-                  categoryFilter === cat.id
-                    ? 'bg-[#D4145A] text-white font-bold'
-                    : 'bg-[#2C1B3D] text-zinc-400 hover:text-white'
-                }`}
+                onClick={() => setIsCreateModalOpen(true)}
+                className="inline-flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-[#D4145A] to-[#E86B7A] rounded-lg font-semibold text-white hover:opacity-90 transition"
               >
-                {cat.label}
+                <Plus className="w-5 h-5" />
+                Criar Primeiro Grupo
               </button>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredGroups.map((group) => (
+              <div
+                key={group.id}
+                className="p-6 bg-[#1C102B] rounded-lg border border-[#2C1B3D] hover:border-[#D4145A] transition cursor-pointer"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <h3 className="text-lg font-bold text-white flex-1">{group.name}</h3>
+                  {group.isPrivate && (
+                    <span className="text-xs bg-[#D4145A]/20 text-[#D4145A] px-2 py-1 rounded">
+                      Privado
+                    </span>
+                  )}
+                </div>
+
+                {group.description && (
+                  <p className="text-sm text-zinc-400 mb-3 line-clamp-2">
+                    {group.description}
+                  </p>
+                )}
+
+                <div className="flex items-center justify-between text-xs text-zinc-500 mb-4">
+                  <span className="capitalize">{group.category}</span>
+                </div>
+
+                <button className="w-full py-2 bg-gradient-to-r from-[#D4145A] to-[#E86B7A] rounded-lg font-semibold text-white hover:opacity-90 transition">
+                  Juntar-se
+                </button>
+              </div>
             ))}
           </div>
-
-          {/* Search Box */}
-          <div className="relative w-full md:w-64">
-            <Search className="w-4 h-4 text-zinc-500 absolute left-3 top-2.5" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Rechercher un groupe..."
-              className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#12091A] border border-[#3D2654] text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#D4145A]"
-            />
-          </div>
-        </div>
-
-        {/* Groups Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredGroups.map((group) => (
-            <GroupCard key={group.id} group={group} />
-          ))}
-        </div>
-
-        {/* Create Group Modal */}
-        {createModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-            <div className="relative w-full max-w-lg bg-[#1C102B] border border-[#3D2654] rounded-2xl p-6 text-white space-y-5">
-              <button
-                onClick={() => setCreateModalOpen(false)}
-                className="absolute top-4 right-4 p-2 rounded-full bg-[#2C1B3D] text-zinc-400 hover:text-white"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#D4145A]/20 border border-[#D4145A]/40 flex items-center justify-center text-[#E86B7A]">
-                  <Users className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold">Créer un Nouveau Groupe</h3>
-                  <p className="text-xs text-zinc-400">Rassemblez les membres autour d&apos;un thème ou d&apos;une région</p>
-                </div>
-              </div>
-
-              <form onSubmit={handleCreateGroup} className="space-y-4 text-xs">
-                <div>
-                  <label className="block text-zinc-300 font-medium mb-1">Nom du groupe</label>
-                  <input
-                    type="text"
-                    required
-                    value={newGroupTitle}
-                    onChange={(e) => setNewGroupTitle(e.target.value)}
-                    placeholder="ex: Soirées Privées Villa Lyon"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#12091A] border border-[#3D2654] text-white focus:outline-none focus:border-[#D4145A]"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-zinc-300 font-medium mb-1">Catégorie</label>
-                    <select
-                      value={newGroupCategory}
-                      onChange={(e) => setNewGroupCategory(e.target.value as any)}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-[#12091A] border border-[#3D2654] text-white focus:outline-none focus:border-[#D4145A]"
-                    >
-                      <option value="clubs">Clubs Libertins</option>
-                      <option value="soirees">Soirées Privées</option>
-                      <option value="discretion">Conseils & Discrétion</option>
-                      <option value="aventure">Aventures & Rencontres</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-zinc-300 font-medium mb-1">Membres Max</label>
-                    <input
-                      type="number"
-                      min={10}
-                      max={200}
-                      value={newGroupMaxMembers}
-                      onChange={(e) => setNewGroupMaxMembers(Number(e.target.value))}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-[#12091A] border border-[#3D2654] text-white focus:outline-none focus:border-[#D4145A]"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-zinc-300 font-medium mb-1">Description & Règles du groupe</label>
-                  <textarea
-                    rows={3}
-                    value={newGroupDesc}
-                    onChange={(e) => setNewGroupDesc(e.target.value)}
-                    placeholder="Objectif du groupe, ville concernée, conditions d'entrée..."
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#12091A] border border-[#3D2654] text-white focus:outline-none focus:border-[#D4145A]"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-3 rounded-xl bg-[#12091A] border border-[#3D2654]">
-                  <div>
-                    <div className="font-bold text-white">Groupe Privé</div>
-                    <div className="text-[10px] text-zinc-400">Entrée sur validation de l&apos;organisateur</div>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={newGroupIsPrivate}
-                    onChange={(e) => setNewGroupIsPrivate(e.target.checked)}
-                    className="rounded border-[#3D2654] bg-[#1C102B] text-[#D4145A] focus:ring-0"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white font-bold text-xs hover:opacity-95 shadow-lg shadow-[#D4145A]/25"
-                >
-                  Publier mon Groupe
-                </button>
-              </form>
-            </div>
-          </div>
         )}
-      </main>
+      </div>
 
-      <Footer />
+      {/* Modal */}
+      {user && (
+        <CreateGroupModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          userSubscription={{
+            tier: user.subscriptionTier,
+            expiresAt: user.subscriptionEnd,
+          }}
+        />
+      )}
     </div>
   );
 }
