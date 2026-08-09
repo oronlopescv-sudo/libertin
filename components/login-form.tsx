@@ -110,8 +110,13 @@ export function LoginForm() {
               {loading ? 'Connexion en cours...' : 'Se Connecter'}
             </button>
 
-            <div className="text-center text-sm text-zinc-400">
-              Pas de compte? <a href="/register" className="text-[#D4145A] hover:underline">S'inscrire</a>
+            <div className="text-center text-sm text-zinc-400 space-y-2">
+              <div>
+                Pas de compte? <a href="/register" className="text-[#D4145A] hover:underline">S'inscrire</a>
+              </div>
+              <div>
+                <a href="/forgot-password" className="text-[#D4145A] hover:underline">Mot de passe oublié?</a>
+              </div>
             </div>
           </form>
         </div>
