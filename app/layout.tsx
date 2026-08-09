@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { AuthProvider } from '@/context/auth-context';
 
 export const metadata: Metadata = {
   title: 'xlibertine - Rencontres Libertines, Casais & Solteiros',
@@ -17,12 +16,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="fr" className="dark">
       <body suppressHydrationWarning className="bg-[#12091A] text-[#F5F0F8] antialiased selection:bg-[#D4145A] selection:text-white min-h-screen flex flex-col">
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        {children}
       </body>
     </html>
   );
 }
-
-
