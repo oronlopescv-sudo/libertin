@@ -1,4 +1,24 @@
+import Stripe from 'stripe';
 import { SubscriptionPlan, SubscriptionTier } from './types';
+
+/**
+ * Initialize Stripe for server-side operations
+ * STRIPE_SECRET_KEY must be set in environment
+ */
+export const stripe = process.env.STRIPE_SECRET_KEY
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2024-04-10' })
+  : null;
+
+/**
+ * Stripe Product IDs mapped to subscription tiers
+ * These must be created in Stripe Dashboard first
+ */
+export const STRIPE_PRODUCT_IDS: Record<SubscriptionTier, string | null> = {
+  FREE: null, // No Stripe product for free tier
+  PREMIUM_3M: process.env.STRIPE_PRODUCT_PREMIUM_3M || 'prod_3m_placeholder',
+  PREMIUM_12M: process.env.STRIPE_PRODUCT_PREMIUM_12M || 'prod_12m_placeholder',
+  PREMIUM_24M: process.env.STRIPE_PRODUCT_PREMIUM_24M || 'prod_24m_placeholder',
+};
 
 export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   {
@@ -74,4 +94,106 @@ export function calculateSubscriptionEndDate(startDate: Date, durationMonths: nu
   const endDate = new Date(startDate);
   endDate.setMonth(endDate.getMonth() + durationMonths);
   return endDate;
+}
+
+/**
+ * Create a Stripe Checkout session for subscription upgrade
+ * @param userId - User's unique identifier
+ * @param planId - Subscription tier ID
+ * @param userEmail - User's email
+ * @param successUrl - URL to redirect on success
+ * @param cancelUrl - URL to redirect on cancel
+ */
+export async function createCheckoutSession(
+  userId: string,
+  planId: SubscriptionTier,
+  userEmail: string,
+  successUrl: string,
+  cancelUrl: string
+) {
+  if (!stripe) {
+    throw new Error('Stripe not configured. Set STRIPE_SECRET_KEY in environment.');
+  }
+
+  if (planId === 'FREE') {
+    throw new Error('Cannot checkout FREE tier. This should be automatic.');
+  }
+
+  const priceId = STRIPE_PRODUCT_IDS[planId];
+  if (!priceId || priceId.includes('placeholder')) {
+    throw new Error(`Stripe price ID not configured for ${planId}`);
+  }
+
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ['card'],
+    line_items: [
+      {
+        price: priceId,
+        quantity: 1,
+      },
+    ],
+    mode: 'payment',
+    success_url: successUrl,
+    cancel_url: cancelUrl,
+    customer_email: userEmail,
+    client_reference_id: userId,
+    metadata: {
+      userId,
+      planId,
+    },
+  });
+
+  return session;
+}
+
+/**
+ * Verify Stripe webhook signature
+ * @param body - Raw request body
+ * @param signature - Stripe-Signature header value
+ */
+export function verifyWebhookSignature(body: string, signature: string) {
+  if (!stripe) {
+    throw new Error('Stripe not configured');
+  }
+
+  const secret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!secret) {
+    throw new Error('STRIPE_WEBHOOK_SECRET not set');
+  }
+
+  return stripe.webhooks.constructEvent(body, signature, secret);
+}
+
+/**
+ * Get Stripe customer by ID or create new
+ */
+export async function getOrCreateStripeCustomer(
+  userId: string,
+  email: string,
+  name?: string
+) {
+  if (!stripe) {
+    throw new Error('Stripe not configured');
+  }
+
+  // Search for existing customer by email
+  const customers = await stripe.customers.list({
+    email,
+    limit: 1,
+  });
+
+  if (customers.data.length > 0) {
+    return customers.data[0].id;
+  }
+
+  // Create new customer
+  const customer = await stripe.customers.create({
+    email,
+    name,
+    metadata: {
+      userId,
+    },
+  });
+
+  return customer.id;
 }
