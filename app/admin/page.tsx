@@ -1,1048 +1,336 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navbar } from '@/components/navbar';
-import { Footer } from '@/components/footer';
-import { useAuth } from '@/context/auth-context';
-import {
-  User,
-  Group,
-  SubscriptionTier,
-  GenderType,
-} from '@/lib/types';
-import {
-  getSupabaseUsersList,
-  getSupabaseGroups,
-  updateSupabaseProfile,
-  deleteSupabaseUser,
-  getPendingVerifications,
-  approveVerification,
-  rejectVerification,
-  createSupabaseGroup,
-  updateSupabaseGroup,
-  deleteSupabaseGroup,
-} from '@/lib/supabase';
-import {
-  ShieldCheck,
-  Check,
-  X,
-  UserCheck,
-  TrendingUp,
-  Users,
-  AlertCircle,
-  Edit3,
-  Trash2,
-  Plus,
-  Crown,
-  Search,
-  MessageSquare,
-  Sparkles,
-} from 'lucide-react';
-import Image from 'next/image';
+import { Users, Zap, MessageSquare, Heart, TrendingUp, Ban, Lock } from 'lucide-react';
+import Link from 'next/link';
 
-export default function AdminPage() {
-  const { user, refreshUser } = useAuth();
-  const [activeTab, setActiveTab] = useState<'users' | 'groups' | 'verification' | 'stats'>('users');
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+interface DashboardStats {
+  totalUsers: number;
+  tierBreakdown: Record<string, number>;
+  totalGroups: number;
+  totalMessages: number;
+  totalLikes: number;
+  onlineUsers: number;
+  newUsersThisMonth: number;
+}
 
-  // Users
-  const [usersList, setUsersList] = useState<User[]>([]);
-  const [userSearch, setUserSearch] = useState('');
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+interface AdminUser {
+  id: string;
+  username: string;
+  email: string;
+  subscriptionTier: string;
+  subscriptionEnd: string | null;
+  isVerified: boolean;
+  createdAt: string;
+  isBanned: boolean;
+}
 
-  // Groups
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [editingGroup, setEditingGroup] = useState<Group | null>(null);
-  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
-  const [newGroupData, setNewGroupData] = useState({
-    name: '',
-    description: '',
-    category: 'clubs',
-    maxMembers: 50,
-    isPrivate: false,
-    coverUrl: '',
-  });
+export default function AdminDashboard() {
+  const [user, setUser] = useState(null);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  // Verifications
-  const [pendingVerifications, setPendingVerifications] = useState<any[]>([]);
+  useEffect(() => {
+    const loadDashboard = async () => {
+      try {
+        // Verificar se é admin
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+          const userData = JSON.parse(Buffer.from(token, 'base64').toString());
+          setUser(userData);
+        }
 
-  const loadData = async () => {
-    setIsLoading(true);
-    setErrorMsg(null);
-    try {
-      const [users, groupsData, verifications] = await Promise.all([
-        getSupabaseUsersList(200),
-        getSupabaseGroups(),
-        getPendingVerifications(),
-      ]);
-      setUsersList(users);
-      setGroups(groupsData);
-      setPendingVerifications(verifications);
-    } catch (err: any) {
-      setErrorMsg(err?.message || 'Erreur lors du chargement des données.');
-    } finally {
-      setIsLoading(false);
+        // Carregar stats
+        const statsRes = await fetch('/api/admin/dashboard');
+        if (statsRes.ok) {
+          const statsData = await statsRes.json();
+          setStats(statsData);
+        }
+
+        // Carregar users
+        const usersRes = await fetch(`/api/admin/users?page=${page}&search=${search}`);
+        if (usersRes.ok) {
+          const usersData = await usersRes.json();
+          setUsers(usersData.users);
+          setTotalPages(usersData.pagination.pages);
+        }
+      } catch (error) {
+        console.error('Error loading dashboard:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboard();
+  }, [page, search]);
+
+  const banUser = async (userId: string, reason: string) => {
+    if (!confirm('Tem a certeza que quer banir este utilizador?')) return;
+
+    const res = await fetch('/api/admin/users/ban', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, reason }),
+    });
+
+    if (res.ok) {
+      // Recarregar users
+      const usersRes = await fetch(`/api/admin/users?page=${page}`);
+      const usersData = await usersRes.json();
+      setUsers(usersData.users);
     }
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const unbanUser = async (userId: string) => {
+    if (!confirm('Desbanir este utilizador?')) return;
 
-  if (user?.role !== 'admin') {
+    const res = await fetch(`/api/admin/users?userId=${userId}`, {
+      method: 'DELETE',
+    });
+
+    if (res.ok) {
+      // Recarregar users
+      const usersRes = await fetch(`/api/admin/users?page=${page}`);
+      const usersData = await usersRes.json();
+      setUsers(usersData.users);
+    }
+  };
+
+  if (loading) {
     return (
-      <div className="min-h-screen flex flex-col bg-[#12091A] text-white">
+      <div className="min-h-screen bg-gradient-to-br from-[#12091A] to-[#1C102B]">
         <Navbar />
-        <main className="flex-1 flex items-center justify-center p-4">
-          <div className="p-8 rounded-2xl bg-[#1C102B] border border-rose-800/40 text-center space-y-4 max-w-sm">
-            <AlertCircle className="w-10 h-10 text-rose-500 mx-auto" />
-            <h2 className="text-lg font-bold">Accès Réservé aux Administrateurs</h2>
-            <p className="text-xs text-zinc-400">
-              Vous devez être connecté avec un compte de modération pour consulter cette page.
-            </p>
-          </div>
-        </main>
-        <Footer />
+        <div className="flex items-center justify-center min-h-[80vh] text-white">
+          Carregando...
+        </div>
       </div>
     );
   }
 
-  // User Actions
-  const handleSaveUserEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingUser) return;
-    const endDate = new Date();
-    if (editingUser.subscriptionTier === 'PREMIUM_3M') endDate.setMonth(endDate.getMonth() + 3);
-    else if (editingUser.subscriptionTier === 'PREMIUM_12M') endDate.setMonth(endDate.getMonth() + 12);
-    else if (editingUser.subscriptionTier === 'PREMIUM_24M') endDate.setMonth(endDate.getMonth() + 24);
-
-    const ok = await updateSupabaseProfile(editingUser.id, {
-      username: editingUser.username,
-      email: editingUser.email,
-      gender: editingUser.gender,
-      role: editingUser.role,
-      location: editingUser.location,
-      bio: editingUser.bio,
-      isVerified: editingUser.isVerified,
-      subscriptionTier: editingUser.subscriptionTier,
-      subscriptionEnd: editingUser.subscriptionTier === 'FREE' ? undefined : endDate.toISOString(),
-    });
-
-    if (ok) {
-      await loadData();
-      await refreshUser();
-      setEditingUser(null);
-    } else {
-      alert('Erreur lors de la mise à jour du membre.');
-    }
-  };
-
-  const handleDeleteUser = async (userId: string) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer définitivement ce membre ?')) {
-      const ok = await deleteSupabaseUser(userId);
-      if (ok) await loadData();
-      else alert('Erreur lors de la suppression.');
-    }
-  };
-
-  const handleQuickToggleVerified = async (u: User) => {
-    const ok = await updateSupabaseProfile(u.id, { isVerified: !u.isVerified });
-    if (ok) await loadData();
-  };
-
-  const handleQuickUpgradeSubscription = async (u: User, tier: SubscriptionTier) => {
-    const endDate = new Date();
-    if (tier === 'PREMIUM_3M') endDate.setMonth(endDate.getMonth() + 3);
-    else if (tier === 'PREMIUM_12M') endDate.setMonth(endDate.getMonth() + 12);
-    else if (tier === 'PREMIUM_24M') endDate.setMonth(endDate.getMonth() + 24);
-
-    const ok = await updateSupabaseProfile(u.id, {
-      subscriptionTier: tier,
-      subscriptionEnd: tier === 'FREE' ? undefined : endDate.toISOString(),
-    });
-    if (ok) await loadData();
-  };
-
-  // Group Actions
-  const handleSaveGroupEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingGroup) return;
-    const ok = await updateSupabaseGroup(editingGroup.id, {
-      name: editingGroup.name,
-      description: editingGroup.description,
-      category: editingGroup.category,
-      coverUrl: editingGroup.coverUrl,
-    });
-    if (ok) {
-      await loadData();
-      setEditingGroup(null);
-    } else {
-      alert('Erreur lors de la mise à jour du club.');
-    }
-  };
-
-  const handleCreateGroupSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
-    const created = await createSupabaseGroup({
-      name: newGroupData.name,
-      description: newGroupData.description,
-      creatorId: user.id,
-      creatorName: user.username,
-      category: newGroupData.category as Group['category'],
-      maxMembers: Number(newGroupData.maxMembers),
-      isPrivate: newGroupData.isPrivate,
-      coverUrl: newGroupData.coverUrl,
-    });
-    if (created) {
-      await loadData();
-      setIsCreatingGroup(false);
-      setNewGroupData({
-        name: '',
-        description: '',
-        category: 'clubs',
-        maxMembers: 50,
-        isPrivate: false,
-        coverUrl: '',
-      });
-    } else {
-      alert('Erreur lors de la création du club.');
-    }
-  };
-
-  const handleDeleteGroup = async (groupId: string) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce club/groupe ?')) {
-      const ok = await deleteSupabaseGroup(groupId);
-      if (ok) await loadData();
-      else alert('Erreur lors de la suppression.');
-    }
-  };
-
-  const handleApproveVerification = async (photoId: string, userId: string) => {
-    const ok = await approveVerification(photoId);
-    if (ok) {
-      await updateSupabaseProfile(userId, { isVerified: true });
-      await loadData();
-    } else {
-      alert('Erreur lors de l\'approbation.');
-    }
-  };
-
-  const handleRejectVerification = async (photoId: string) => {
-    const ok = await rejectVerification(photoId);
-    if (ok) await loadData();
-    else alert('Erreur lors du rejet.');
-  };
-
-  // Filtered Users List
-  const filteredUsers = usersList.filter((u) =>
-    u.username.toLowerCase().includes(userSearch.toLowerCase()) ||
-    u.email.toLowerCase().includes(userSearch.toLowerCase()) ||
-    u.location.toLowerCase().includes(userSearch.toLowerCase())
-  );
-
-  const totalRevenue = usersList.reduce((acc, u) => {
-    if (u.subscriptionTier === 'PREMIUM_3M') return acc + 16;
-    if (u.subscriptionTier === 'PREMIUM_12M') return acc + 25;
-    if (u.subscriptionTier === 'PREMIUM_24M') return acc + 70;
-    return acc;
-  }, 0);
-
-  return (
-    <div className="min-h-screen flex flex-col bg-[#12091A] text-[#F5F0F8]">
-      <Navbar />
-
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-[#1C102B] border border-[#2C1B3D] p-6 rounded-3xl shadow-xl">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="w-8 h-8 text-emerald-400" />
-              <h1 className="text-2xl font-extrabold text-white">
-                Panneau de Contrôle Administrateur
-              </h1>
-            </div>
-            <p className="text-xs text-zinc-400">
-              Gestion intégrale du site, édition des membres, contrôle des abonnements et groupes.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setActiveTab('users')}
-              className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                activeTab === 'users'
-                  ? 'bg-[#D4145A] text-white shadow-lg shadow-rose-900/40'
-                  : 'bg-[#2C1B3D] text-zinc-400 hover:text-white'
-              }`}
-            >
-              <Users className="w-4 h-4" />
-              <span>Membres ({usersList.length})</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('groups')}
-              className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                activeTab === 'groups'
-                  ? 'bg-[#D4145A] text-white shadow-lg shadow-rose-900/40'
-                  : 'bg-[#2C1B3D] text-zinc-400 hover:text-white'
-              }`}
-            >
-              <MessageSquare className="w-4 h-4" />
-              <span>Clubs & Groupes ({groups.length})</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('verification')}
-              className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 relative ${
-                activeTab === 'verification'
-                  ? 'bg-[#D4145A] text-white shadow-lg shadow-rose-900/40'
-                  : 'bg-[#2C1B3D] text-zinc-400 hover:text-white'
-              }`}
-            >
-              <UserCheck className="w-4 h-4" />
-              <span>Vérifications</span>
-              {pendingVerifications.length > 0 && (
-                <span className="w-5 h-5 rounded-full bg-amber-500 text-black font-extrabold text-[10px] flex items-center justify-center">
-                  {pendingVerifications.length}
-                </span>
-              )}
-            </button>
-
-            <button
-              onClick={() => setActiveTab('stats')}
-              className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                activeTab === 'stats'
-                  ? 'bg-[#D4145A] text-white shadow-lg shadow-rose-900/40'
-                  : 'bg-[#2C1B3D] text-zinc-400 hover:text-white'
-              }`}
-            >
-              <TrendingUp className="w-4 h-4" />
-              <span>Stats & Supabase</span>
-            </button>
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#12091A] to-[#1C102B]">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[80vh] px-4">
+          <div className="text-center space-y-4">
+            <Lock className="w-12 h-12 text-[#D4145A] mx-auto" />
+            <h1 className="text-3xl font-bold text-white">Acesso Negado</h1>
+            <p className="text-zinc-400">Apenas admins podem aceder a este painel</p>
+            <Link href="/" className="inline-block mt-4 px-6 py-3 bg-[#D4145A] text-white rounded-lg">
+              Voltar à Home
+            </Link>
           </div>
         </div>
+      </div>
+    );
+  }
 
-        {isLoading && (
-          <div className="p-4 rounded-xl bg-[#1C102B] border border-[#2C1B3D] text-center text-xs text-zinc-400">Chargement des données...</div>
-        )}
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#12091A] to-[#1C102B]">
+      <Navbar />
 
-        {errorMsg && (
-          <div className="p-4 rounded-xl bg-rose-950/60 border border-rose-800/40 text-rose-300 text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{errorMsg}</span>
-          </div>
-        )}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-white mb-2">Painel de Admin</h1>
+          <p className="text-zinc-400">Gerencie utilizadores, grupos e monitorize a plataforma</p>
+        </div>
 
-        {/* TAB 1: USER MANAGEMENT */}
-        {activeTab === 'users' && (
-          <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <h2 className="text-lg font-extrabold text-white flex items-center gap-2">
-                <span>Gestion & Édition des Membres</span>
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#2C1B3D] text-zinc-400">
-                  {filteredUsers.length} affichés
-                </span>
-              </h2>
-
-              <button
-                onClick={loadData}
-                className="px-3 py-2 rounded-xl bg-[#2C1B3D] hover:bg-[#3D2654] text-white text-xs font-bold"
-              >
-                Rafraîchir
-              </button>
-
-              <div className="relative w-full sm:w-72">
-                <Search className="w-4 h-4 text-zinc-500 absolute left-3 top-3" />
-                <input
-                  type="text"
-                  placeholder="Rechercher par nom, email, ville..."
-                  value={userSearch}
-                  onChange={(e) => setUserSearch(e.target.value)}
-                  className="w-full bg-[#1C102B] border border-[#2C1B3D] text-white text-xs pl-9 pr-4 py-2.5 rounded-xl focus:border-[#D4145A] outline-none"
-                />
+        {/* Stats Cards */}
+        {stats && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {/* Total Users */}
+            <div className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-zinc-400 text-sm">Total de Utilizadores</p>
+                  <p className="text-3xl font-bold text-white">{stats.totalUsers}</p>
+                </div>
+                <Users className="w-12 h-12 text-[#D4145A] opacity-50" />
               </div>
+              <p className="text-green-400 text-sm mt-2">+{stats.newUsersThisMonth} este mês</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredUsers.map((u) => {
-                const isUserPremium = u.subscriptionTier !== 'FREE';
+            {/* Online Users */}
+            <div className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-zinc-400 text-sm">Online Agora</p>
+                  <p className="text-3xl font-bold text-white">{stats.onlineUsers}</p>
+                </div>
+                <Zap className="w-12 h-12 text-green-400 opacity-50" />
+              </div>
+              <p className="text-green-400 text-sm mt-2">Últimos 5 minutos</p>
+            </div>
 
-                return (
-                  <div
-                    key={u.id}
-                    className="p-5 rounded-2xl bg-[#1C102B] border border-[#2C1B3D] hover:border-zinc-700 transition-colors space-y-4 flex flex-col justify-between"
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-xl overflow-hidden relative bg-[#2C1B3D]">
-                            {u.photos?.[0]?.url ? (
-                              <Image
-                                src={u.photos[0].url}
-                                alt={u.username}
-                                fill
-                                className="object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-zinc-500 text-xs font-bold">
-                                {u.username.substring(0, 2).toUpperCase()}
-                              </div>
-                            )}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-1.5">
-                              <h3 className="font-bold text-white text-sm">{u.username}</h3>
-                              {u.isVerified && (
-                                <span title="Profil Vérifié">
-                                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                                </span>
-                              )}
-                              {u.role === 'admin' && (
-                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-purple-950 text-purple-300 font-bold border border-purple-800">
-                                  ADMIN
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-[11px] text-zinc-400">{u.email}</p>
-                            <p className="text-[10px] text-zinc-500 capitalize">{u.gender} • {u.location}</p>
-                          </div>
-                        </div>
-                      </div>
+            {/* Total Groups */}
+            <div className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-zinc-400 text-sm">Grupos Ativos</p>
+                  <p className="text-3xl font-bold text-white">{stats.totalGroups}</p>
+                </div>
+                <TrendingUp className="w-12 h-12 text-blue-400 opacity-50" />
+              </div>
+              <p className="text-blue-400 text-sm mt-2">Comunidades</p>
+            </div>
 
-                      <div className="flex items-center gap-2 pt-1">
-                        <span
-                          className={`text-[10px] px-2.5 py-1 rounded-full font-bold border ${
-                            isUserPremium
-                              ? 'bg-amber-950/80 text-amber-300 border-amber-800/80'
-                              : 'bg-zinc-900 text-zinc-400 border-zinc-800'
-                          }`}
-                        >
-                          {u.subscriptionTier}
-                        </span>
-                        {u.isVerified ? (
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800/60 font-bold">
-                            Badge Vérifié
-                          </span>
-                        ) : (
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-zinc-900 text-zinc-500 border border-zinc-800">
-                            Non vérifié
-                          </span>
-                        )}
-                      </div>
-
-                      {u.bio && (
-                        <p className="text-[11px] text-zinc-400 line-clamp-2 italic bg-[#12091A] p-2 rounded-lg border border-[#2C1B3D]">
-                          &ldquo;{u.bio}&rdquo;
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="pt-3 border-t border-[#2C1B3D] space-y-2">
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          onClick={() => setEditingUser(u)}
-                          className="py-1.5 px-3 rounded-lg bg-[#2C1B3D] hover:bg-purple-900/60 text-white font-bold text-xs flex items-center justify-center gap-1 transition-colors"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                          <span>Éditer</span>
-                        </button>
-
-                        <button
-                          onClick={() => handleQuickToggleVerified(u)}
-                          className={`py-1.5 px-3 rounded-lg font-bold text-xs flex items-center justify-center gap-1 transition-colors border ${
-                            u.isVerified
-                              ? 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:bg-zinc-800'
-                              : 'bg-emerald-950 text-emerald-300 border-emerald-800 hover:bg-emerald-900'
-                          }`}
-                        >
-                          <ShieldCheck className="w-3.5 h-3.5" />
-                          <span>{u.isVerified ? 'Dévérifier' : 'Vérifier'}</span>
-                        </button>
-                      </div>
-
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() =>
-                            handleQuickUpgradeSubscription(
-                              u,
-                              u.subscriptionTier === 'FREE' ? 'PREMIUM_12M' : 'FREE'
-                            )
-                          }
-                          className="flex-1 py-1.5 px-2 rounded-lg bg-amber-950/60 hover:bg-amber-900/80 text-amber-300 border border-amber-800/60 font-bold text-[11px] flex items-center justify-center gap-1"
-                        >
-                          <Crown className="w-3 h-3" />
-                          <span>{u.subscriptionTier === 'FREE' ? 'Donner VIP 12M' : 'Basculer FREE'}</span>
-                        </button>
-
-                        <button
-                          onClick={() => handleDeleteUser(u.id)}
-                          className="p-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/60"
-                          title="Supprimer le membre"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+            {/* Total Likes */}
+            <div className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-zinc-400 text-sm">Interações (Likes)</p>
+                  <p className="text-3xl font-bold text-white">{stats.totalLikes}</p>
+                </div>
+                <Heart className="w-12 h-12 text-red-400 opacity-50" />
+              </div>
+              <p className="text-red-400 text-sm mt-2">Total</p>
             </div>
           </div>
         )}
 
-        {/* TAB 2: GROUPS & CLUBS MANAGEMENT */}
-        {activeTab === 'groups' && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-extrabold text-white">Gestion des Clubs & Groupes</h2>
-              <button
-                onClick={() => setIsCreatingGroup(true)}
-                className="px-4 py-2 rounded-xl bg-[#D4145A] hover:bg-[#b00f48] text-white font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-rose-950"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Créer un Club Officiel</span>
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {groups.map((g) => (
-                <div
-                  key={g.id}
-                  className="p-5 rounded-2xl bg-[#1C102B] border border-[#2C1B3D] space-y-4 flex flex-col justify-between"
-                >
-                  <div className="space-y-3">
-                    <div className="h-32 w-full rounded-xl overflow-hidden relative bg-[#2C1B3D]">
-                      {g.coverUrl && (
-                        <Image
-                          src={g.coverUrl}
-                          alt={g.name}
-                          fill
-                          className="object-cover"
-                        />
-                      )}
-                      <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-full text-[10px] text-white font-bold">
-                        {g.memberCount} / {g.maxMembers} membres
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-bold text-white text-base">{g.name}</h3>
-                        <span className="text-[10px] px-2 py-0.5 rounded bg-[#2C1B3D] text-zinc-300 uppercase font-bold">
-                          {g.category}
-                        </span>
-                      </div>
-                      <p className="text-xs text-zinc-400 mt-1 line-clamp-2">{g.description}</p>
-                    </div>
-                  </div>
-
-                  <div className="pt-3 border-t border-[#2C1B3D] flex gap-2">
-                    <button
-                      onClick={() => setEditingGroup(g)}
-                      className="flex-1 py-2 rounded-xl bg-[#2C1B3D] hover:bg-purple-900/60 text-white font-bold text-xs flex items-center justify-center gap-1.5"
-                    >
-                      <Edit3 className="w-3.5 h-3.5" />
-                      <span>Éditer Club</span>
-                    </button>
-                    <button
-                      onClick={() => handleDeleteGroup(g.id)}
-                      className="p-2 rounded-xl bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/60"
-                      title="Supprimer le club"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+        {/* Subscription Breakdown */}
+        {stats && (
+          <div className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6 mb-8">
+            <h2 className="text-xl font-bold text-white mb-4">Utilizadores por Subscrição</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {Object.entries(stats.tierBreakdown).map(([tier, count]) => (
+                <div key={tier} className="bg-[#2C1B3D] rounded-lg p-4">
+                  <p className="text-zinc-400 text-sm">{tier}</p>
+                  <p className="text-2xl font-bold text-white">{count as number}</p>
+                  <p className="text-xs text-zinc-500 mt-2">
+                    {((((count as number) / stats.totalUsers) * 100).toFixed(1))}%
+                  </p>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* TAB 3: VERIFICATION MODERATION */}
-        {activeTab === 'verification' && (
-          <div className="space-y-4">
-            <h2 className="text-base font-bold text-white">
-              Demandes de Vérification d&apos;Identité en Attente ({pendingVerifications.length})
-            </h2>
+        {/* Users Management */}
+        <div className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6 mb-8">
+          <h2 className="text-xl font-bold text-white mb-4">Gestão de Utilizadores</h2>
 
-            {pendingVerifications.length === 0 ? (
-              <div className="p-8 rounded-2xl bg-[#1C102B] border border-[#2C1B3D] text-center text-xs text-zinc-400 space-y-2">
-                <UserCheck className="w-8 h-8 text-emerald-400 mx-auto" />
-                <p className="font-bold text-white">Toutes les vérifications sont à jour !</p>
-                <p>Aucune photo en attente d&apos;approbation pour le moment.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {pendingVerifications.map((v) => (
-                  <div
-                    key={v.id}
-                    className="p-5 rounded-2xl bg-[#1C102B] border border-[#2C1B3D] space-y-4 flex flex-col justify-between"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-bold text-white text-sm">{v.profiles?.username || 'Membre'}</h3>
-                        <div className="text-xs text-zinc-400">{v.profiles?.email}</div>
-                      </div>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-amber-950 text-amber-300 font-bold">
-                        En attente
+          {/* Search */}
+          <input
+            type="text"
+            placeholder="Procurar por username ou email..."
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            className="w-full mb-4 px-4 py-2 bg-[#2C1B3D] border border-[#3C2B4D] rounded-lg text-white focus:outline-none focus:border-[#D4145A]"
+          />
+
+          {/* Users Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[#2C1B3D]">
+                  <th className="text-left py-3 px-4 text-zinc-400">Username</th>
+                  <th className="text-left py-3 px-4 text-zinc-400">Email</th>
+                  <th className="text-left py-3 px-4 text-zinc-400">Subscrição</th>
+                  <th className="text-left py-3 px-4 text-zinc-400">Status</th>
+                  <th className="text-left py-3 px-4 text-zinc-400">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((u) => (
+                  <tr key={u.id} className="border-b border-[#2C1B3D] hover:bg-[#2C1B3D]/50">
+                    <td className="py-3 px-4 text-white font-medium">{u.username}</td>
+                    <td className="py-3 px-4 text-zinc-400">{u.email}</td>
+                    <td className="py-3 px-4">
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                        u.subscriptionTier === 'FREE' ? 'bg-zinc-600 text-zinc-200' :
+                        u.subscriptionTier === 'PREMIUM_3M' ? 'bg-blue-600 text-blue-100' :
+                        u.subscriptionTier === 'PREMIUM_12M' ? 'bg-purple-600 text-purple-100' :
+                        'bg-yellow-600 text-yellow-100'
+                      }`}>
+                        {u.subscriptionTier}
                       </span>
-                    </div>
-
-                    <div className="aspect-video w-full rounded-xl overflow-hidden bg-black border border-[#3D2654] relative">
-                      <Image
-                        src={v.url}
-                        alt="Selfie de vérification"
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-
-                    <div className="flex gap-2 pt-2">
-                      <button
-                        onClick={() => handleApproveVerification(v.id, v.user_id)}
-                        className="flex-1 py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-500 shadow-md flex items-center justify-center gap-1.5"
-                      >
-                        <Check className="w-4 h-4" />
-                        <span>Approuver</span>
-                      </button>
-                      <button
-                        onClick={() => handleRejectVerification(v.id)}
-                        className="py-2.5 px-3 rounded-xl bg-rose-950 text-rose-300 font-bold text-xs hover:bg-rose-900 border border-rose-800/60"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      {u.isBanned ? (
+                        <span className="px-2 py-1 rounded text-xs font-semibold bg-red-600 text-red-100">
+                          BANIDO
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 rounded text-xs font-semibold bg-green-600 text-green-100">
+                          ATIVO
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4">
+                      {u.isBanned ? (
+                        <button
+                          onClick={() => unbanUser(u.id)}
+                          className="text-green-400 hover:text-green-300 text-xs font-semibold"
+                        >
+                          Desbanir
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => banUser(u.id, 'Violação de términos')}
+                          className="text-red-400 hover:text-red-300 text-xs font-semibold flex items-center gap-1"
+                        >
+                          <Ban className="w-4 h-4" /> Banir
+                        </button>
+                      )}
+                    </td>
+                  </tr>
                 ))}
-              </div>
-            )}
+              </tbody>
+            </table>
           </div>
-        )}
 
-        {/* TAB 4: STATS & SUPABASE */}
-        {activeTab === 'stats' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div className="p-5 rounded-2xl bg-[#1C102B] border border-[#2C1B3D] space-y-2">
-                <div className="flex items-center justify-between text-zinc-400 text-xs">
-                  <span>Revenu estimé (plans actifs)</span>
-                  <TrendingUp className="w-4 h-4 text-emerald-400" />
-                </div>
-                <div className="text-2xl font-extrabold text-white">{totalRevenue} €</div>
-                <div className="text-[10px] text-zinc-500 font-semibold">Simulation basée sur les formules</div>
-              </div>
-
-              <div className="p-5 rounded-2xl bg-[#1C102B] border border-[#2C1B3D] space-y-2">
-                <div className="flex items-center justify-between text-zinc-400 text-xs">
-                  <span>Membres Inscrits</span>
-                  <Users className="w-4 h-4 text-[#E86B7A]" />
-                </div>
-                <div className="text-2xl font-extrabold text-white">{usersList.length} Membres</div>
-                <div className="text-[10px] text-zinc-400">Taux de rétention 82%</div>
-              </div>
-
-              <div className="p-5 rounded-2xl bg-[#1C102B] border border-[#2C1B3D] space-y-2">
-                <div className="flex items-center justify-between text-zinc-400 text-xs">
-                  <span>Taux de Profils Vérifiés</span>
-                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                </div>
-                <div className="text-2xl font-extrabold text-white">
-                  {Math.round((usersList.filter((u) => u.isVerified).length / (usersList.length || 1)) * 100)} %
-                </div>
-                <div className="text-[10px] text-zinc-500 font-semibold">{usersList.filter((u) => u.isVerified).length} sur {usersList.length}</div>
-              </div>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-[#1C102B] border border-[#2C1B3D] space-y-3">
-              <h3 className="text-sm font-bold text-white">Répartition des Subscriptions Actives</h3>
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between text-zinc-300">
-                  <span>Pass Privilège 12 Mois (Offre Populair) :</span>
-                  <span className="font-bold text-white">
-                    {usersList.filter((u) => u.subscriptionTier === 'PREMIUM_12M').length} membres
-                  </span>
-                </div>
-                <div className="flex justify-between text-zinc-300">
-                  <span>Pass Épicurien 3 Mois :</span>
-                  <span className="font-bold text-white">
-                    {usersList.filter((u) => u.subscriptionTier === 'PREMIUM_3M').length} membres
-                  </span>
-                </div>
-                <div className="flex justify-between text-zinc-300">
-                  <span>Pass VIP Elite 24 Mois :</span>
-                  <span className="font-bold text-white">
-                    {usersList.filter((u) => u.subscriptionTier === 'PREMIUM_24M').length} membres
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Supabase Status & SQL Schema Card */}
-            <div className="p-6 rounded-2xl bg-[#1C102B] border border-emerald-900/60 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-                  <h3 className="text-sm font-bold text-white">Base de Données Supabase</h3>
-                </div>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-mono font-bold">
-                  Connecté & En Ligne
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-mono bg-[#12091A] p-3 rounded-xl border border-[#2C1B3D]">
-                <div>
-                  <span className="text-zinc-500 block text-[10px]">Project Ref:</span>
-                  <span className="text-emerald-400">{process.env.NEXT_PUBLIC_SUPABASE_URL?.replace('https://', '').replace('.supabase.co', '') || 'Non configuré'}</span>
-                </div>
-                <div>
-                  <span className="text-zinc-500 block text-[10px]">Endpoint API:</span>
-                  <span className="text-zinc-300 truncate block">{process.env.NEXT_PUBLIC_SUPABASE_URL || 'Non configuré'}</span>
-                </div>
-              </div>
-
-              {/* SQL Schema Preview & Copy */}
-              <div className="space-y-2 pt-2 border-t border-[#2C1B3D]">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-zinc-300">Script SQL pour Création des Tables Supabase</span>
-                  <button
-                    onClick={() => {
-                      import('@/lib/supabase').then(({ SUPABASE_SQL_SCHEMA }) => {
-                        navigator.clipboard.writeText(SUPABASE_SQL_SCHEMA);
-                        alert('Script SQL des tables Supabase copié dans le presse-papier !');
-                      });
-                    }}
-                    className="px-3 py-1 rounded-lg bg-emerald-950 hover:bg-emerald-900 text-emerald-300 text-[11px] font-bold border border-emerald-800/60 transition-colors"
-                  >
-                    Copier le Script SQL
-                  </button>
-                </div>
-                <p className="text-[11px] text-zinc-400">
-                  Exécutez ce script dans l&apos;éditeur SQL de votre console Supabase (<code className="text-emerald-400">SQL Editor</code>) pour initialiser toutes les tables (profiles, photos, groups, messages, subscriptions).
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-      </main>
-
-      {/* EDIT USER MODAL */}
-      {editingUser && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#1C102B] border border-[#2C1B3D] rounded-3xl p-6 max-w-lg w-full space-y-4 max-h-[90vh] overflow-y-auto text-white">
-            <div className="flex items-center justify-between border-b border-[#2C1B3D] pb-3">
-              <h3 className="font-extrabold text-base flex items-center gap-2">
-                <Edit3 className="w-4 h-4 text-[#D4145A]" />
-                <span>Éditer le Membre : {editingUser.username}</span>
-              </h3>
-              <button
-                onClick={() => setEditingUser(null)}
-                className="p-1 rounded-lg text-zinc-400 hover:text-white"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveUserEdit} className="space-y-4 text-xs">
-              <div>
-                <label className="block text-zinc-400 mb-1 font-semibold">Nom d&apos;utilisateur</label>
-                <input
-                  type="text"
-                  value={editingUser.username}
-                  onChange={(e) => setEditingUser({ ...editingUser, username: e.target.value })}
-                  className="w-full bg-[#12091A] border border-[#2C1B3D] text-white p-2.5 rounded-xl outline-none focus:border-[#D4145A]"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-zinc-400 mb-1 font-semibold">E-mail</label>
-                <input
-                  type="email"
-                  value={editingUser.email}
-                  onChange={(e) => setEditingUser({ ...editingUser, email: e.target.value })}
-                  className="w-full bg-[#12091A] border border-[#2C1B3D] text-white p-2.5 rounded-xl outline-none focus:border-[#D4145A]"
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-zinc-400 mb-1 font-semibold">Genre / Type</label>
-                  <select
-                    value={editingUser.gender}
-                    onChange={(e) => setEditingUser({ ...editingUser, gender: e.target.value as GenderType })}
-                    className="w-full bg-[#12091A] border border-[#2C1B3D] text-white p-2.5 rounded-xl outline-none focus:border-[#D4145A]"
-                  >
-                    <option value="couple">Couple</option>
-                    <option value="homme">Homme Solo</option>
-                    <option value="femme">Femme Solo</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-zinc-400 mb-1 font-semibold">Rôle</label>
-                  <select
-                    value={editingUser.role || 'user'}
-                    onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value as 'user' | 'admin' })}
-                    className="w-full bg-[#12091A] border border-[#2C1B3D] text-white p-2.5 rounded-xl outline-none focus:border-[#D4145A]"
-                  >
-                    <option value="user">Membre Standard</option>
-                    <option value="admin">Administrateur</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-zinc-400 mb-1 font-semibold">Formule d&apos;Abonnement</label>
-                <select
-                  value={editingUser.subscriptionTier}
-                  onChange={(e) => setEditingUser({ ...editingUser, subscriptionTier: e.target.value as SubscriptionTier })}
-                  className="w-full bg-[#12091A] border border-[#2C1B3D] text-white p-2.5 rounded-xl outline-none focus:border-[#D4145A]"
-                >
-                  <option value="FREE">Gratuit (FREE)</option>
-                  <option value="PREMIUM_3M">3 Mois Épicurien</option>
-                  <option value="PREMIUM_12M">12 Mois Privilège</option>
-                  <option value="PREMIUM_24M">24 Mois VIP Elite</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-zinc-400 mb-1 font-semibold">Ville / Localisation</label>
-                <input
-                  type="text"
-                  value={editingUser.location}
-                  onChange={(e) => setEditingUser({ ...editingUser, location: e.target.value })}
-                  className="w-full bg-[#12091A] border border-[#2C1B3D] text-white p-2.5 rounded-xl outline-none focus:border-[#D4145A]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-zinc-400 mb-1 font-semibold">Bio / Présentation</label>
-                <textarea
-                  value={editingUser.bio || ''}
-                  onChange={(e) => setEditingUser({ ...editingUser, bio: e.target.value })}
-                  rows={3}
-                  className="w-full bg-[#12091A] border border-[#2C1B3D] text-white p-2.5 rounded-xl outline-none focus:border-[#D4145A]"
-                />
-              </div>
-
-              <div className="flex items-center gap-2 pt-2">
-                <input
-                  type="checkbox"
-                  id="isVerifiedCheck"
-                  checked={editingUser.isVerified}
-                  onChange={(e) => setEditingUser({ ...editingUser, isVerified: e.target.checked })}
-                  className="accent-[#D4145A] w-4 h-4 rounded"
-                />
-                <label htmlFor="isVerifiedCheck" className="text-xs text-zinc-300 font-bold">
-                  Accorder le Badge Profil Vérifié (Coche Verte)
-                </label>
-              </div>
-
-              <div className="pt-4 flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setEditingUser(null)}
-                  className="flex-1 py-2.5 rounded-xl bg-[#2C1B3D] hover:bg-zinc-800 text-zinc-300 font-bold"
-                >
-                  Annuler
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-[#D4145A] hover:bg-[#b00f48] text-white font-bold shadow-lg"
-                >
-                  Enregistrer
-                </button>
-              </div>
-            </form>
+          {/* Paginação */}
+          <div className="flex justify-center gap-2 mt-6">
+            <button
+              onClick={() => setPage(Math.max(1, page - 1))}
+              disabled={page === 1}
+              className="px-4 py-2 bg-[#2C1B3D] rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Anterior
+            </button>
+            <span className="px-4 py-2 text-white">Página {page} de {totalPages}</span>
+            <button
+              onClick={() => setPage(Math.min(totalPages, page + 1))}
+              disabled={page === totalPages}
+              className="px-4 py-2 bg-[#2C1B3D] rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Próximo
+            </button>
           </div>
         </div>
-      )}
 
-      {/* CREATE GROUP MODAL */}
-      {isCreatingGroup && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#1C102B] border border-[#2C1B3D] rounded-3xl p-6 max-w-lg w-full space-y-4 text-white">
-            <div className="flex items-center justify-between border-b border-[#2C1B3D] pb-3">
-              <h3 className="font-extrabold text-base flex items-center gap-2">
-                <Plus className="w-4 h-4 text-[#D4145A]" />
-                <span>Créer un Nouveau Club Officiel</span>
-              </h3>
-              <button
-                onClick={() => setIsCreatingGroup(false)}
-                className="p-1 rounded-lg text-zinc-400 hover:text-white"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateGroupSubmit} className="space-y-4 text-xs">
-              <div>
-                <label className="block text-zinc-400 mb-1 font-semibold">Nom du Club / Groupe</label>
-                <input
-                  type="text"
-                  placeholder="Ex: Soirées Privées Paris"
-                  value={newGroupData.name}
-                  onChange={(e) => setNewGroupData({ ...newGroupData, name: e.target.value })}
-                  className="w-full bg-[#12091A] border border-[#2C1B3D] text-white p-2.5 rounded-xl outline-none focus:border-[#D4145A]"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-zinc-400 mb-1 font-semibold">Catégorie</label>
-                <select
-                  value={newGroupData.category}
-                  onChange={(e) => setNewGroupData({ ...newGroupData, category: e.target.value })}
-                  className="w-full bg-[#12091A] border border-[#2C1B3D] text-white p-2.5 rounded-xl outline-none focus:border-[#D4145A]"
-                >
-                  <option value="clubs">Clubs & Établissements</option>
-                  <option value="soirees">Soirées & Événements</option>
-                  <option value="discression">Discrétion & Voyages</option>
-                  <option value="rencontres">Rencontres Thématiques</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-zinc-400 mb-1 font-semibold">Description</label>
-                <textarea
-                  placeholder="Présentez l'objectif du club..."
-                  value={newGroupData.description}
-                  onChange={(e) => setNewGroupData({ ...newGroupData, description: e.target.value })}
-                  rows={3}
-                  className="w-full bg-[#12091A] border border-[#2C1B3D] text-white p-2.5 rounded-xl outline-none focus:border-[#D4145A]"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-zinc-400 mb-1 font-semibold">URL de l&apos;Image de Couverture</label>
-                <input
-                  type="url"
-                  value={newGroupData.coverUrl}
-                  onChange={(e) => setNewGroupData({ ...newGroupData, coverUrl: e.target.value })}
-                  className="w-full bg-[#12091A] border border-[#2C1B3D] text-white p-2.5 rounded-xl outline-none focus:border-[#D4145A]"
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-zinc-400 mb-1 font-semibold">Nombre Max de Membres</label>
-                  <input
-                    type="number"
-                    value={newGroupData.maxMembers}
-                    onChange={(e) => setNewGroupData({ ...newGroupData, maxMembers: Number(e.target.value) })}
-                    className="w-full bg-[#12091A] border border-[#2C1B3D] text-white p-2.5 rounded-xl outline-none focus:border-[#D4145A]"
-                  />
-                </div>
-
-                <div className="flex items-end mb-2">
-                  <label className="flex items-center gap-2 text-xs font-bold text-zinc-300">
-                    <input
-                      type="checkbox"
-                      checked={newGroupData.isPrivate}
-                      onChange={(e) => setNewGroupData({ ...newGroupData, isPrivate: e.target.checked })}
-                      className="accent-[#D4145A] w-4 h-4 rounded"
-                    />
-                    <span>Groupe Privé</span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="pt-4 flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsCreatingGroup(false)}
-                  className="flex-1 py-2.5 rounded-xl bg-[#2C1B3D] hover:bg-zinc-800 text-zinc-300 font-bold"
-                >
-                  Annuler
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-[#D4145A] hover:bg-[#b00f48] text-white font-bold shadow-lg"
-                >
-                  Créer le Club
-                </button>
-              </div>
-            </form>
-          </div>
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <Link
+            href="/admin/groups"
+            className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6 hover:border-[#D4145A] transition text-white"
+          >
+            <h3 className="text-lg font-bold mb-2">Gestão de Grupos</h3>
+            <p className="text-zinc-400 text-sm">Ver e gerir todos os grupos</p>
+          </Link>
+          <Link
+            href="/admin/logs"
+            className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6 hover:border-[#D4145A] transition text-white"
+          >
+            <h3 className="text-lg font-bold mb-2">Logs de Atividade</h3>
+            <p className="text-zinc-400 text-sm">Ver histórico de ações</p>
+          </Link>
+          <Link
+            href="/admin/reports"
+            className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6 hover:border-[#D4145A] transition text-white"
+          >
+            <h3 className="text-lg font-bold mb-2">Relatórios</h3>
+            <p className="text-zinc-400 text-sm">Gerar relatórios detalhados</p>
+          </Link>
         </div>
-      )}
-
-      {/* EDIT GROUP MODAL */}
-      {editingGroup && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#1C102B] border border-[#2C1B3D] rounded-3xl p-6 max-w-lg w-full space-y-4 text-white">
-            <div className="flex items-center justify-between border-b border-[#2C1B3D] pb-3">
-              <h3 className="font-extrabold text-base flex items-center gap-2">
-                <Edit3 className="w-4 h-4 text-[#D4145A]" />
-                <span>Éditer le Club : {editingGroup.name}</span>
-              </h3>
-              <button
-                onClick={() => setEditingGroup(null)}
-                className="p-1 rounded-lg text-zinc-400 hover:text-white"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveGroupEdit} className="space-y-4 text-xs">
-              <div>
-                <label className="block text-zinc-400 mb-1 font-semibold">Nom du Club</label>
-                <input
-                  type="text"
-                  value={editingGroup.name}
-                  onChange={(e) => setEditingGroup({ ...editingGroup, name: e.target.value })}
-                  className="w-full bg-[#12091A] border border-[#2C1B3D] text-white p-2.5 rounded-xl outline-none focus:border-[#D4145A]"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-zinc-400 mb-1 font-semibold">Description</label>
-                <textarea
-                  value={editingGroup.description || ''}
-                  onChange={(e) => setEditingGroup({ ...editingGroup, description: e.target.value })}
-                  rows={3}
-                  className="w-full bg-[#12091A] border border-[#2C1B3D] text-white p-2.5 rounded-xl outline-none focus:border-[#D4145A]"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-zinc-400 mb-1 font-semibold">URL Couverture</label>
-                <input
-                  type="url"
-                  value={editingGroup.coverUrl || ''}
-                  onChange={(e) => setEditingGroup({ ...editingGroup, coverUrl: e.target.value })}
-                  className="w-full bg-[#12091A] border border-[#2C1B3D] text-white p-2.5 rounded-xl outline-none focus:border-[#D4145A]"
-                />
-              </div>
-
-              <div className="pt-4 flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setEditingGroup(null)}
-                  className="flex-1 py-2.5 rounded-xl bg-[#2C1B3D] hover:bg-zinc-800 text-zinc-300 font-bold"
-                >
-                  Annuler
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-[#D4145A] hover:bg-[#b00f48] text-white font-bold shadow-lg"
-                >
-                  Enregistrer les modifications
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      <Footer />
+      </div>
     </div>
   );
 }
