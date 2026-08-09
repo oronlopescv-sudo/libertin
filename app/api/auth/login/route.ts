@@ -1,0 +1,51 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { supabase } from '@/lib/supabase';
+import bcrypt from 'bcryptjs';
+
+export async function POST(req: NextRequest) {
+  try {
+    const { email, password } = await req.json();
+
+    if (!email || !password) {
+      return NextResponse.json({ error: 'Email e senha obrigatórios' }, { status: 400 });
+    }
+
+    // Busca user
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, email, username, hashedPassword')
+      .eq('email', email)
+      .single();
+
+    if (error || !data) {
+      return NextResponse.json({ error: 'Credenciais inválidas' }, { status: 401 });
+    }
+
+    // Valida password
+    const isValid = await bcrypt.compare(password, data.hashedPassword);
+    if (!isValid) {
+      return NextResponse.json({ error: 'Credenciais inválidas' }, { status: 401 });
+    }
+
+    // Cria JWT
+    const token = Buffer.from(JSON.stringify({ id: data.id, email: data.email })).toString('base64');
+
+    // Response com cookie
+    const response = NextResponse.json(
+      { success: true, user: { id: data.id, email: data.email, username: data.username }, token },
+      { status: 200 }
+    );
+
+    response.cookies.set('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 dias
+    });
+
+    return response;
+  } catch (error) {
+    console.error('Login error:', error);
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+  }
+}
