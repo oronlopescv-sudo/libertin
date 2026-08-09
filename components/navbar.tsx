@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@/context/auth-context';
 import {
   Flame,
   Users,
@@ -17,12 +18,7 @@ import {
 
 export function Navbar() {
   const pathname = usePathname();
-  // const { ... } = useAuth();
-  const user = null;
-  const isPremium = false;
-  const logout = () => {};
-  const upgradeSubscription = () => {};
-  const refreshUser = () => {};
+  const { user, isPremium, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [

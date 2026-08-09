@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
+import { useAuth } from '@/context/auth-context';
 import {
   User,
   Group,
@@ -40,10 +41,7 @@ import {
 import Image from 'next/image';
 
 export default function AdminPage() {
-  // const { ... } = useAuth();
-  const user = null;
-  const usersList = [];
-  const isPremium = false;
+  const { user, refreshUser } = useAuth();
   const [activeTab, setActiveTab] = useState<'users' | 'groups' | 'verification' | 'stats'>('users');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);

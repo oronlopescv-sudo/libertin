@@ -6,7 +6,7 @@ import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { ProfileCard } from '@/components/profile-card';
 import { SubscriptionPlans } from '@/components/subscription-plans';
-import { User } from '@/lib/types';
+import { useAuth } from '@/context/auth-context';
 import {
   Flame,
   ShieldCheck,
@@ -22,10 +22,7 @@ import {
 } from 'lucide-react';
 
 export default function HomePage() {
-  // const { user, usersList, isPremium } = useAuth();
-  const user: User | null = null;
-  const usersList: User[] = [];
-  const isPremium = false;
+  const { user, usersList, isPremium } = useAuth();
 
   const features = [
     {

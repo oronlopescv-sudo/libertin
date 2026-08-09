@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { PhotoVerificationModal } from '@/components/photo-verification-modal';
+import { useAuth } from '@/context/auth-context';
 import { updateSupabaseProfile, addSupabasePhoto, deleteSupabasePhoto, setSupabaseCoverPhoto } from '@/lib/supabase';
 import { getPlanDetails } from '@/lib/stripe';
 import { CITIES, COUNTRIES } from '@/lib/geo';
@@ -25,10 +26,7 @@ import {
 import Link from 'next/link';
 
 export default function ProfilPage() {
-  // const { ... } = useAuth();
-  const user = null;
-  const usersList = [];
-  const isPremium = false;
+  const { user, refreshUser, isPremium } = useAuth();
   const [verifModalOpen, setVerifModalOpen] = useState(false);
 
   // Edit fields

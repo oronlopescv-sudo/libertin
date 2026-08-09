@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { GroupCard } from '@/components/group-card';
+import { useAuth } from '@/context/auth-context';
 import { Group } from '@/lib/types';
 import { getSupabaseGroups, createSupabaseGroup } from '@/lib/supabase';
 import {
@@ -14,10 +15,7 @@ import {
 } from 'lucide-react';
 
 export default function GroupesPage() {
-  // const { ... } = useAuth();
-  const user = null;
-  const usersList = [];
-  const isPremium = false;
+  const { user } = useAuth();
   const [groups, setGroups] = useState<Group[]>([]);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');

@@ -10,10 +10,19 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-export const supabase = createClient(
-  supabaseUrl || 'https://example.supabase.co',
-  supabaseAnonKey || 'dummy-key'
-);
+function makeClient() {
+  try {
+    return createClient(
+      supabaseUrl || 'https://example.supabase.co',
+      supabaseAnonKey || 'dummy-key'
+    );
+  } catch (e) {
+    console.warn('[Supabase] createClient failed', e);
+    return null as any;
+  }
+}
+
+export const supabase = makeClient();
 
 /**
  * Register a user in Supabase Auth & insert record into public.profiles

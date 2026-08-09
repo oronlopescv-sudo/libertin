@@ -56,21 +56,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [loadFromSupabase]);
 
   useEffect(() => {
-    refreshUser();
-
-    // Listen for Supabase auth changes
-    const { data: listener } = supabase.auth.onAuthStateChange(() => {
-      refreshUser();
-    });
-
+    let listener: any = null;
     const handleStorage = () => {
       refreshUser();
     };
-    window.addEventListener('rp_storage_update', handleStorage);
+
+    try {
+      refreshUser();
+
+      // Listen for Supabase auth changes
+      const sub = supabase?.auth?.onAuthStateChange?.(() => {
+        refreshUser();
+      });
+      listener = sub?.data ?? null;
+
+      window.addEventListener('rp_storage_update', handleStorage);
+    } catch (e) {
+      console.warn('[AuthProvider] init failed', e);
+      setIsLoading(false);
+    }
 
     return () => {
-      listener?.subscription?.unsubscribe?.();
-      window.removeEventListener('rp_storage_update', handleStorage);
+      try {
+        listener?.subscription?.unsubscribe?.();
+        window.removeEventListener('rp_storage_update', handleStorage);
+      } catch {
+        /* noop */
+      }
     };
   }, [refreshUser]);
 
@@ -184,10 +196,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+const FALLBACK_AUTH: AuthContextType = {
+  user: null,
+  usersList: [],
+  isLoading: false,
+  isPremium: false,
+  login: async () => false,
+  logout: () => {},
+  register: async () => {
+    throw new Error('Auth indisponible.');
+  },
+  upgradeSubscription: () => {},
+  refreshUser: () => {},
+  canSeeProfile: () => false,
+  canAccessChat: () => false,
+};
+
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    if (typeof window !== 'undefined') {
+      console.warn('[useAuth] used outside AuthProvider — using fallback.');
+    }
+    return FALLBACK_AUTH;
   }
   return context;
 }
