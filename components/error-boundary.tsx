@@ -1,6 +1,6 @@
 'use client';
 
-import React, { ReactNode, ReactError } from 'react';
+import React, { ReactNode } from 'react';
 import { AlertTriangle, ArrowRight, Home } from 'lucide-react';
 import Link from 'next/link';
 

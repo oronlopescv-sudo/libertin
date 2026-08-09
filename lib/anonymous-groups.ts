@@ -38,13 +38,18 @@ export async function joinGroupAnonymous(
     }
 
     // Check if already member
-    const { data: existing } = await supabase
-      .from('group_memberships')
-      .select('id')
-      .eq('group_id', groupId)
-      .eq('user_id', userId)
-      .single()
-      .catch(() => ({ data: null }));
+    let existing: { id: string } | null = null;
+    try {
+      const result = await supabase
+        .from('group_memberships')
+        .select('id')
+        .eq('group_id', groupId)
+        .eq('user_id', userId)
+        .single();
+      existing = result.data;
+    } catch {
+      existing = null;
+    }
 
     if (existing) {
       return { success: false, error: 'Você já é membro deste grupo' };
@@ -334,7 +339,8 @@ export async function deactivateExpiredGroups(): Promise<number> {
       .from('groups')
       .update({ is_active: false })
       .eq('is_active', true)
-      .lt('expires_at', new Date().toISOString());
+      .lt('expires_at', new Date().toISOString())
+      .select('id');
 
     if (error) throw error;
 

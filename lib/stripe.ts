@@ -6,7 +6,7 @@ import { SubscriptionPlan, SubscriptionTier } from './types';
  * STRIPE_SECRET_KEY must be set in environment
  */
 export const stripe = process.env.STRIPE_SECRET_KEY
-  ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2024-04-10' })
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' })
   : null;
 
 /**
@@ -18,6 +18,9 @@ export const STRIPE_PRODUCT_IDS: Record<SubscriptionTier, string | null> = {
   PREMIUM_3M: process.env.STRIPE_PRODUCT_PREMIUM_3M || 'prod_3m_placeholder',
   PREMIUM_12M: process.env.STRIPE_PRODUCT_PREMIUM_12M || 'prod_12m_placeholder',
   PREMIUM_24M: process.env.STRIPE_PRODUCT_PREMIUM_24M || 'prod_24m_placeholder',
+  CREATOR_3M: process.env.STRIPE_PRODUCT_CREATOR_3M || 'prod_creator_3m_placeholder',
+  CREATOR_12M: process.env.STRIPE_PRODUCT_CREATOR_12M || 'prod_creator_12m_placeholder',
+  VIP_24M: process.env.STRIPE_PRODUCT_VIP_24M || 'prod_vip_24m_placeholder',
 };
 
 export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [

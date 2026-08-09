@@ -188,13 +188,18 @@ export async function joinEvent(
 ): Promise<boolean> {
   try {
     // Check if already joined
-    const { data: existing } = await supabase
-      .from('event_participants')
-      .select('id')
-      .eq('event_id', eventId)
-      .eq('user_id', userId)
-      .single()
-      .catch(() => ({ data: null }));
+    let existing: { id: string } | null = null;
+    try {
+      const result = await supabase
+        .from('event_participants')
+        .select('id')
+        .eq('event_id', eventId)
+        .eq('user_id', userId)
+        .single();
+      existing = result.data;
+    } catch {
+      existing = null;
+    }
 
     if (existing) {
       // Already joined
@@ -212,11 +217,13 @@ export async function joinEvent(
 
     // Update confirmed count if confirmed
     if (status === 'confirmed') {
-      await supabase.rpc('increment_event_participants', {
-        event_id: eventId,
-      }).catch(() => {
+      try {
+        await supabase.rpc('increment_event_participants', {
+          event_id: eventId,
+        });
+      } catch {
         /* Ignore if function doesn't exist */
-      });
+      }
     }
 
     return true;

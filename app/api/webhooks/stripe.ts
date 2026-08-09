@@ -144,7 +144,7 @@ async function handleChargeSucceeded(charge: any) {
   console.log(`💰 Charge succeeded: ${charge.id} for customer ${customerId}`);
 
   // Optional: Update analytics/logging table
-  if (supabase.from('payment_logs')) {
+  try {
     await supabase.from('payment_logs').insert({
       stripe_charge_id: charge.id,
       stripe_customer_id: customerId,
@@ -152,7 +152,9 @@ async function handleChargeSucceeded(charge: any) {
       currency: charge.currency,
       status: 'succeeded',
       created_at: new Date().toISOString(),
-    }).catch((err) => console.error('Failed to log payment:', err));
+    });
+  } catch (err) {
+    console.error('Failed to log payment:', err);
   }
 }
 
@@ -167,12 +169,17 @@ async function handleChargeFailed(charge: any) {
 
   // Optional: Notify user of failed payment
   if (customerId) {
-    const { data: users } = await supabase
-      .from('users')
-      .select('email')
-      .eq('stripe_customer_id', customerId)
-      .single()
-      .catch(() => ({ data: null }));
+    let users: { email: string } | null = null;
+    try {
+      const result = await supabase
+        .from('users')
+        .select('email')
+        .eq('stripe_customer_id', customerId)
+        .single();
+      users = result.data;
+    } catch {
+      users = null;
+    }
 
     if (users?.email) {
       try {
@@ -194,12 +201,17 @@ async function handleSubscriptionDeleted(subscription: any) {
   const customerId = subscription.customer;
 
   // Find user and reset to FREE tier
-  const { data: users, error: findError } = await supabase
-    .from('users')
-    .select('id, email')
-    .eq('stripe_customer_id', customerId)
-    .single()
-    .catch(() => ({ data: null }));
+  let users: { id: string; email: string } | null = null;
+  try {
+    const result = await supabase
+      .from('users')
+      .select('id, email')
+      .eq('stripe_customer_id', customerId)
+      .single();
+    users = result.data;
+  } catch {
+    users = null;
+  }
 
   if (!users) {
     console.error('User not found for customer:', customerId);

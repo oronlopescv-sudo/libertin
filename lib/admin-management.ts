@@ -3,7 +3,6 @@
  * User banning, group moderation, analytics
  */
 
-import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -103,25 +102,30 @@ export async function banUser(
     if (error) throw error;
 
     // Log the action
-    await supabase
-      .from('admin_logs')
-      .insert({
+    try {
+      await supabase.from('admin_logs').insert({
         admin_id: adminId,
         action: 'ban_user',
         target_id: userId,
         reason,
         created_at: new Date().toISOString(),
-      })
-      .catch(() => {
-        /* Log insert failure but continue */
       });
+    } catch {
+      /* Log insert failure but continue */
+    }
 
     // Send notification email
-    const { data: userData } = await supabase
-      .from('users')
-      .select('email')
-      .eq('id', userId)
-      .single();
+    let userData: { email: string } | null = null;
+    try {
+      const result = await supabase
+        .from('users')
+        .select('email')
+        .eq('id', userId)
+        .single();
+      userData = result.data;
+    } catch {
+      userData = null;
+    }
 
     if (userData?.email) {
       try {
@@ -178,17 +182,16 @@ export async function unbanUser(
     if (error) throw error;
 
     // Log the action
-    await supabase
-      .from('admin_logs')
-      .insert({
+    try {
+      await supabase.from('admin_logs').insert({
         admin_id: adminId,
         action: 'unban_user',
         target_id: userId,
         created_at: new Date().toISOString(),
-      })
-      .catch(() => {
-        /* Log insert failure but continue */
       });
+    } catch {
+      /* Log insert failure but continue */
+    }
 
     return { success: true };
   } catch (error) {
@@ -211,15 +214,13 @@ export async function flagGroup(
 
   try {
     // Log the flag
-    await supabase
-      .from('admin_logs')
-      .insert({
-        admin_id: adminId,
-        action: 'flag_group',
-        target_id: groupId,
-        reason,
-        created_at: new Date().toISOString(),
-      });
+    await supabase.from('admin_logs').insert({
+      admin_id: adminId,
+      action: 'flag_group',
+      target_id: groupId,
+      reason,
+      created_at: new Date().toISOString(),
+    });
 
     return { success: true };
   } catch (error) {
@@ -253,18 +254,17 @@ export async function deleteGroup(
     if (error) throw error;
 
     // Log the action
-    await supabase
-      .from('admin_logs')
-      .insert({
+    try {
+      await supabase.from('admin_logs').insert({
         admin_id: adminId,
         action: 'delete_group',
         target_id: groupId,
         reason,
         created_at: new Date().toISOString(),
-      })
-      .catch(() => {
-        /* Log insert failure but continue */
       });
+    } catch {
+      /* Log insert failure but continue */
+    }
 
     return { success: true };
   } catch (error) {
