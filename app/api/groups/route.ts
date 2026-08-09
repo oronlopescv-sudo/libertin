@@ -114,3 +114,78 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
   }
 }
+
+// POST /api/groups/join - Juntar-se a grupo (apenas PREMIUM)
+export async function PATCH(req: NextRequest) {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('auth_token')?.value;
+
+    if (!token) {
+      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
+    }
+
+    // Busca user do token
+    let userId: string;
+    try {
+      const tokenData = JSON.parse(Buffer.from(token, 'base64').toString());
+      userId = tokenData.id;
+    } catch {
+      return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
+    }
+
+    // Busca user para verificar subscrição
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id, subscriptionTier, subscriptionEnd')
+      .eq('id', userId)
+      .single();
+
+    if (userError || !user) {
+      return NextResponse.json({ error: 'Utilizador não encontrado' }, { status: 404 });
+    }
+
+    // ✅ VALIDAÇÃO: Apenas PREMIUM pode juntar-se a grupos
+    const premiumTiers = ['PREMIUM_3M', 'PREMIUM_12M', 'VIP_24M'];
+    const isPremium = premiumTiers.includes(user.subscriptionTier) &&
+      user.subscriptionEnd &&
+      new Date(user.subscriptionEnd) > new Date();
+
+    if (!isPremium) {
+      return NextResponse.json(
+        { error: 'Apenas utilizadores Premium podem participar em grupos. Faça upgrade!' },
+        { status: 403 }
+      );
+    }
+
+    const { groupId } = await req.json();
+
+    if (!groupId) {
+      return NextResponse.json({ error: 'ID do grupo obrigatório' }, { status: 400 });
+    }
+
+    // Adiciona user ao grupo
+    const { error: joinError } = await supabase
+      .from('group_memberships')
+      .insert([
+        {
+          groupId,
+          userId,
+          role: 'member',
+        }
+      ]);
+
+    if (joinError) {
+      console.error('Join group error:', joinError);
+      return NextResponse.json({ error: 'Erro ao juntar-se ao grupo' }, { status: 500 });
+    }
+
+    return NextResponse.json(
+      { success: true, message: 'Juntou-se ao grupo com sucesso' },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error('Join group error:', error);
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+  }
+}

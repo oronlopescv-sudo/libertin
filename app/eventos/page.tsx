@@ -12,7 +12,7 @@ interface UserData {
   subscriptionEnd: string | null;
 }
 
-export default function Decouvrir() {
+export default function EventosPage() {
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -53,9 +53,9 @@ export default function Decouvrir() {
               <Lock className="w-10 h-10 text-[#D4145A]" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white mb-2">Descobrir Perfis</h1>
+              <h1 className="text-3xl font-bold text-white mb-2">Eventos</h1>
               <p className="text-zinc-400 mb-6">
-                Apenas utilizadores Premium podem ver e explorar perfis.
+                Apenas utilizadores Premium podem criar e participar em eventos.
               </p>
             </div>
             <div className="space-y-3">
@@ -81,14 +81,14 @@ export default function Decouvrir() {
     );
   }
 
-  // Premium - Mostrar perfis (implementar depois)
+  // Premium - Mostrar eventos
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#12091A] to-[#1C102B]">
       <Navbar />
       <div className="max-w-6xl mx-auto px-4 py-12">
-        <h1 className="text-4xl font-bold text-white mb-8">Descobrir Perfis</h1>
+        <h1 className="text-4xl font-bold text-white mb-8">Eventos</h1>
         <div className="text-center py-12 text-zinc-400">
-          Carregando perfis...
+          Eventos carregando...
         </div>
       </div>
     </div>

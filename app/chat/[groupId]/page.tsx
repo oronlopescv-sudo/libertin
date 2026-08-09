@@ -1,63 +1,99 @@
 'use client';
 
-import React, { use, useState, useEffect } from 'react';
-import Link from 'next/link';
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
-import { Footer } from '@/components/footer';
-import { ChatBox } from '@/components/chat-box';
-import { getSupabaseGroups } from '@/lib/supabase';
-import { Group } from '@/lib/types';
-import { ArrowLeft, Users } from 'lucide-react';
+import Link from 'next/link';
+import { Lock } from 'lucide-react';
 
-export default function GroupChatPage({ params }: { params: Promise<{ groupId: string }> }) {
-  const { groupId } = use(params);
-  const [group, setGroup] = useState<Group | null>(null);
+interface UserData {
+  id: string;
+  username: string;
+  subscriptionTier: string;
+  subscriptionEnd: string | null;
+}
+
+export default function ChatPage() {
+  const params = useParams();
+  const groupId = params.groupId as string;
+  const [user, setUser] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getSupabaseGroups().then((groups) => {
-      const found = groups.find((g) => g.id === groupId) || null;
-      setGroup(found);
-    });
-  }, [groupId]);
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      try {
+        const userData = JSON.parse(Buffer.from(token, 'base64').toString());
+        setUser(userData);
+      } catch {
+        setUser(null);
+      }
+    }
+    setLoading(false);
+  }, []);
 
-  if (!group) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex flex-col bg-[#12091A] text-white">
+      <div className="min-h-screen bg-gradient-to-br from-[#12091A] to-[#1C102B]">
         <Navbar />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-xs text-zinc-400">Chargement du groupe...</div>
-        </main>
-        <Footer />
+        <div className="flex items-center justify-center min-h-[80vh] text-white">
+          Carregando...
+        </div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen flex flex-col bg-[#12091A] text-[#F5F0F8]">
-      <Navbar />
+  // Verificar se é premium
+  const isPremium = user && ['PREMIUM_3M', 'PREMIUM_12M', 'VIP_24M'].includes(user.subscriptionTier);
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4">
-        {/* Navigation Breadcrumb */}
-        <div className="flex items-center justify-between">
-          <Link
-            href="/groupes"
-            className="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Retour à la liste des groupes</span>
-          </Link>
-
-          <div className="flex items-center gap-2 text-xs text-zinc-400">
-            <Users className="w-4 h-4 text-[#E86B7A]" />
-            <span>Organisé par {group.creatorName}</span>
+  if (!user || !isPremium) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#12091A] to-[#1C102B]">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[80vh] px-4">
+          <div className="max-w-md text-center space-y-6">
+            <div className="w-20 h-20 bg-[#D4145A]/20 rounded-full flex items-center justify-center mx-auto">
+              <Lock className="w-10 h-10 text-[#D4145A]" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">Mensagens em Grupos</h1>
+              <p className="text-zinc-400 mb-6">
+                Apenas utilizadores Premium podem enviar mensagens e participar em grupos.
+              </p>
+            </div>
+            <div className="space-y-3">
+              <Link
+                href="/abonnements"
+                className="block py-3 px-6 bg-gradient-to-r from-[#D4145A] to-[#E86B7A] rounded-lg font-semibold text-white hover:opacity-90 transition"
+              >
+                Fazer Upgrade para Premium
+              </Link>
+              <Link
+                href="/groupes"
+                className="block py-3 px-6 bg-[#2C1B3D] rounded-lg font-semibold text-white hover:bg-[#3C2B4D] transition"
+              >
+                Ver Grupos
+              </Link>
+            </div>
+            <p className="text-sm text-zinc-500">
+              Planos a partir de €2.08/mês
+            </p>
           </div>
         </div>
+      </div>
+    );
+  }
 
-        {/* Real-time Interactive Chat */}
-        <ChatBox groupId={group.id} groupName={group.name} memberCount={group.memberCount} />
-      </main>
-
-      <Footer />
+  // Premium - Mostrar chat
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#12091A] to-[#1C102B]">
+      <Navbar />
+      <div className="max-w-4xl mx-auto px-4 py-12">
+        <h1 className="text-2xl font-bold text-white mb-4">Grupo: {groupId}</h1>
+        <div className="bg-[#1C102B] rounded-lg p-6 border border-[#2C1B3D] text-center text-zinc-400">
+          Chat carregando...
+        </div>
+      </div>
     </div>
   );
 }
