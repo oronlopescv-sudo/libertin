@@ -93,7 +93,7 @@ export function PhotoVerificationModal({ isOpen, onClose }: PhotoVerificationMod
               </div>
               <ul className="list-disc list-inside space-y-1 text-zinc-400">
                 <li>Selfie montrant distinctement votre visage ou votre duo</li>
-                <li>Tenez un mot manuscrit indiquant &quot;LibertineLovers&quot; + date</li>
+                <li>Tenez un mot manuscrit indiquant &quot;xlibertine&quot; + date</li>
                 <li>Photo strictement confidentielle (non affichée publiquement)</li>
               </ul>
             </div>

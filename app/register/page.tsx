@@ -134,7 +134,7 @@ export default function RegisterPage() {
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#D4145A] to-[#E86B7A] flex items-center justify-center mx-auto shadow-lg shadow-[#D4145A]/25">
               <Flame className="w-7 h-7 text-white fill-white" />
             </div>
-            <h1 className="text-2xl font-extrabold text-white">Rejoindre LibertineLovers</h1>
+            <h1 className="text-2xl font-extrabold text-white">Rejoindre xlibertine</h1>
             <p className="text-xs text-zinc-400">
               Inscription en 2 étapes — 100% Confidentielle et Sécurisée
             </p>
@@ -367,7 +367,7 @@ export default function RegisterPage() {
                   className="mt-0.5 rounded border-[#3D2654] bg-[#12091A] text-[#D4145A] focus:ring-0"
                 />
                 <label htmlFor="terms" className="text-[11px] text-zinc-400 leading-snug">
-                  Je certifie avoir plus de 18 ans, j&apos;accepte la charte de respect & discrétion et les Conditions Générales d&apos;Utilisation de LibertineLovers.
+                  Je certifie avoir plus de 18 ans, j&apos;accepte la charte de respect & discrétion et les Conditions Générales d&apos;Utilisation de xlibertine.
                 </label>
               </div>
 

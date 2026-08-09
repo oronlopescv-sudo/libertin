@@ -3,10 +3,10 @@ import './globals.css';
 import { AuthProvider } from '@/context/auth-context';
 
 export const metadata: Metadata = {
-  title: 'LibertineLovers - Rencontres Libertines, Casais & Solteiros',
+  title: 'xlibertine - Rencontres Libertines, Casais & Solteiros',
   description: 'Le site de rencontres libertines n°1 pour couples et célibataires exigeants en France. Discrétion absolue, profils vérifiés et clubs privés.',
   openGraph: {
-    title: 'LibertineLovers - Site Libertin Premium',
+    title: 'xlibertine - Site Libertin Premium',
     description: 'Rencontres libertines vérifiées, soirées privées, tchat en temps réel et communauté bienveillante.',
     locale: 'fr_FR',
     type: 'website',

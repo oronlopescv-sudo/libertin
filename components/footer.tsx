@@ -101,7 +101,7 @@ export function Footer() {
 
         <div className="pt-8 border-t border-[#1C102B] flex flex-col md:flex-row items-center justify-between text-xs text-zinc-500 gap-4">
           <div>
-            &copy; {new Date().getFullYear()} LibertineLovers — Tous droits réservés.
+            &copy; {new Date().getFullYear()} xlibertine — Tous droits réservés.
           </div>
           <div className="flex items-center gap-4 text-[11px]">
             <span>Réservé aux personnes majeures (+18 ans)</span>

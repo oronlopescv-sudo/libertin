@@ -1,5 +1,5 @@
 {
-  "name": "LibertineLovers",
+  "name": "xlibertine",
   "description": "Plateforme de rencontres libertines premium pour couples et célibataires en France. Discrétion, profils vérifiés, groupes et messagerie en temps réel.",
   "requestFramePermissions": ["camera", "geolocation"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

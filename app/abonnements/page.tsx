@@ -19,7 +19,7 @@ export default function AbonnementsPage() {
             <span>Formules Membres Privilégiés</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            Offres d&apos;Abonnement LibertineLovers
+            Offres d&apos;Abonnement xlibertine
           </h1>
           <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
             Débloquez toutes les fonctionnalités libertines : défloutage des photos, tchats illimités, albums privés et invitations VIP.
