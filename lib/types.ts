@@ -1,6 +1,8 @@
 export type GenderType = 'couple' | 'homme' | 'femme';
 export type SexualOrientationType = 'hetero' | 'homo' | 'bi' | 'libertin';
-export type SubscriptionTier = 'FREE' | 'PREMIUM_3M' | 'PREMIUM_12M' | 'PREMIUM_24M';
+export type SubscriptionTier = 'FREE' | 'PREMIUM_3M' | 'PREMIUM_12M' | 'PREMIUM_24M' | 'CREATOR_3M' | 'CREATOR_12M' | 'VIP_24M';
+export type EventType = 'festa' | 'gang_bang' | 'troca' | 'other';
+export type EventPlanType = 'basic' | 'featured' | 'vip_gold';
 
 export interface Photo {
   id: string;
@@ -93,4 +95,45 @@ export interface SubscriptionPlan {
   popular?: boolean;
   savings?: string;
   features: string[];
+}
+
+export interface Event {
+  id: string;
+  creator_id: string;
+  type: EventType;
+  title: string;
+  description: string;
+  location?: string;
+  city?: string;
+  date_time?: string;
+  is_date_flexible: boolean;
+  looking_for?: string;
+  min_participants?: number;
+  max_participants?: number;
+  confirmed_count: number;
+  is_public: boolean;
+  requires_verification: boolean;
+  is_nsfw: boolean;
+  plan_type: EventPlanType;
+  amount_paid: number;
+  payment_status: string;
+  is_active: boolean;
+  created_at: string;
+  expires_at?: string;
+}
+
+export interface EventParticipant {
+  id: string;
+  event_id: string;
+  user_id: string;
+  status: 'interested' | 'confirmed' | 'cancelled';
+  joined_at: string;
+}
+
+export interface EventPhoto {
+  id: string;
+  event_id: string;
+  url: string;
+  status: 'pending' | 'approved' | 'rejected';
+  uploaded_at: string;
 }
