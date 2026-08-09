@@ -74,9 +74,14 @@ export default function RegisterPage() {
     }
 
     // Age check: must be 18+
-    const birthYear = new Date(dateOfBirth).getFullYear();
-    const currentYear = new Date().getFullYear();
-    if (currentYear - birthYear < 18) {
+    const birth = new Date(dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age -= 1;
+    }
+    if (age < 18 || isNaN(age)) {
       setErrorMsg('Accès strictement interdit aux personnes de moins de 18 ans.');
       return;
     }
@@ -129,7 +134,7 @@ export default function RegisterPage() {
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#D4145A] to-[#E86B7A] flex items-center justify-center mx-auto shadow-lg shadow-[#D4145A]/25">
               <Flame className="w-7 h-7 text-white fill-white" />
             </div>
-            <h1 className="text-2xl font-extrabold text-white">Rejoindre RencontresPremium</h1>
+            <h1 className="text-2xl font-extrabold text-white">Rejoindre LibertineLovers</h1>
             <p className="text-xs text-zinc-400">
               Inscription en 2 étapes — 100% Confidentielle et Sécurisée
             </p>

@@ -55,10 +55,20 @@ export async function signUpWithSupabase(userData: {
     });
 
     if (authError) {
-      console.warn('Supabase Auth signUp warning/error:', authError.message);
+      return {
+        success: false,
+        error: authError.message,
+      };
     }
 
-    const userId = authData.user?.id || `user-${Date.now()}`;
+    if (!authData.user?.id) {
+      return {
+        success: false,
+        error: "Échec de la création du compte utilisateur.",
+      };
+    }
+
+    const userId = authData.user.id;
 
     // 2. Insert into public.profiles table in Supabase
     const profilePayload = {

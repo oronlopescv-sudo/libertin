@@ -44,24 +44,24 @@ export default function HomePage() {
 
   const testimonials = [
     {
-      author: 'Marc & Elena (36 & 34 ans)',
+      author: 'Couple parisien',
       city: 'Paris (75)',
-      role: 'Couple Membre Privilège 12M',
-      text: 'Enfin un site libertin élégant, débarrassé des faux profils ! Nous avons organisé deux dîners-rencontres inoubliables en moins d\'un mois.',
+      role: 'Couple Membre',
+      text: 'Interface élégante et communauté respectueuse. Nous avons pu organiser des rencontres en toute sérénité.',
       stars: 5,
     },
     {
       author: 'Sophie',
       city: 'Bordeaux (33)',
       role: 'Femme Solo',
-      text: 'En tant que femme solo, le respect et la modération sont primordiaux. Les hommes et couples présents sont galants et courtois.',
+      text: 'Le respect et la modération sont primordiaux pour une femme solo. Les profils vérifiés rassurent dès les premiers échanges.',
       stars: 5,
     },
     {
-      author: 'Julien & Chloé',
+      author: 'Membre Côte d\'Azur',
       city: 'Cannes (06)',
-      role: 'Organisateurs de Soirées Villa',
-      text: 'Le système de groupes nous permet de filtrer précisément les invités pour nos pool-parties en villa privée.',
+      role: 'Organisateur de soirées',
+      text: 'Le système de groupes permet de rassembler les bonnes personnes pour des soirées privées en toute discrétion.',
       stars: 5,
     },
   ];
@@ -126,7 +126,7 @@ export default function HomePage() {
                 </div>
                 <div className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  <span>Facturation Discrète (RP-SERVICES)</span>
+                  <span>Paiements sécurisés via Stripe</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" />
