@@ -38,12 +38,11 @@ export function Navbar() {
               <Flame className="w-6 h-6 text-white fill-white" />
             </div>
             <div>
-              <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-white via-[#F5F0F8] to-[#E86B7A] bg-clip-text text-transparent hidden sm:block">
+              {/* Uma so versao do nome, com tamanho responsivo em vez de dois
+                  spans que ambos aparecem quando o CSS nao carrega. */}
+              <div className="text-sm sm:text-xl font-bold tracking-tight text-white">
                 x<span className="text-[#D4145A]">libertine</span>
-              </span>
-              <span className="text-sm font-bold text-white sm:hidden">
-                x<span className="text-[#D4145A]">libertine</span>
-              </span>
+              </div>
               <div className="text-[10px] text-zinc-400 uppercase tracking-widest font-medium">
                 100% Libertin & Discret
               </div>

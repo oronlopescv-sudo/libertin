@@ -3,7 +3,7 @@ import './globals.css';
 import { AuthProvider } from '@/context/auth-context';
 
 export const metadata: Metadata = {
-  title: 'xlibertine - Rencontres Libertines, Casais & Solteiros',
+  title: 'xlibertine - Rencontres Libertines, Couples & Célibataires',
   description: 'La plateforme française de référence pour rencontres libertines. Couples, célibataires, profils vérifiés, discrétion absolue et communauté 100% francophone.',
   openGraph: {
     title: 'xlibertine - Site Libertine Premium',

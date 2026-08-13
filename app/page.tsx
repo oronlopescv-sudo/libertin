@@ -89,7 +89,7 @@ export default function HomePage() {
               <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-tight">
                 Rencontres Libertines <br />
                 <span className="bg-gradient-to-r from-[#D4145A] via-[#E86B7A] to-purple-400 bg-clip-text text-transparent">
-                  Casais, Femmes & Solos
+                  Couples, Femmes & Solos
                 </span>
               </h1>
 
