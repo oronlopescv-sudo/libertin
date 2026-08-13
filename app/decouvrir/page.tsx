@@ -93,10 +93,9 @@ export default function Decouvrir() {
     );
   }
 
-  // Verificar se é premium
-  const isPremium = user && ['PREMIUM_3M', 'PREMIUM_12M', 'VIP_24M'].includes(user.subscriptionTier);
-
-  if (!user || !isPremium) {
+  // Todos os utilizadores autenticados podem ver perfis.
+  // A regra de Premium aplica-se apenas ao envio de mensagens.
+  if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#12091A] to-[#1C102B]">
         <Navbar />
@@ -108,15 +107,15 @@ export default function Decouvrir() {
             <div>
               <h1 className="text-3xl font-bold text-white mb-2">Descobrir Perfis</h1>
               <p className="text-zinc-400 mb-6">
-                Apenas utilizadores Premium podem ver e explorar perfis.
+                Faça login para explorar os perfis da comunidade.
               </p>
             </div>
             <div className="space-y-3">
               <Link
-                href="/abonnements"
+                href="/login"
                 className="block py-3 px-6 bg-gradient-to-r from-[#D4145A] to-[#E86B7A] rounded-lg font-semibold text-white hover:opacity-90 transition"
               >
-                Fazer Upgrade para Premium
+                Entrar
               </Link>
               <Link
                 href="/"
@@ -125,16 +124,12 @@ export default function Decouvrir() {
                 Voltar à Home
               </Link>
             </div>
-            <p className="text-sm text-zinc-500">
-              Planos a partir de €2.08/mês
-            </p>
           </div>
         </div>
       </div>
     );
   }
 
-  // Premium - Mostrar perfis
   const handleLike = async (profileId: string) => {
     const res = await fetch('/api/likes', {
       method: 'POST',
