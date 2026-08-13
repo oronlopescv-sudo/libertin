@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Formatar resposta
-    const formattedAdmirers = admirers?.map(like => {
+    const formattedAdmirers = admirers?.map((like: any) => {
       const userData = like.users;
       const birthDate = new Date(userData.dateOfBirth);
       const today = new Date();

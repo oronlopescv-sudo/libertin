@@ -38,7 +38,23 @@ export async function GET(req: NextRequest) {
     }
 
     // Dashboard Stats
-    const stats = {};
+    const stats: {
+      totalUsers: number
+      tierBreakdown: Record<string, number>
+      totalGroups: number
+      totalMessages: number
+      totalLikes: number
+      onlineUsers: number
+      newUsersThisMonth: number
+    } = {
+      totalUsers: 0,
+      tierBreakdown: {},
+      totalGroups: 0,
+      totalMessages: 0,
+      totalLikes: 0,
+      onlineUsers: 0,
+      newUsersThisMonth: 0,
+    };
 
     // Total de users
     const { count: totalUsers } = await supabase
@@ -50,9 +66,10 @@ export async function GET(req: NextRequest) {
     const { data: tierStats } = await supabase
       .from('users')
       .select('subscriptionTier');
-    const tierBreakdown = {};
-    tierStats?.forEach(u => {
-      tierBreakdown[u.subscriptionTier] = (tierBreakdown[u.subscriptionTier] || 0) + 1;
+    const tierBreakdown: Record<string, number> = {};
+    tierStats?.forEach((u: { subscriptionTier: string | null }) => {
+      const tier = u.subscriptionTier ?? 'FREE';
+      tierBreakdown[tier] = (tierBreakdown[tier] || 0) + 1;
     });
     stats.tierBreakdown = tierBreakdown;
 

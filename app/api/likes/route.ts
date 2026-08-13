@@ -135,7 +135,7 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json(
-      { likes: likes?.map(l => l.likedUserId) || [] },
+      { likes: likes?.map((l: { likedUserId: string }) => l.likedUserId) || [] },
       { status: 200 }
     );
   } catch (error) {

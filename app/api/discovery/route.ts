@@ -106,7 +106,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Calcular idade a partir de dateOfBirth
-    const profilesWithAge = (profiles || []).map(profile => {
+    const profilesWithAge = (profiles || []).map((profile: any) => {
       const birthDate = new Date(profile.dateOfBirth);
       const today = new Date();
       let age = today.getFullYear() - birthDate.getFullYear();
