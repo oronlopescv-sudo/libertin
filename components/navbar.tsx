@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { isAdmin as isAdminUser } from '@/lib/premium';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import {
@@ -52,7 +53,7 @@ export function Navbar() {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => {
-              if (link.adminOnly && user?.role !== 'admin') return null;
+              if (link.adminOnly && !isAdminUser(user)) return null;
               const Icon = link.icon;
               const isActive = pathname === link.href;
 
@@ -172,7 +173,7 @@ export function Navbar() {
 
           <div className="space-y-1">
             {navLinks.map((link) => {
-              if (link.adminOnly && user?.role !== 'admin') return null;
+              if (link.adminOnly && !isAdminUser(user)) return null;
               const Icon = link.icon;
               return (
                 <Link
