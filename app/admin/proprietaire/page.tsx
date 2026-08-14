@@ -33,6 +33,14 @@ type Visites = {
   actifs24h: number;
   actifs7Jours: number;
   parJour: Array<{ date: string; inscriptions: number; connexions: number }>;
+  dernieresInscriptions: Array<{
+    id: string;
+    email: string;
+    username: string;
+    subscriptionTier: string;
+    createdAt: string;
+    lastLoginAt: string | null;
+  }>;
 };
 
 type Paiements = {
@@ -42,7 +50,14 @@ type Paiements = {
   echoues: number;
   chiffreAffairesTotal: number;
   chiffreAffaires30Jours: number;
-  derniers: Array<{ id: string; montant: number; devise: string; statut: string; date: string }>;
+  derniers: Array<{
+    id: string;
+    montant: number;
+    devise: string;
+    statut: string;
+    date: string;
+    email: string | null;
+  }>;
 };
 
 type Blocages = {
@@ -330,6 +345,43 @@ export default function OwnerDashboardPage() {
                 <span>{visites.parJour[visites.parJour.length - 1]?.date}</span>
               </div>
             </div>
+
+            <div className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6">
+              <h2 className="text-lg font-bold text-white mb-4">Dernières inscriptions</h2>
+              {visites.dernieresInscriptions.length === 0 ? (
+                <p className="text-zinc-500 text-sm">Aucune inscription enregistrée.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-zinc-500 border-b border-[#2C1B3D]">
+                        <th className="pb-2 pr-4">Membre</th>
+                        <th className="pb-2 pr-4">Offre</th>
+                        <th className="pb-2 pr-4">Inscrit le</th>
+                        <th className="pb-2">Dernière connexion</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {visites.dernieresInscriptions.map((u) => (
+                        <tr key={u.id} className="border-b border-[#2C1B3D]/50">
+                          <td className="py-2 pr-4">
+                            <p className="text-white">{u.username}</p>
+                            <p className="text-zinc-500 text-xs">{u.email}</p>
+                          </td>
+                          <td className="py-2 pr-4 text-zinc-300">
+                            {NOM_OFFRE[u.subscriptionTier] ?? u.subscriptionTier}
+                          </td>
+                          <td className="py-2 pr-4 text-zinc-400">{formatDate(u.createdAt)}</td>
+                          <td className="py-2 text-zinc-400">
+                            {u.lastLoginAt ? formatDate(u.lastLoginAt) : 'Jamais'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -359,6 +411,7 @@ export default function OwnerDashboardPage() {
                     <thead>
                       <tr className="text-left text-zinc-500 border-b border-[#2C1B3D]">
                         <th className="pb-2 pr-4">Date</th>
+                        <th className="pb-2 pr-4">Membre</th>
                         <th className="pb-2 pr-4">Montant</th>
                         <th className="pb-2">Statut</th>
                       </tr>
@@ -367,6 +420,9 @@ export default function OwnerDashboardPage() {
                       {paiements.derniers.map((t) => (
                         <tr key={t.id} className="border-b border-[#2C1B3D]/50">
                           <td className="py-2 pr-4 text-zinc-300">{formatDate(t.date)}</td>
+                          <td className="py-2 pr-4 text-zinc-300">
+                            {t.email ?? <span className="text-zinc-600">inconnu</span>}
+                          </td>
                           <td className="py-2 pr-4 text-white font-medium">
                             {t.montant.toLocaleString('fr-FR', { style: 'currency', currency: t.devise })}
                           </td>

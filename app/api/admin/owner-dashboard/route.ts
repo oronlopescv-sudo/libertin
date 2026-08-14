@@ -121,6 +121,14 @@ export async function GET(req: NextRequest) {
       actifs24h: 0,
       actifs7Jours: 0,
       parJour: [] as Array<{ date: string; inscriptions: number; connexions: number }>,
+      dernieresInscriptions: [] as Array<{
+        id: string;
+        email: string;
+        username: string;
+        subscriptionTier: string;
+        createdAt: string;
+        lastLoginAt: string | null;
+      }>,
     };
 
     try {
@@ -172,6 +180,15 @@ export async function GET(req: NextRequest) {
         inscriptions: v.inscriptions,
         connexions: v.connexions,
       }));
+
+      // Qui s'est inscrit récemment — 30 derniers comptes créés
+      const { data: recents } = await supabase
+        .from('users')
+        .select('id, email, username, subscriptionTier, createdAt, lastLoginAt')
+        .order('createdAt', { ascending: false })
+        .limit(30);
+
+      visites.dernieresInscriptions = (recents ?? []) as any;
     } catch (e) {
       console.error('[owner-dashboard] volet visites indisponible:', e);
     }
@@ -190,13 +207,14 @@ export async function GET(req: NextRequest) {
         devise: string;
         statut: string;
         date: string;
+        email: string | null;
       }>,
     };
 
     try {
       const { data: transactions, error } = await supabase
         .from('payment_logs')
-        .select('stripe_charge_id, amount, currency, status, created_at')
+        .select('stripe_charge_id, stripe_customer_id, amount, currency, status, created_at')
         .order('created_at', { ascending: false })
         .limit(500);
 
@@ -220,12 +238,35 @@ export async function GET(req: NextRequest) {
       paiements.chiffreAffairesTotal = Math.round(paiements.chiffreAffairesTotal * 100) / 100;
       paiements.chiffreAffaires30Jours = Math.round(paiements.chiffreAffaires30Jours * 100) / 100;
 
+      // Associe chaque transaction à l'utilisateur qui a payé,
+      // via l'identifiant client Stripe stocké sur le compte.
+      const idsClients = Array.from(
+        new Set(
+          (transactions ?? [])
+            .map((t: any) => t.stripe_customer_id)
+            .filter((v: unknown): v is string => typeof v === 'string' && v.length > 0)
+        )
+      );
+
+      const emailParClient = new Map<string, string>();
+      if (idsClients.length > 0) {
+        const { data: payeurs } = await supabase
+          .from('users')
+          .select('email, stripeCustomerId')
+          .in('stripeCustomerId', idsClients);
+
+        (payeurs ?? []).forEach((u: any) => {
+          if (u.stripeCustomerId) emailParClient.set(u.stripeCustomerId, u.email);
+        });
+      }
+
       paiements.derniers = (transactions ?? []).slice(0, 20).map((t: any) => ({
         id: t.stripe_charge_id,
         montant: (t.amount ?? 0) / 100,
         devise: (t.currency ?? 'eur').toUpperCase(),
         statut: t.status,
         date: t.created_at,
+        email: emailParClient.get(t.stripe_customer_id) ?? null,
       }));
     } catch (e) {
       // La table payment_logs n'existe peut-être pas encore
