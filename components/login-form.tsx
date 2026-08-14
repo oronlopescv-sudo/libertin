@@ -110,7 +110,7 @@ export function LoginForm() {
                 Pas de compte? <a href="/register" className="text-[#D4145A] hover:underline">S'inscrire</a>
               </div>
               <div>
-                <a href="/forgot-mot de passe" className="text-[#D4145A] hover:underline">Mot de passe oublié?</a>
+                <a href="/forgot-password" className="text-[#D4145A] hover:underline">Mot de passe oublié?</a>
               </div>
             </div>
           </form>

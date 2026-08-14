@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
 
     // Récupère o réinitialisation token
     const { data: réinitialisationRecord, error: réinitialisationError } = await supabase
-      .from('mot de passe_réinitialisations')
+      .from('password_resets')
       .select('userId, expiresAt, used')
       .eq('token', tokenHash)
       .single();
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
 
     // Marca o token como usado
     const { error: markError } = await supabase
-      .from('mot de passe_réinitialisations')
+      .from('password_resets')
       .update({ used: true })
       .eq('token', tokenHash);
 

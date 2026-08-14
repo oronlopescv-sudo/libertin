@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
 
     // Guarda no Supabase
     const { error: insertError } = await supabase
-      .from('mot de passe_réinitialisations')
+      .from('password_resets')
       .insert([
         {
           userId: user.id,
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
 
     // Envoie email com Resend (se configurado)
     if (resend) {
-      const réinitialisationUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://xlibertine.com'}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
+      const resetUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://xlibertine.com'}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
 
       try {
         await resend.emails.send({
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
                 </p>
 
                 <div style="text-align: center; margin: 30px 0;">
-                  <a href="${réinitialisationUrl}" 
+                  <a href="${resetUrl}" 
                      style="background: linear-gradient(135deg, #D4145A 0%, #E86B7A 100%); 
                             color: white; 
                             padding: 12px 40px; 

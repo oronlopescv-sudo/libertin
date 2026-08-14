@@ -20,7 +20,7 @@ export function ForgotPasswordForm() {
         throw new Error('Email obligatoire');
       }
 
-      const res = await fetch('/api/auth/forgot-mot de passe', {
+      const res = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),

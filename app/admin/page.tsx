@@ -73,7 +73,7 @@ export default function AdminDashboard() {
   const banUser = async (userId: string, reason: string) => {
     if (!confirm('Êtes-vous sûr de vouloir bannir cet utilisateur ?')) return;
 
-    const res = await fetch('/api/admin/users/ban', {
+    const res = await fetch('/api/admin/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId, reason }),
