@@ -26,6 +26,7 @@ interface AuthContextType {
   refreshUser: () => void;
   canSeeProfile: (targetUserId: string) => boolean;
   canAccessChat: () => boolean;
+  canSendMessages: () => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -157,16 +158,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await refreshUser();
   };
 
-  const canSeeProfile = (targetUserId: string) => {
-    if (!user) return false;
-    if (user.id === targetUserId) return true;
-    if (user.role === 'admin') return true;
-    return isPremium;
+  /**
+   * Consultation des profils : ouverte à tout membre connecté.
+   * La restriction Premium porte sur le contact, pas sur la consultation.
+   */
+  const canSeeProfile = (_targetUserId: string) => {
+    return Boolean(user);
   };
 
+  /**
+   * Lecture des conversations : ouverte à tout membre connecté.
+   * L'envoi de messages, lui, reste réservé aux membres Premium
+   * (vérifié côté serveur dans les routes API).
+   */
   const canAccessChat = () => {
+    return Boolean(user);
+  };
+
+  /** Envoi de messages : réservé aux membres Premium. */
+  const canSendMessages = () => {
     if (!user) return false;
-    if (user.role === 'admin') return true;
     return isPremium;
   };
 
@@ -184,6 +195,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         refreshUser,
         canSeeProfile,
         canAccessChat,
+        canSendMessages,
       }}
     >
       {children}
@@ -205,6 +217,7 @@ const FALLBACK_AUTH: AuthContextType = {
   refreshUser: () => {},
   canSeeProfile: () => false,
   canAccessChat: () => false,
+  canSendMessages: () => false,
 };
 
 export function useAuth() {
