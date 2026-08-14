@@ -10,6 +10,7 @@ import {
   signOutWithSupabase,
   getCurrentSupabaseUser,
   getSupabaseUserByEmail,
+  creerProfilManquant,
   getSupabaseUsersList,
   updateSupabaseProfile,
 } from '@/lib/supabase';
@@ -91,17 +92,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isPremium = React.useMemo(() => isPremiumFn(user), [user]);
 
   const login = async (email: string, password?: string): Promise<boolean> => {
-    // Real Supabase login only
     const result = await signInWithSupabase(email, password);
-    if (result.success && result.user) {
-      const profile = await getSupabaseUserByEmail(email);
-      if (profile) {
-        setUser(profile);
-        const list = await getSupabaseUsersList();
-        setUsersList(list);
-        return true;
-      }
+
+    // Mot de passe refusé par Supabase Auth : identifiants réellement invalides.
+    if (!result.success || !result.user) return false;
+
+    const profile = await getSupabaseUserByEmail(email);
+    if (profile) {
+      setUser(profile);
+      setUsersList(await getSupabaseUsersList());
+      return true;
     }
+
+    // Le mot de passe est bon mais aucun profil n'existe dans `profiles`.
+    // Cela arrive quand l'inscription a créé le compte Auth sans réussir
+    // l'insertion du profil (l'erreur y est seulement journalisée).
+    // On répare au lieu de refuser une connexion pourtant valide.
+    const reparation = await creerProfilManquant(result.user, email);
+    if (reparation) {
+      setUser(reparation);
+      setUsersList(await getSupabaseUsersList());
+      return true;
+    }
+
     return false;
   };
 

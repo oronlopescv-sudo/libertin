@@ -105,7 +105,17 @@ export async function signUpWithSupabase(userData: {
       .upsert(profilePayload, { onConflict: 'id' });
 
     if (profileError) {
-      console.warn('Supabase profiles upsert info (table might need creation):', profileError.message);
+      // Le compte Auth existe déjà à ce stade. Signaler l'échec plutôt que de
+      // le journaliser en silence : sans profil, l'utilisateur se retrouve
+      // avec un mot de passe valide mais aucune possibilité de se connecter.
+      console.error('Échec de création du profil:', profileError.message);
+      return {
+        success: false,
+        error:
+          "Compte créé mais profil incomplet. Essayez de vous connecter : le profil sera complété automatiquement.",
+        profileMissing: true,
+        userId,
+      };
     }
 
     // 3. Insert photo if provided
@@ -678,3 +688,60 @@ ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public abonnements read" ON public.subscriptions FOR SELECT USING (true);
 CREATE POLICY "Allow abonnements insert" ON public.subscriptions FOR INSERT WITH CHECK (true);
 `;
+
+/**
+ * Crée le profil manquant d'un compte déjà présent dans Supabase Auth.
+ *
+ * L'inscription (`signUpWithSupabase`) crée le compte Auth puis insère le
+ * profil dans `profiles`, mais une erreur sur cette insertion est seulement
+ * journalisée : le compte existe alors avec un mot de passe valide et aucun
+ * profil. La connexion échouait ensuite sans raison compréhensible.
+ *
+ * Les métadonnées saisies à l'inscription sont réutilisées quand elles sont
+ * disponibles ; sinon on met des valeurs neutres que l'utilisateur pourra
+ * corriger depuis son profil.
+ */
+export async function creerProfilManquant(
+  authUser: { id: string; user_metadata?: Record<string, any> },
+  email: string
+): Promise<User | null> {
+  try {
+    const meta = authUser.user_metadata ?? {};
+
+    const payload = {
+      id: authUser.id,
+      email,
+      username: meta.username || email.split('@')[0],
+      date_of_birth: meta.dateOfBirth || meta.date_of_birth || null,
+      gender: meta.gender || null,
+      sexual_orientation: meta.sexualOrientation || meta.sexual_orientation || null,
+      location: meta.location || '',
+      lat: meta.lat ?? 48.8566,
+      lng: meta.lng ?? 2.3522,
+      subscription_tier: 'FREE',
+      bio: '',
+      interests: [],
+      is_verified: false,
+      is_active: true,
+      is_nsfw: true,
+      role: 'user',
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .upsert(payload, { onConflict: 'id' })
+      .select('*')
+      .single();
+
+    if (error || !data) {
+      console.warn('creerProfilManquant:', error?.message);
+      return null;
+    }
+
+    return snakeToCamelProfile(data);
+  } catch (e: any) {
+    console.warn('creerProfilManquant error:', e?.message);
+    return null;
+  }
+}
