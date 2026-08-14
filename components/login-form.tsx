@@ -3,9 +3,11 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock } from 'lucide-react';
+import { useAuth } from '@/context/auth-context';
 
 export function LoginForm() {
   const router = useRouter();
+  const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
@@ -23,23 +25,16 @@ export function LoginForm() {
         throw new Error('Email e senha obligatoires');
       }
 
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
+      // Passe par le contexte d'authentification (Supabase Auth), qui est la
+      // source de vérité lue par le reste du site. L'ancienne version appelait
+      // /api/auth/login et écrivait dans localStorage : la connexion
+      // réussissait côté serveur mais le site continuait de voir un visiteur.
+      const reussi = await login(formData.email, formData.password);
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Erreur lors de la connexion');
+      if (!reussi) {
+        throw new Error('Email ou mot de passe incorrect');
       }
 
-      // Enregistrer token em localStorage
-      localStorage.setItem('auth_token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-
-      // Redirecionar para perfil
       router.push('/profil');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro desconhecido');

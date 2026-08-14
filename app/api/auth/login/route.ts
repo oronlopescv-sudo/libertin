@@ -1,3 +1,16 @@
+/**
+ * ⚠️ Route héritée — NE PAS UTILISER pour de nouvelles fonctionnalités.
+ *
+ * Cette route vérifie le mot de passe contre la colonne `hashedPassword`
+ * de la table `users` et renvoie un jeton maison. Le reste du site
+ * s'authentifie via Supabase Auth (voir `signInWithSupabase` dans
+ * lib/supabase.ts, utilisé par le contexte d'authentification).
+ *
+ * Les deux systèmes ne se connaissent pas : se connecter par ici réussit
+ * côté serveur, mais le site continue de voir un visiteur non connecté.
+ * Le formulaire de connexion utilise désormais le contexte.
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import bcrypt from 'bcryptjs';
