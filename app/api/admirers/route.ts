@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isPremium } from '@/lib/premium';
 import { supabase } from '@/lib/supabase';
 import { cookies } from 'next/headers';
 
@@ -32,12 +33,9 @@ export async function GET(req: NextRequest) {
     }
 
     // ✅ VALIDAÇÃO: Apenas PREMIUM pode ver admiradores
-    const premiumTiers = ['PREMIUM_3M', 'PREMIUM_12M', 'VIP_24M'];
-    const isPremium = premiumTiers.includes(user.subscriptionTier) &&
-      user.subscriptionEnd &&
-      new Date(user.subscriptionEnd) > new Date();
+    const userIsPremium = isPremium(user);
 
-    if (!isPremium) {
+    if (!userIsPremium) {
       return NextResponse.json(
         { error: 'Apenas utilizadores Premium podem ver admiradores. Faça upgrade!' },
         { status: 403 }

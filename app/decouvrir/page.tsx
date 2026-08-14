@@ -1,5 +1,6 @@
 'use client';
 
+import { isPremium as isPremiumFn } from '@/lib/premium';
 import React, { useEffect, useState } from 'react';
 import { Navbar } from '@/components/navbar';
 import Link from 'next/link';
@@ -50,7 +51,7 @@ export default function Decouvrir() {
         }
 
         // Buscar perfis
-        if (user?.subscriptionTier && ['PREMIUM_3M', 'PREMIUM_12M', 'VIP_24M'].includes(user.subscriptionTier)) {
+        if (isPremiumFn(user)) {
           const params = new URLSearchParams();
           if (location) params.append('location', location);
           if (ageMin) params.append('ageMin', String(ageMin));

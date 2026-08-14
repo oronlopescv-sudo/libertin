@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { X, Lock } from 'lucide-react';
+import { isPremium as isPremiumFn } from '@/lib/premium';
 
 interface CreateGroupModalProps {
   isOpen: boolean;
@@ -23,11 +24,10 @@ export function CreateGroupModal({ isOpen, onClose, userSubscription }: CreateGr
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  // Verificar se é premium
-  const premiumTiers = ['PREMIUM_3M', 'PREMIUM_12M', 'VIP_24M'];
-  const isPremium = premiumTiers.includes(userSubscription.tier) &&
-    userSubscription.expiresAt &&
-    new Date(userSubscription.expiresAt) > new Date();
+  const isPremium = isPremiumFn({
+    subscriptionTier: userSubscription.tier,
+    subscriptionEnd: userSubscription.expiresAt,
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

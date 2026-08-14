@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { User, SubscriptionTier } from '@/lib/types';
+import { isPremium as isPremiumFn } from '@/lib/premium';
 import {
   supabase,
   signUpWithSupabase,
@@ -86,13 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [refreshUser]);
 
-  const isPremium = React.useMemo(() => {
-    if (!user) return false;
-    if (user.role === 'admin') return true;
-    if (user.subscriptionTier === 'FREE') return false;
-    if (!user.subscriptionEnd) return true;
-    return new Date(user.subscriptionEnd) > new Date();
-  }, [user]);
+  const isPremium = React.useMemo(() => isPremiumFn(user), [user]);
 
   const login = async (email: string, password?: string): Promise<boolean> => {
     // Real Supabase login only

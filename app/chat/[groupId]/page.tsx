@@ -1,5 +1,6 @@
 'use client';
 
+import { isPremium as isPremiumFn } from '@/lib/premium';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
@@ -72,7 +73,7 @@ export default function ChatPage() {
     );
   }
 
-  const isPremium = ['PREMIUM_3M', 'PREMIUM_12M', 'VIP_24M'].includes(user.subscriptionTier);
+  const isPremium = isPremiumFn(user);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#12091A] to-[#1C102B]">

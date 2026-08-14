@@ -1,5 +1,6 @@
 'use client';
 
+import { isPremium as isPremiumFn } from '@/lib/premium';
 import React, { useEffect, useState } from 'react';
 import { Navbar } from '@/components/navbar';
 import { CreateGroupModal } from '@/components/create-group-modal';
@@ -30,7 +31,7 @@ export default function GroupesPage() {
   const [filter, setFilter] = useState<string>('all');
 
   // Verificar se é premium
-  const isPremium = user && ['PREMIUM_3M', 'PREMIUM_12M', 'VIP_24M'].includes(user.subscriptionTier);
+  const isPremium = isPremiumFn(user);
 
   useEffect(() => {
     const loadData = async () => {

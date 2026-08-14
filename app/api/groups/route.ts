@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isPremium } from '@/lib/premium';
 import { supabase } from '@/lib/supabase';
 import { cookies } from 'next/headers';
 
@@ -31,13 +32,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Utilizador não encontrado' }, { status: 404 });
     }
 
-    // ✅ VALIDAÇÃO: Apenas PREMIUM pode criar grupos
-    const premiumTiers = ['PREMIUM_3M', 'PREMIUM_12M', 'VIP_24M'];
-    const isPremium = premiumTiers.includes(user.subscriptionTier) && 
-                      user.subscriptionEnd && 
-                      new Date(user.subscriptionEnd) > new Date();
+    const userIsPremium = isPremium(user);
 
-    if (!isPremium) {
+    if (!userIsPremium) {
       return NextResponse.json(
         { error: 'Apenas utilizadores Premium podem criar grupos. Faça upgrade!' },
         { status: 403 }
@@ -145,13 +142,9 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'Utilizador não encontrado' }, { status: 404 });
     }
 
-    // ✅ VALIDAÇÃO: Apenas PREMIUM pode juntar-se a grupos
-    const premiumTiers = ['PREMIUM_3M', 'PREMIUM_12M', 'VIP_24M'];
-    const isPremium = premiumTiers.includes(user.subscriptionTier) &&
-      user.subscriptionEnd &&
-      new Date(user.subscriptionEnd) > new Date();
+    const userIsPremium = isPremium(user);
 
-    if (!isPremium) {
+    if (!userIsPremium) {
       return NextResponse.json(
         { error: 'Apenas utilizadores Premium podem participar em grupos. Faça upgrade!' },
         { status: 403 }
