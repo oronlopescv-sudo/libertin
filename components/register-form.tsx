@@ -139,7 +139,7 @@ export function RegisterForm() {
                 <Lock className="absolute left-3 top-3 w-5 h-5 text-[#D4145A]/50" />
                 <input
                   type="password"
-                  name="mot de passe"
+                  name="password"
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Minimum 8 caractères"
