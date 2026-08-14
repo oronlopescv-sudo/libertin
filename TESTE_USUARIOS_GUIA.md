@@ -1,12 +1,12 @@
 # 👥 INSERIR 50 CLIENTES + 3 AGENTES NO SUPABASE
 
-**Total: 53 utilizadores de teste**
+**Total: 53 utilisateurs de teste**
 
 ---
 
 ## 📋 COMO INSERIR OS DADOS
 
-### PASSO 1: Abrir Supabase Console
+### PASSO 1: Ouvrir Supabase Console
 
 ```
 1. https://app.supabase.com
@@ -31,14 +31,14 @@
 1. Supabase → Table: users
 2. Scroll → Devem aparecer 53 users no total
 3. Procura por "Premium", "Free", "VIP"
-4. Verifica alguns registos
+4. Vérifie alguns registos
 ```
 
 ---
 
 ## 🔑 CREDENCIAIS DE TESTE
 
-**Password para TODOS os utilizadores:**
+**Mot de passe para TODOS os utilisateurs:**
 ```
 TestPass123
 ```
@@ -46,7 +46,7 @@ TestPass123
 **Formato de login:**
 - Email: `client.alice@xlibertine.com`
 - OU Username: `Alice_Free`
-- Password: `TestPass123`
+- Mot de passe: `TestPass123`
 
 ---
 
@@ -54,7 +54,7 @@ TestPass123
 
 ### 3️⃣ AGENTES (Admin - VIP_24M)
 
-| Email | Username | Subscrição | Papel |
+| Email | Username | Abonnement | Papel |
 |-------|----------|-----------|-------|
 | agent.marie@xlibertine.com | Marie_Agent | VIP_24M | Admin |
 | agent.pierre@xlibertine.com | Pierre_Agent | VIP_24M | Admin |
@@ -62,7 +62,7 @@ TestPass123
 
 ### 2️⃣5️⃣ CLIENTES FREE
 
-| Email | Username | Subscrição |
+| Email | Username | Abonnement |
 |-------|----------|-----------|
 | client.alice@xlibertine.com | Alice_Free | FREE |
 | client.bob@xlibertine.com | Bob_Free | FREE |
@@ -93,7 +93,7 @@ TestPass123
 
 ### 1️⃣2️⃣ CLIENTES PREMIUM 3M
 
-| Email | Username | Subscrição | Válido até |
+| Email | Username | Abonnement | Válido até |
 |-------|----------|-----------|-----------|
 | premium.alice@xlibertine.com | Alice_Premium3M | PREMIUM_3M | 2026-11-09 |
 | premium.ben@xlibertine.com | Ben_Premium3M | PREMIUM_3M | 2026-11-09 |
@@ -110,7 +110,7 @@ TestPass123
 
 ### 1️⃣0️⃣ CLIENTES PREMIUM 12M
 
-| Email | Username | Subscrição | Válido até |
+| Email | Username | Abonnement | Válido até |
 |-------|----------|-----------|-----------|
 | premium.maya@xlibertine.com | Maya_Premium12M | PREMIUM_12M | 2027-08-09 |
 | premium.nathan@xlibertine.com | Nathan_Premium12M | PREMIUM_12M | 2027-08-09 |
@@ -125,7 +125,7 @@ TestPass123
 
 ### 3️⃣ CLIENTES VIP 24M
 
-| Email | Username | Subscrição | Válido até |
+| Email | Username | Abonnement | Válido até |
 |-------|----------|-----------|-----------|
 | premium.walter@xlibertine.com | Walter_VIP | VIP_24M | 2028-08-09 |
 | premium.xenia@xlibertine.com | Xenia_VIP | VIP_24M | 2028-08-09 |
@@ -142,7 +142,7 @@ TestPass123
 2. Vai para /decouvrir → BLOQUEADO 🔒
 3. Tenta /chat/grupo → BLOQUEADO 🔒
 4. Tenta /eventos → BLOQUEADO 🔒
-5. Clica "Criar Grupo" → Botão desabilitado
+5. Clica "Criar Groupe" → Botão desabilitado
 6. Vê mensagem: "Fazer Upgrade"
 ```
 
@@ -153,7 +153,7 @@ TestPass123
 2. Vai para /decouvrir → DESBLOQUEADO ✅
 3. Vai para /chat → DESBLOQUEADO ✅
 4. Vai para /eventos → DESBLOQUEADO ✅
-5. Clica "Criar Grupo" → ATIVO ✅
+5. Clica "Criar Groupe" → ATIVO ✅
 6. Pode participar em grupos ✅
 ```
 
@@ -182,11 +182,11 @@ TestPass123
 
 ## ⚠️ IMPORTANTE
 
-- ✅ Todos têm **subscriptionEnd** bem configurado
-- ✅ Todos têm **password hash** bcryptjs válido
+- ✅ Tous têm **abonnementEnd** bem configurado
+- ✅ Tous têm **mot de passe hash** bcryptjs válido
 - ✅ Distribuídos por cidades (Paris, Lyon, Bordeaux, etc)
 - ✅ Mix de genders e orientações
-- ✅ Datas de criação variadas (para parecer realista)
+- ✅ Datas de criaction variadas (para parecer realista)
 
 ---
 
@@ -194,9 +194,9 @@ TestPass123
 
 ```
 1. Abre https://xlibertine.com/login
-2. Testa com vários utilizadores
-3. Verifica paywall funcionando
-4. Testa password recovery (Resend)
+2. Testa com vários utilisateurs
+3. Vérifie paywall funcionando
+4. Testa mot de passe recovery (Resend)
 5. Testa grupos (create, join)
 ```
 
@@ -204,11 +204,11 @@ TestPass123
 
 ## 📝 NOTAS
 
-- **Password:** `TestPass123` para todos
+- **Mot de passe:** `TestPass123` para todos
 - **Emails:** Prontos para testar (nenhum é real, seguro usar)
 - **Data:** Tudo está configurado para 09/08/2026
-- **Subscriptions:** Todas válidas até 2027-2028 (exceto FREE)
+- **Abonnements:** Toutes válidas até 2027-2028 (exceto FREE)
 
 ---
 
-**Pronto para testar com 50+ utilizadores!** 🎉
+**Pronto para testar com 50+ utilisateurs!** 🎉

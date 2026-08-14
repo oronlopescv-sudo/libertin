@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { SUBSCRIPTION_PLANS, getPlanDetails } from '@/lib/stripe';
-import { SubscriptionPlan } from '@/lib/types';
+import { AbonnementPlan } from '@/lib/types';
 import { useAuth } from '@/context/auth-context';
 import {
   Crown,
@@ -15,14 +15,14 @@ import {
   AlertCircle,
 } from 'lucide-react';
 
-export function SubscriptionPlans() {
-  const { user, upgradeSubscription, isPremium } = useAuth();
-  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
+export function AbonnementPlans() {
+  const { user, upgradeAbonnement, isPremium } = useAuth();
+  const [selectedPlan, setSelectedPlan] = useState<AbonnementPlan | null>(null);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const handleOpenConfirm = (plan: SubscriptionPlan) => {
+  const handleOpenConfirm = (plan: AbonnementPlan) => {
     if (plan.id === 'FREE') return;
     setSelectedPlan(plan);
     setConfirmModalOpen(true);
@@ -33,7 +33,7 @@ export function SubscriptionPlans() {
     setIsProcessing(true);
 
     try {
-      await upgradeSubscription(selectedPlan.id);
+      await upgradeAbonnement(selectedPlan.id);
       setSuccessMessage(`Votre abonnement ${selectedPlan.title} est désormais actif.`);
     } catch (err) {
       setSuccessMessage(null);
@@ -47,7 +47,7 @@ export function SubscriptionPlans() {
 
   return (
     <div className="space-y-10">
-      {/* Current Subscription Status Badge */}
+      {/* Current Abonnement Status Badge */}
       {user && (
         <div className="p-4 rounded-2xl bg-[#1C102B] border border-[#2C1B3D] flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">

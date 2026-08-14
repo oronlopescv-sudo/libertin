@@ -1,8 +1,8 @@
 # 🧪 TEST SCENARIOS - 50 CLIENTES + 3 AGENTES
 
 **Data:** 09 de Agosto de 2026  
-**Total Utilizadores:** 53 (3 Agentes + 50 Clientes)  
-**Tempo Estimado:** 2-3 horas de testes
+**Total Utilisateurs:** 53 (3 Agentes + 50 Clientes)  
+**Tempo Estimado:** 2-3 heures de testes
 
 ---
 
@@ -18,29 +18,29 @@ Validar que FREE users estão bloqueados das features premium.
 ### Test Cases
 
 ```
-T1.1: Registar Nova Conta
+T1.1: S'inscrire Nova Conta
 ├─ Vai para /register
-├─ Preenche: email, username, password, age, gender, location
+├─ Preenche: email, username, mot de passe, age, gender, location
 ├─ Clica "Rejoindre Maintenant"
-├─ Validação: Redireciona para /login
+├─ Validaction: Redireciona para /login
 ├─ Resultado: ✅ PASS
 
 T1.2: Fazer Login
 ├─ Email: client.alice@xlibertine.com
-├─ Password: TestPass123
+├─ Mot de passe: TestPass123
 ├─ Clica "Se Connecter"
-├─ Validação: Redireciona para /profil
+├─ Validaction: Redireciona para /profil
 ├─ localStorage tem auth_token
 ├─ Resultado: ✅ PASS
 
-T1.3: Ver Perfil Own
+T1.3: Ver Profil Own
 ├─ Vai para /profil
 ├─ Vê informações pessoais
 ├─ Clica "Logout"
 ├─ localStorage token limpo
 ├─ Resultado: ✅ PASS
 
-T1.4: Tenta Ver Perfis (BLOQUEADO)
+T1.4: Tenta Ver Profils (BLOQUEADO)
 ├─ Clica em /decouvrir
 ├─ Renderiza lock screen
 ├─ Vê: 🔒 "Apenas Premium"
@@ -48,21 +48,21 @@ T1.4: Tenta Ver Perfis (BLOQUEADO)
 ├─ Redireciona para /abonnements
 ├─ Resultado: ✅ PASS
 
-T1.5: Tenta Criar Grupo (BLOQUEADO)
+T1.5: Tenta Criar Groupe (BLOQUEADO)
 ├─ Vai para /groupes
-├─ Botão "Criar Grupo" está disabled
+├─ Botão "Criar Groupe" está disabled
 ├─ Tenta clicar (não faz nada)
 ├─ Vê lock screen
 ├─ Resultado: ✅ PASS
 
-T1.6: Tenta Participar Grupo (BLOQUEADO)
+T1.6: Tenta Participar Groupe (BLOQUEADO)
 ├─ Vê lista de grupos
 ├─ Clica "Juntar-se"
 ├─ API retorna 403: "Apenas Premium"
 ├─ Erro renderizado
 ├─ Resultado: ✅ PASS
 
-T1.7: Tenta Enviar Mensagem (BLOQUEADO)
+T1.7: Tenta Envoyer Message (BLOQUEADO)
 ├─ Tenta aceder /chat/grupo-123
 ├─ Renderiza lock screen
 ├─ Redireciona a /groupes
@@ -74,22 +74,22 @@ T1.8: Tenta Upload Foto (BLOQUEADO)
 ├─ API retorna 403: "Apenas Premium"
 ├─ Resultado: ✅ PASS
 
-T1.9: Tenta Criar Evento (BLOQUEADO)
+T1.9: Tenta Criar Événement (BLOQUEADO)
 ├─ Vai para /eventos
 ├─ Renderiza lock screen
 ├─ Redireciona a /
 ├─ Resultado: ✅ PASS
 
-T1.10: Password Recovery
-├─ Vai para /forgot-password
+T1.10: Mot de passe Recovery
+├─ Vai para /forgot-mot de passe
 ├─ Preenche email
-├─ Clica "Enviar Link"
-├─ Validação: Mensagem de sucesso
-├─ Verifica email (Resend)
+├─ Clica "Envoyer Link"
+├─ Validaction: Message de sucesso
+├─ Vérifie email (Resend)
 ├─ Clica link do email
-├─ Vai para /reset-password?token=xxx
-├─ Reseta password
-├─ Login com nova password
+├─ Vai para /réinitialisation-mot de passe?token=xxx
+├─ Reseta mot de passe
+├─ Login com nova mot de passe
 ├─ Resultado: ✅ PASS
 ```
 
@@ -105,21 +105,21 @@ Validar que PREMIUM users têm acesso a TODAS as features.
 ```
 T2.1: Login Premium
 ├─ Email: premium.maya@xlibertine.com
-├─ Password: TestPass123
+├─ Mot de passe: TestPass123
 ├─ Redireciona para /profil
 ├─ Resultado: ✅ PASS
 
-T2.2: Ver Perfis (DESBLOQUEADO)
+T2.2: Ver Profils (DESBLOQUEADO)
 ├─ Vai para /decouvrir
 ├─ Vê lista de perfis
-├─ Filtros funcionam (location, age, gender)
+├─ Filtres funcionam (location, age, gender)
 ├─ Resultado: ✅ PASS
 
-T2.3: Curtir Perfil
+T2.3: Liker Profil
 ├─ Vê perfil
-├─ Clica botão "Curtir" ❤️
+├─ Clica botão "Liker" ❤️
 ├─ API POST /api/likes
-├─ Perfil adicionado a "Meus Likes"
+├─ Profil adicionado a "Meus Likes"
 ├─ Resultado: ✅ PASS
 
 T2.4: Ver Quem Curtiu
@@ -128,36 +128,36 @@ T2.4: Ver Quem Curtiu
 ├─ Lista de users que gostaram
 ├─ Resultado: ✅ PASS (quando implementado)
 
-T2.5: Criar Grupo
+T2.5: Criar Groupe
 ├─ Vai para /groupes
-├─ Clica "Criar Grupo"
+├─ Clica "Criar Groupe"
 ├─ Modal abre
-├─ Preenche: Nome, Descrição, Categoria, Max Members, Privado?
-├─ Clica "Criar Grupo"
+├─ Preenche: Nome, Description, Catégorie, Max Members, Privé?
+├─ Clica "Criar Groupe"
 ├─ API POST /api/groups (SUCCESS 201)
 ├─ Redireciona para /groupes
 ├─ Novo grupo aparece na lista
 ├─ Resultado: ✅ PASS
 
-T2.6: Participar em Grupo
+T2.6: Participar em Groupe
 ├─ Vê grupo na lista
 ├─ Clica "Juntar-se"
 ├─ API PATCH /api/groups/join
 ├─ User adicionado a group_memberships
-├─ Botão muda para "Sair"
+├─ Botão muda para "Se déconnecter"
 ├─ Resultado: ✅ PASS
 
-T2.7: Enviar Mensagem em Grupo
+T2.7: Envoyer Message em Groupe
 ├─ Participa em grupo
 ├─ Vai para /chat/grupo-id
-├─ Carrega histórico de mensagens
+├─ Carrega historique de mensagens
 ├─ Escreve mensagem
 ├─ Clica enviar
-├─ Mensagem aparece na lista
+├─ Message aparece na lista
 ├─ Timestamp correto
 ├─ Resultado: ✅ PASS
 
-T2.8: Ver Membros do Grupo
+T2.8: Ver Membros do Groupe
 ├─ Em /chat/grupo-id
 ├─ Vê lista de membros
 ├─ Vê roles (admin, member)
@@ -171,49 +171,49 @@ T2.9: Upload de Foto
 ├─ Foto adicionada ao perfil
 ├─ Resultado: ✅ PASS (quando implementado)
 
-T2.10: Criar Evento
+T2.10: Criar Événement
 ├─ Vai para /eventos
-├─ Clica "Criar Evento"
-├─ Preenche: Nome, Data, Hora, Localização, Descrição
+├─ Clica "Criar Événement"
+├─ Preenche: Nome, Data, Hora, Localisation, Description
 ├─ Clica "Criar"
-├─ Evento criado
+├─ Événement criado
 ├─ Aparece na lista
 ├─ Resultado: ✅ PASS (quando implementado)
 
-T2.11: Participar em Evento
+T2.11: Participar em Événement
 ├─ Vê evento na lista
 ├─ Clica "Participar"
 ├─ User adicionado a event_attendees
-├─ Botão muda para "Cancelar Participação"
+├─ Botão muda para "Annuler Participaction"
 ├─ Resultado: ✅ PASS (quando implementado)
 
-T2.12: Sair de Grupo
+T2.12: Se déconnecter de Groupe
 ├─ Em grupo que participa
-├─ Clica "Sair"
-├─ Confirmação
+├─ Clica "Se déconnecter"
+├─ Confirmaction
 ├─ User removido de group_memberships
-├─ Grupo não aparece mais
+├─ Groupe não aparece mais
 ├─ Resultado: ✅ PASS
 
-T2.13: Deletar Grupo (se admin)
+T2.13: Deletar Groupe (se admin)
 ├─ Creator de grupo
 ├─ Vai para /chat/grupo-id
-├─ Vê opção "Deletar Grupo"
+├─ Vê opção "Deletar Groupe"
 ├─ Clica, confirma
-├─ Grupo deletado
+├─ Groupe deletado
 ├─ Resultado: ✅ PASS (quando implementado)
 
-T2.14: Pesquisar Grupos
+T2.14: Rechercher Groupes
 ├─ /groupes
 ├─ Pesquisa por nome
-├─ Filtros por categoria
-├─ Resultados aparecem
+├─ Filtres por catégorie
+├─ Résultats aparecem
 ├─ Resultado: ✅ PASS (quando implementado)
 
-T2.15: Ver Perfil Privado
+T2.15: Ver Profil Privé
 ├─ Clica em perfil de outro user
-├─ Vê foto, bio, localização
-├─ Vê botão "Curtir"
+├─ Vê foto, bio, localizaction
+├─ Vê botão "Liker"
 ├─ Resultado: ✅ PASS (quando implementado)
 ```
 
@@ -229,7 +229,7 @@ Validar que Agentes têm acesso admin quando implementado.
 ```
 T3.1: Login Agent
 ├─ Email: agent.marie@xlibertine.com
-├─ Password: TestPass123
+├─ Mot de passe: TestPass123
 ├─ Redireciona para /profil
 ├─ Resultado: ✅ PASS
 
@@ -239,24 +239,24 @@ T3.2: Acesso Admin Panel (TODO)
 ├─ Stats: users, grupos, eventos, etc
 ├─ Resultado: ⏳ QUANDO IMPLEMENTADO
 
-T3.3: Banir User (TODO)
+T3.3: Bannir User (TODO)
 ├─ Admin panel → Users
 ├─ Procura user problemático
-├─ Clica "Banir"
+├─ Clica "Bannir"
 ├─ User não consegue fazer login
 ├─ Resultado: ⏳ QUANDO IMPLEMENTADO
 
-T3.4: Deletar Grupo Inapropriado (TODO)
-├─ Admin panel → Grupos
+T3.4: Deletar Groupe Inapropriado (TODO)
+├─ Admin panel → Groupes
 ├─ Encontra grupo spam
 ├─ Clica "Deletar"
-├─ Grupo removido
+├─ Groupe removido
 ├─ Resultado: ⏳ QUANDO IMPLEMENTADO
 
 T3.5: Ver Logs (TODO)
 ├─ Admin panel → Logs
 ├─ Vê atividade dos users
-├─ Filtros por data, tipo, user
+├─ Filtres por data, tipo, user
 ├─ Resultado: ⏳ QUANDO IMPLEMENTADO
 ```
 
@@ -276,7 +276,7 @@ T4.1: SQL Injection
 ├─ Resultado: ✅ PASS
 
 T4.2: Token Expirado
-├─ Força expiração de auth_token
+├─ Força expiraction de auth_token
 ├─ Tenta aceder /profil
 ├─ Redireciona para /login
 ├─ Resultado: ✅ PASS
@@ -284,34 +284,34 @@ T4.2: Token Expirado
 T4.3: Token Falsificado
 ├─ Altera auth_token manualmente
 ├─ Tenta aceder API
-├─ Retorna 401 Unauthorized
+├─ Renvoie 401 Unauthorized
 ├─ Resultado: ✅ PASS
 
 T4.4: CSRF Attack
 ├─ Tenta POST sem CSRF token
-├─ Bloqueado (httpOnly cookies)
+├─ Bloqué (httpOnly cookies)
 ├─ Resultado: ✅ PASS
 
-T4.5: Brute Force Password
+T4.5: Brute Force Mot de passe
 ├─ Tenta 10 logins falhados
 ├─ Account locked (quando implementado)
 ├─ Resultado: ✅ PASS (quando implementado)
 
-T4.6: Password Fraca
-├─ Tenta registar com password <8 chars
+T4.6: Mot de passe Fraca
+├─ Tenta registar com mot de passe <8 chars
 ├─ Rejeitado
-├─ Mensagem de erro: "8+ caracteres"
+├─ Message de erro: "8+ caracteres"
 ├─ Resultado: ✅ PASS
 
 T4.7: Email Duplicado
 ├─ Tenta registar com email existente
 ├─ Rejeitado
-├─ Mensagem: "Email já existe"
+├─ Message: "Email já existe"
 ├─ Resultado: ✅ PASS
 
 T4.8: Aceder Recurso de Outro User
 ├─ Free user tenta ver /profil de outro via URL
-├─ Bloqueado (RLS)
+├─ Bloqué (RLS)
 ├─ Resultado: ✅ PASS
 
 T4.9: Modificar Dados de Outro User
@@ -319,9 +319,9 @@ T4.9: Modificar Dados de Outro User
 ├─ RLS bloqueia
 ├─ Resultado: ✅ PASS
 
-T4.10: Modificar Subscription
+T4.10: Modificar Abonnement
 ├─ User tenta mudar tier via API call direto
-├─ RLS/validação bloqueia
+├─ RLS/validaction bloqueia
 ├─ Resultado: ✅ PASS
 ```
 
@@ -356,11 +356,11 @@ T4.10: Modificar Subscription
 ```
 Depois de 50 clientes + 3 agentes testarem:
 
-✅ Autenticação: 100% OK
-✅ Password Recovery: 100% OK
+✅ Autenticaction: 100% OK
+✅ Mot de passe Recovery: 100% OK
 ✅ Paywall: 100% OK
-✅ Grupos: 90% OK (features básicas)
-✅ Perfis: 80% OK (preview implementado)
+✅ Groupes: 90% OK (features básicas)
+✅ Profils: 80% OK (preview implementado)
 ✅ Chat: 70% OK (base implementada)
 ✅ Segurança: 100% OK
 ✅ Performance: 100% OK (15.9s build)
@@ -373,11 +373,11 @@ Depois de 50 clientes + 3 agentes testarem:
 ## 🚀 PRÓXIMO PASSO
 
 Implementar as features que faltam para os testes rodarem:
-1. ✅ Grupos (FEITO)
-2. ⏳ Perfis Discovery (/decouvrir)
-3. ⏳ Chat em Grupos (/chat/[groupId])
+1. ✅ Groupes (FEITO)
+2. ⏳ Profils Discovery (/decouvrir)
+3. ⏳ Chat em Groupes (/chat/[groupId])
 4. ⏳ Likes/Interactions
-5. ⏳ Eventos
+5. ⏳ Événements
 
 ---
 

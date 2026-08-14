@@ -17,10 +17,10 @@ export function ForgotPasswordForm() {
 
     try {
       if (!email) {
-        throw new Error('Email obrigatório');
+        throw new Error('Email obligatoire');
       }
 
-      const res = await fetch('/api/auth/forgot-password', {
+      const res = await fetch('/api/auth/forgot-mot de passe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -29,7 +29,7 @@ export function ForgotPasswordForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Erro ao solicitar reset');
+        throw new Error(data.error || 'Erreur lors de solicitar réinitialisation');
       }
 
       setSuccess(true);
@@ -52,14 +52,14 @@ export function ForgotPasswordForm() {
           <div className="space-y-2">
             <h2 className="text-2xl font-bold text-white">Email enviado!</h2>
             <p className="text-zinc-400">
-              Verifique sua caixa de email para o link de reset de password. O link expira em 1 hora.
+              Verifique sua caixa de email para o link de réinitialisation de mot de passe. O link expira em 1 heure.
             </p>
           </div>
           <Link
             href="/login"
             className="inline-block py-2 px-6 bg-gradient-to-r from-[#D4145A] to-[#E86B7A] rounded-lg font-semibold text-white hover:opacity-90 transition"
           >
-            Voltar para Login
+            Retour para Login
           </Link>
         </div>
       </div>
@@ -71,8 +71,8 @@ export function ForgotPasswordForm() {
       <div className="w-full max-w-md">
         <div className="space-y-6">
           <div className="text-center space-y-2">
-            <h1 className="text-3xl font-bold text-white">Esqueci a Password</h1>
-            <p className="text-zinc-400">Digite seu email para receber um link de reset</p>
+            <h1 className="text-3xl font-bold text-white">Esqueci a Mot de passe</h1>
+            <p className="text-zinc-400">Digite seu email para receber um link de réinitialisation</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -101,7 +101,7 @@ export function ForgotPasswordForm() {
               disabled={loading}
               className="w-full py-2 bg-gradient-to-r from-[#D4145A] to-[#E86B7A] rounded-lg font-semibold text-white hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Enviando...' : 'Enviar Link de Reset'}
+              {loading ? 'Envoi en cours...' : 'Envoyer Link de Reset'}
             </button>
 
             <div className="text-center">
@@ -110,7 +110,7 @@ export function ForgotPasswordForm() {
                 className="inline-flex items-center gap-2 text-sm text-[#D4145A] hover:underline"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Voltar para Login
+                Retour para Login
               </Link>
             </div>
           </form>

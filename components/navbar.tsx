@@ -38,8 +38,8 @@ export function Navbar() {
               <Flame className="w-6 h-6 text-white fill-white" />
             </div>
             <div>
-              {/* Uma so versao do nome, com tamanho responsivo em vez de dois
-                  spans que ambos aparecem quando o CSS nao carrega. */}
+              {/* Une seule version du nom, avec taille responsive au lieu de deux
+                  spans qui apparaissent tous les deux quand le CSS ne charge pas. */}
               <div className="text-sm sm:text-xl font-bold tracking-tight text-white">
                 x<span className="text-[#D4145A]">libertine</span>
               </div>

@@ -12,18 +12,18 @@
    - ❌ `useAuth()` não funciona sem o provider no topo
    - ❌ Fallback criado, mas componentes ainda tentam acessar dados de auth
    - ⚠️ Impacto: Login/Register/Profile não conseguem confirmar identidade
-   - ✅ Solução: Remover fallback silent, colocar loading state explícito
+   - ✅ Solução: Retirer fallback silent, colocar loading state explícito
 
 2. **Supabase Client Inseguro (P0)**
    - ❌ Chaves públicas commitadas em `.env.local` e `.env.production`
-   - ❌ RLS desligado em 7 tabelas (`users`, `password_resets`, etc)
-   - ⚠️ Impacto: Qualquer um com a chave anónima lê/escreve `users` e `password_resets`
+   - ❌ RLS desligado em 7 tabelas (`users`, `mot de passe_réinitialisations`, etc)
+   - ⚠️ Impacto: Qualquer um com a chave anónima lê/escreve `users` e `mot de passe_réinitialisations`
    - ✅ Solução: Rotacionar chaves, ligar RLS com políticas
 
-3. **Falta Autenticação Real (P0)**
+3. **Falta Autenticaction Real (P0)**
    - ❌ Sem NextAuth.js ou Supabase Auth configurado
    - ❌ Sem gestão de sessões
-   - ⚠️ Impacto: Não há forma de guardar login do utilizador
+   - ⚠️ Impacto: Non há forma de guardar login do utilisateur
    - ✅ Solução: Implementar Supabase Auth com JWT
 
 ---
@@ -31,24 +31,24 @@
 ## 👨‍💼 ENGENHEIRO #2 - Frontend & UX/UI
 **Achados Críticos:**
 
-1. **Botões sem Ação (P1)**
+1. **Botões sem Action (P1)**
    - ❌ "Rejoindre Maintenant" → route `/register`, mas sem form de registo
    - ❌ "Explorer les Profils" → route `/decouvrir`, mas componentes vazios
-   - ❌ Botões de planos ("Activer") → não faz nada, só mostra toast vazio
-   - ⚠️ Impacto: Utilizadores clicam, nada acontece
+   - ❌ Botões de plans ("Activer") → não faz nada, só mostra toast vazio
+   - ⚠️ Impacto: Utilisateurs clicam, nada acontece
    - ✅ Solução: Wiring completo: botão → modal/página → submissão → backend
 
 2. **Formulários Incompletos (P1)**
    - ❌ `/register` - formulário de registo vazio/não renderiza
-   - ❌ `/login` - sem campos email/password
+   - ❌ `/login` - sem campos email/mot de passe
    - ❌ `/profil` - sem edição de perfil
-   - ✅ Solução: Criar formulários com validação + erro handling
+   - ✅ Solução: Criar formulários com validaction + erro handling
 
 3. **Estado UI Quebrado (P2)**
    - ❌ Sem loading states nos botões
    - ❌ Sem error messages quando ações falham
    - ❌ Sem success confirmation após ações
-   - ✅ Solução: Adicionar estados: loading, success, error
+   - ✅ Solução: Ajouter estados: loading, success, error
 
 ---
 
@@ -57,15 +57,15 @@
 
 1. **APIs Desligadas (P0)**
    - ❌ `/api/auth/[...nextauth]` - NextAuth não configurado
-   - ❌ `/api/users/profile` - sem implementação de read/update
-   - ❌ `/api/payments/create-checkout` - sem integração Stripe real
-   - ✅ Solução: Implementar cada endpoint com validação + autenticação
+   - ❌ `/api/users/profile` - sem implementaction de read/update
+   - ❌ `/api/payments/create-checkout` - sem integraction Stripe real
+   - ✅ Solução: Implementar cada endpoint com validaction + autenticaction
 
-2. **Sem Validação de Dados (P1)**
+2. **Sem Validaction de Dados (P1)**
    - ❌ Sem schema validation (Zod/Yup) nas APIs
    - ❌ Sem rate limiting
    - ❌ Sem CORS configurado corretamente
-   - ✅ Solução: Adicionar middleware de validação
+   - ✅ Solução: Ajouter middleware de validaction
 
 3. **Falta Tratamento de Erros (P1)**
    - ❌ APIs retornam 200 mesmo com falhas
@@ -79,9 +79,9 @@
 **Achados Críticos:**
 
 1. **RLS Completamente Desligado (P0 - CRITICO)**
-   - ❌ 7 tabelas abertas: `users`, `password_resets`, `pricing_plans`, `group_memberships`, `likes`, `blocked_users`, `_BlockedBy`
+   - ❌ 7 tabelas abertas: `users`, `mot de passe_réinitialisations`, `pricing_plans`, `group_memberships`, `likes`, `blocked_users`, `_BlockedBy`
    - ❌ Chave anónima Supabase está commitada no repo
-   - ⚠️ Impacto: Exposição imediata de dados sensíveis
+   - ⚠️ Impacto: Exposição imejourta de dados sensíveis
    - ✅ Solução:
      ```sql
      -- Exemplo para users (verificar que não bloqueia tudo)
@@ -89,10 +89,10 @@
        ON users FOR SELECT TO authenticated
        USING (auth.uid()::text = id);
      
-     -- password_resets - NUNCA via anon key
-     ALTER TABLE password_resets ENABLE ROW LEVEL SECURITY;
-     CREATE POLICY "No public access to password_resets"
-       ON password_resets FOR ALL TO anon USING (false);
+     -- mot de passe_réinitialisations - NUNCA via ann key
+     ALTER TABLE mot de passe_réinitialisations ENABLE ROW LEVEL SECURITY;
+     CREATE POLICY "No public access to mot de passe_réinitialisations"
+       ON mot de passe_réinitialisations FOR ALL TO ann USING (false);
      ```
 
 2. **Token GitHub Exposto (P1)**
@@ -100,7 +100,7 @@
    - ✅ Solução: Revogar token, gerar novo
 
 3. **Senhas não Hashed (P1)**
-   - ❌ Perfis fake têm senhas dummy (`$2b$10$hash1`, etc)
+   - ❌ Profils fake têm senhas dummy (`$2b$10$hash1`, etc)
    - ❌ Sem bcrypt real na API de registo
    - ✅ Solução: Implementar bcrypt com salt 10+ rounds
 
@@ -110,7 +110,7 @@
 **Achados Críticos:**
 
 1. **Sem Cache Estratégico (P2)**
-   - ❌ Perfis são fetched a cada navegação
+   - ❌ Profils são fetched a cada navegaction
    - ❌ Sem memoization em componentes pesados
    - ⚠️ Impacto: Lento em conexões fracas
    - ✅ Solução: React Query + cache SWR
@@ -121,7 +121,7 @@
    - ✅ Solução: Code splitting + dynamic imports
 
 3. **Hostinger Sem RLS (P1)**
-   - ❌ Deploy automático, mas sem integração CI/CD real
+   - ❌ Deploy automático, mas sem integraction CI/CD real
    - ❌ Sem staging environment
    - ✅ Solução: GitHub Actions → staging → production
 
@@ -131,20 +131,20 @@
 **Achados Críticos:**
 
 1. **Fluxo de Registo Quebrado (P0)**
-   - ❌ Sem verificação de email
-   - ❌ Sem foto de verificação obrigatória
+   - ❌ Sem verificaction de email
+   - ❌ Sem foto de verificaction obrigatória
    - ❌ Sem idade mínima validada (18+ apenas)
-   - ✅ Solução: Implementar workflow: email → foto → aprovação
+   - ✅ Solução: Implementar workflow: email → foto → aprovaction
 
-2. **Sistema de Planos sem Pagamento (P0)**
+2. **Sistema de Plans sem Pagamento (P0)**
    - ❌ Stripe não configurado
-   - ❌ Sem webhook de confirmação de pagamento
-   - ❌ Sem upgrade de subscription
-   - ✅ Solução: Integração Stripe + webhook
+   - ❌ Sem webhook de confirmaction de pagamento
+   - ❌ Sem upgrade de abonnement
+   - ✅ Solução: Integraction Stripe + webhook
 
-3. **Grupos sem Moderação (P1)**
-   - ❌ Sem aprovação de novos membros
-   - ❌ Sem regras de comunidade
+3. **Groupes sem Moderaction (P1)**
+   - ❌ Sem aprovaction de novos membros
+   - ❌ Sem regras de communauté
    - ❌ Sem sistema de denúncia
    - ✅ Solução: Admin panel + approval workflows
 
@@ -156,19 +156,19 @@
 1. **Sem Testes (P1)**
    - ❌ 0% de cobertura de testes
    - ❌ Sem testes unitários
-   - ❌ Sem testes de integração
+   - ❌ Sem testes de integraction
    - ✅ Solução: Jest + React Testing Library
 
 2. **Fluxo de Registo Falha (P0)**
    - ❌ Clicar "Register" → página vazia
-   - ❌ Sem validação de email
+   - ❌ Sem validaction de email
    - ❌ Sem feedback de erro
    - ✅ Steps para reproduzir:
      1. Clica "Rejoindre Maintenant"
      2. Aparece página vazia
      3. Nenhuma form, nenhum erro
 
-3. **Login Não Funciona (P0)**
+3. **Login Non Funciona (P0)**
    - ❌ Sem página de login real
    - ❌ Sem sessão persistida
    - ✅ Solução: Implementar login com JWT
@@ -190,7 +190,7 @@
 
 3. **Supabase Connection Silenta (P1)**
    - ❌ Quando Supabase cai, app continua como se nada fosse
-   - ✅ Solução: Adicionar retry logic + offline indicator
+   - ✅ Solução: Ajouter retry logic + offline indicator
 
 ---
 
@@ -199,7 +199,7 @@
 
 1. **Deploy Manual (P1)**
    - ❌ Redeploy manual no Hostinger
-   - ❌ Sem automação
+   - ❌ Sem automaction
    - ❌ Sem rollback automático
    - ✅ Solução: GitHub Actions → auto-deploy + slack notify
 
@@ -210,7 +210,7 @@
 
 3. **Cache Hostinger (P1)**
    - ❌ Limpar cache manualmente quando deploy
-   - ⚠️ Causou o branco por 2 horas
+   - ⚠️ Causou o branco por 2 heures
    - ✅ Solução: Invalidar cache via API ao fazer deploy
 
 ---
@@ -223,7 +223,7 @@
    - ✅ Solução: 
      ```sql
      ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-     ALTER TABLE password_resets ENABLE ROW LEVEL SECURITY;
+     ALTER TABLE mot de passe_réinitialisations ENABLE ROW LEVEL SECURITY;
      -- ... e as outras 5
      ```
 
@@ -231,13 +231,13 @@
    - ❌ `.env.local` e `.env.production` commitadas no GitHub
    - ✅ Solução:
      1. Revogar chaves Supabase
-     2. Remover de git history: `git filter-branch`
+     2. Retirer de git history: `git filter-branch`
      3. Usar secrets no Hostinger/GitHub
 
 3. **Sem Backups (P1)**
    - ❌ Sem backup automático de Supabase
    - ❌ Sem disaster recovery
-   - ✅ Solução: Ativar backups Supabase + duplicação
+   - ✅ Solução: Ativar backups Supabase + duplicaction
 
 ---
 
@@ -245,7 +245,7 @@
 
 | Severidade | Count | Status |
 |-----------|-------|--------|
-| 🔴 P0 (Bloqueadores) | 9 | CRÍTICO |
+| 🔴 P0 (Bloquéres) | 9 | CRÍTICO |
 | 🟠 P1 (Alto) | 15 | URGENTE |
 | 🟡 P2 (Médio) | 6 | IMPORTANTE |
 | **Total** | **30** | **FALHAS** |
@@ -254,19 +254,19 @@
 
 ## ✅ PRÓXIMOS PASSOS (Prioridade)
 
-### HOJE (2-4 horas)
+### HOJE (2-4 heures)
 1. ✅ Ligar RLS em todas as 7 tabelas com políticas seguras
 2. ✅ Revogar token GitHub exposto
-3. ✅ Remover credenciais de `.env.local` / `.env.production`
+3. ✅ Retirer credenciais de `.env.local` / `.env.production`
 4. ✅ Implementar formulário de registo funcional
 
-### AMANHÃ (4-6 horas)
+### AMANHÃ (4-6 heures)
 5. ✅ Implementar Supabase Auth com JWT
 6. ✅ Criar página de login real
-7. ✅ Testar fluxo completo: registo → verificação → login → perfil
-8. ✅ Integração Stripe com webhooks
+7. ✅ Testar fluxo completo: registo → verificaction → login → perfil
+8. ✅ Integraction Stripe com webhooks
 
-### SEMANA 1 (2-3 dias)
+### SEMANA 1 (2-3 jours)
 9. ✅ Testes automatizados (Jest)
 10. ✅ GitHub Actions CI/CD
 11. ✅ Error handling + logging (Sentry)
@@ -276,10 +276,10 @@
 
 ## 🎯 Decisão Final
 **Status:** ⛔ NÃO PRONTO PARA PRODUÇÃO  
-**Recomendação:** Resolva os 9 P0s antes de ter utilizadores reais
+**Recomendaction:** Resolva os 9 P0s antes de ter utilisateurs reais
 
 **Equipa Responsável:** Dev lead + 2 engenheiros backend + 1 infra  
-**Timeline Realista:** 5-7 dias com equipa dedicada
+**Timeline Realista:** 5-7 jours com equipa dedicada
 
 ---
 

@@ -3,7 +3,7 @@ import { createCheckoutSession } from '@/lib/stripe';
 
 /**
  * POST /api/checkout
- * Create a Stripe checkout session for subscription upgrade
+ * Create a Stripe checkout session for abonnement upgrade
  */
 export async function POST(request: NextRequest) {
   try {

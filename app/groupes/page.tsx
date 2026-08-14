@@ -30,7 +30,7 @@ export default function GroupesPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [filter, setFilter] = useState<string>('all');
 
-  // Verificar se é premium
+  // Verificar se est premium
   const isPremium = isPremiumFn(user);
 
   useEffect(() => {
@@ -75,7 +75,7 @@ export default function GroupesPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-white mb-2">Grupos</h1>
+            <h1 className="text-4xl font-bold text-white mb-2">Groupes</h1>
             <p className="text-zinc-400">Encontra ou cria grupos de interesse</p>
           </div>
           {user && (
@@ -89,7 +89,7 @@ export default function GroupesPage() {
               title={isPremium ? 'Criar novo grupo' : 'Premium apenas'}
             >
               <Plus className="w-5 h-5" />
-              Criar Grupo
+              Criar Groupe
             </button>
           )}
         </div>
@@ -104,7 +104,7 @@ export default function GroupesPage() {
                 : 'bg-[#2C1B3D] text-zinc-400 hover:bg-[#3C2B4D]'
             }`}
           >
-            Todos
+            Tous
           </button>
           <button
             onClick={() => setFilter('public')}
@@ -114,7 +114,7 @@ export default function GroupesPage() {
                 : 'bg-[#2C1B3D] text-zinc-400 hover:bg-[#3C2B4D]'
             }`}
           >
-            Públicos
+            Publics
           </button>
           <button
             onClick={() => setFilter('private')}
@@ -124,7 +124,7 @@ export default function GroupesPage() {
                 : 'bg-[#2C1B3D] text-zinc-400 hover:bg-[#3C2B4D]'
             }`}
           >
-            Privados
+            Privés
           </button>
         </div>
 
@@ -133,14 +133,14 @@ export default function GroupesPage() {
           <div className="text-center text-zinc-400">Carregando grupos...</div>
         ) : filteredGroups.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-zinc-400 mb-4">Nenhum grupo encontrado</p>
+            <p className="text-zinc-400 mb-4">Aucun groupe trouvé</p>
             {user && isPremium && (
               <button
                 onClick={() => setIsCreateModalOpen(true)}
                 className="inline-flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-[#D4145A] to-[#E86B7A] rounded-lg font-semibold text-white hover:opacity-90 transition"
               >
                 <Plus className="w-5 h-5" />
-                Criar Primeiro Grupo
+                Criar Primeiro Groupe
               </button>
             )}
           </div>
@@ -155,7 +155,7 @@ export default function GroupesPage() {
                   <h3 className="text-lg font-bold text-white flex-1">{group.name}</h3>
                   {group.isPrivate && (
                     <span className="text-xs bg-[#D4145A]/20 text-[#D4145A] px-2 py-1 rounded">
-                      Privado
+                      Privé
                     </span>
                   )}
                 </div>
@@ -184,7 +184,7 @@ export default function GroupesPage() {
         <CreateGroupModal
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
-          userSubscription={{
+          userAbonnement={{
             tier: user.subscriptionTier,
             expiresAt: user.subscriptionEnd,
           }}

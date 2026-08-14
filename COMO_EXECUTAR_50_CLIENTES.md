@@ -1,7 +1,7 @@
 # 🚀 EXECUÇÃO - 50 CLIENTES TESTANDO SIMULTÂNEAMENTE
 
 **Data:** 09/08/2026  
-**Duração:** 3 horas  
+**Duraction:** 3 heures  
 **Clientes:** 50 (+ 3 agentes)  
 **Status:** Teste Distribuído em Paralelo
 
@@ -14,56 +14,56 @@
 │         50 CLIENTES - 7 GRUPOS DE TESTE             │
 ├─────────────────────────────────────────────────────┤
 │                                                     │
-│  GRUPO 1-5 (Autenticação)          [5 clientes]    │
+│  GRUPO 1-5 (Autenticaction)          [5 clientes]    │
 │  ├─ Client 1: Registro                             │
 │  ├─ Client 2: Login                                │
-│  ├─ Client 3: Perfil & Logout                      │
-│  ├─ Client 4: Password Reset (Request)             │
-│  └─ Client 5: Password Reset (Confirmar)           │
+│  ├─ Client 3: Profil & Logout                      │
+│  ├─ Client 4: Mot de passe Reset (Request)             │
+│  └─ Client 5: Mot de passe Reset (Confirmer)           │
 │                                                     │
 │  GRUPO 6-10 (Paywall)              [5 clientes]    │
 │  ├─ Client 6: /decouvrir bloqueado                 │
 │  ├─ Client 7: /chat bloqueado                      │
-│  ├─ Client 8: Criar Grupo bloqueado                │
+│  ├─ Client 8: Criar Groupe bloqueado                │
 │  ├─ Client 9: Upload Foto bloqueado                │
 │  └─ Client 10: /eventos bloqueado                  │
 │                                                     │
 │  GRUPO 11-20 (Discovery)           [10 clientes]   │
-│  ├─ Client 11: Página básica                       │
-│  ├─ Client 12: Filtro Localização                  │
-│  ├─ Client 13: Filtro Idade                        │
-│  ├─ Client 14: Filtro Género                       │
-│  ├─ Client 15: Filtro Orientação                   │
-│  ├─ Client 16: Filtros Combinados                  │
-│  ├─ Client 17: Paginação (Botões)                  │
-│  └─ Clients 18-20: Paginação + Filtros             │
+│  ├─ Client 11: Page básica                       │
+│  ├─ Client 12: Filtro Localisation                  │
+│  ├─ Client 13: Filtro Âge                        │
+│  ├─ Client 14: Filtro Genre                       │
+│  ├─ Client 15: Filtro Orientaction                   │
+│  ├─ Client 16: Filtres Combinados                  │
+│  ├─ Client 17: Paginaction (Botões)                  │
+│  └─ Clients 18-20: Paginaction + Filtres             │
 │                                                     │
 │  GRUPO 21-25 (Likes)               [5 clientes]    │
-│  ├─ Client 21: Curtir Perfil                       │
+│  ├─ Client 21: Liker Profil                       │
 │  ├─ Client 22: Meus Likes                          │
 │  ├─ Client 23: Admiradores                         │
 │  ├─ Client 24: Matches (quando pronto)             │
-│  └─ Client 25: Bloquear Utilizador                 │
+│  └─ Client 25: Bloquer Utilisateur                 │
 │                                                     │
-│  GRUPO 26-35 (Grupos)              [10 clientes]   │
-│  ├─ Client 26: Criar Grupo                         │
+│  GRUPO 26-35 (Groupes)              [10 clientes]   │
+│  ├─ Client 26: Criar Groupe                         │
 │  ├─ Client 27: Ver Detalhes                        │
-│  ├─ Client 28: Juntar-se Grupo                     │
-│  ├─ Client 29: Sair de Grupo                       │
-│  └─ Clients 30-35: Editar/Deletar/Admin            │
+│  ├─ Client 28: Juntar-se Groupe                     │
+│  ├─ Client 29: Se déconnecter de Groupe                       │
+│  └─ Clients 30-35: Modifier/Deletar/Admin            │
 │                                                     │
 │  GRUPO 36-45 (Chat)                [10 clientes]   │
 │  ├─ Client 36: Ver Chat (Membro)                   │
-│  ├─ Client 37: Enviar Mensagem                     │
-│  ├─ Client 38: Histórico                           │
+│  ├─ Client 37: Envoyer Message                     │
+│  ├─ Client 38: Historique                           │
 │  ├─ Client 39: Lista Membros                       │
 │  ├─ Client 40: Reações                             │
-│  ├─ Client 41: Editar Mensagem                     │
+│  ├─ Client 41: Modifier Message                     │
 │  ├─ Client 42: Typing Indicator                    │
 │  └─ Clients 43-45: Notificações                    │
 │                                                     │
 │  GRUPO 46-50 (Edge Cases)          [5 clientes]    │
-│  ├─ Client 46: Password Fraca                      │
+│  ├─ Client 46: Mot de passe Fraca                      │
 │  ├─ Client 47: Email Duplicado                     │
 │  ├─ Client 48: Responsividade Mobile               │
 │  ├─ Client 49: Performance                         │
@@ -79,19 +79,19 @@
 ### **ANTES DE INICIAR (5 min)**
 
 ```
-1. Insere 53 utilizadores (3 agentes + 50 clientes)
+1. Insere 53 utilisateurs (3 agentes + 50 clientes)
    ✅ Ver: TESTE_USUARIOS.sql
 
-2. Verifica Supabase está online
+2. Vérifie Supabase está online
    ✅ https://app.supabase.com
 
-3. Verifica xlibertine.com está online
+3. Vérifie xlibertine.com está online
    ✅ https://xlibertine.com
 
-4. Cria grupo/chat para coordenação
+4. Crée grupo/chat para coordenaction
    ✅ Telegram, Discord, Slack, etc
 
-5. Distribui documentação aos clientes
+5. Distribui documentaction aos clientes
    ✅ TESTE_50_CLIENTES_DISTRIBUIDO.md
    ✅ TESTING_CHECKLIST.md
 ```
@@ -99,23 +99,23 @@
 ### **DURANTE (Sincronizado)**
 
 ```
-⏰ 00:00 - Aviso: "Teste começa em 5 minutos"
-   └─ Todos preparam navegador
+⏰ 00:00 - Aviso: "Teste começa em 5 minutes"
+   └─ Tous preparam navegador
 
-⏰ 00:05 - START: Todos começam simultaneamente
-   └─ Grupos 1-5: Fazem login/logout
-   └─ Grupos 6-10: Testam paywall
-   └─ Grupos 11-20: Testam discovery
-   └─ Grupos 21-25: Testam likes
-   └─ Grupos 26-35: Testam grupos
-   └─ Grupos 36-45: Testam chat
-   └─ Grupos 46-50: Testam edge cases
+⏰ 00:05 - START: Tous começam simultaneamente
+   └─ Groupes 1-5: Fazem login/logout
+   └─ Groupes 6-10: Testam paywall
+   └─ Groupes 11-20: Testam discovery
+   └─ Groupes 21-25: Testam likes
+   └─ Groupes 26-35: Testam grupos
+   └─ Groupes 36-45: Testam chat
+   └─ Groupes 46-50: Testam edge cases
 
 ⏰ 01:00 - Check-in (30 min)
-   └─ Coordenador verifica progresso
+   └─ Coordenador vérifie progresso
    └─ Resolve problemas técnicos
 
-⏰ 02:00 - Final stretch (última hora)
+⏰ 02:00 - Final stretch (última heure)
    └─ Concentra-se em bugs não encontrados
    └─ Repe testes críticos
 
@@ -131,7 +131,7 @@
 ### Credencial
 ```
 Email: premium.ben@xlibertine.com
-Password: TestPass123
+Mot de passe: TestPass123
 ```
 
 ### Checklist Executável
@@ -142,10 +142,10 @@ PASSO 1: LOGIN
 
 ☐ Abre: https://xlibertine.com/login
 ☐ Preenche Email: premium.ben@xlibertine.com
-☐ Preenche Password: TestPass123
+☐ Preenche Mot de passe: TestPass123
 ☐ Clica "Se Connecter"
 ☐ Aguarda redirecionamento para /profil
-☐ Verifica navbar mostra "Ben" ✅
+☐ Vérifie navbar mostra "Ben" ✅
 
 TEMPO ESTIMADO: 30 segundos
 
@@ -153,7 +153,7 @@ TEMPO ESTIMADO: 30 segundos
 PASSO 2: VÁ PARA DISCOVERY
 ═════════════════════════════════════════════════════
 
-☐ Clica menu → "Descobrir"
+☐ Clica menu → "Découvrir"
 ☐ OU Vai direto: https://xlibertine.com/decouvrir
 ☐ Aguarda página carregar (deve carregar em <2s)
 ☐ Vê grid de 20 perfis
@@ -165,10 +165,10 @@ TEMPO ESTIMADO: 30 segundos
 PASSO 3: TESTE FILTRO LOCALIZAÇÃO
 ═════════════════════════════════════════════════════
 
-☐ Localiza dropdown "Localização"
+☐ Localiza dropdown "Localisation"
 ☐ Clica para abrir dropdown
 ☐ Vê opções:
-   ☐ Todas
+   ☐ Toutes
    ☐ Paris
    ☐ Lyon
    ☐ Bordeaux
@@ -179,14 +179,14 @@ PASSO 3: TESTE FILTRO LOCALIZAÇÃO
 ☐ Seleciona: "Paris"
   ☐ Grid recarrega em <1s ✅
   ☐ Mostra ~6 perfis (apenas Paris)
-  ☐ Cada perfil tem localização "Paris"
-  ☐ Página reseta para 1
+  ☐ Cada perfil tem localizaction "Paris"
+  ☐ Page réinitialisationa para 1
   ┌─ RESULTADO: ✅ FUNCIONANDO
 
 ☐ Seleciona: "Lyon"
   ☐ Grid recarrega em <1s ✅
   ☐ Mostra ~6 perfis (apenas Lyon)
-  ☐ Cada perfil tem localização "Lyon"
+  ☐ Cada perfil tem localizaction "Lyon"
   ┌─ RESULTADO: ✅ FUNCIONANDO
 
 ☐ Seleciona: "Bordeaux"
@@ -207,13 +207,13 @@ PASSO 3: TESTE FILTRO LOCALIZAÇÃO
   ☐ Grid recarrega em <1s ✅
   ┌─ RESULTADO: ✅ FUNCIONANDO
 
-☐ Seleciona: "Todas"
+☐ Seleciona: "Toutes"
   ☐ Grid recarrega em <1s ✅
   ☐ Mostra mix de todas as cidades
-  ☐ Página reseta para 1
+  ☐ Page réinitialisationa para 1
   ┌─ RESULTADO: ✅ FUNCIONANDO
 
-TEMPO ESTIMADO: 5 minutos
+TEMPO ESTIMADO: 5 minutes
 
 
 PASSO 4: VERIFICA CONSOLA (F12)
@@ -223,17 +223,17 @@ PASSO 4: VERIFICA CONSOLA (F12)
 ☐ Vai para aba "Console"
 ☐ Procura erros (red messages)
   ☐ Esperado: NENHUM erro ✅
-  ☐ Se houver erro, anota:
+  ☐ Se houver erro, anta:
     ┌─ Screenshot do erro
     ┌─ Qual filtro causou
     ┌─ URL da página
 
-☐ Verifica Network (aba "Network")
+☐ Vérifie Network (aba "Network")
   ☐ Cada mudança de filtro faz GET /api/discovery ✅
   ☐ Status: 200 OK
   ☐ Tempo: <1s por request ✅
 
-TEMPO ESTIMADO: 2 minutos
+TEMPO ESTIMADO: 2 minutes
 
 
 RESUMO FINAL
@@ -241,7 +241,7 @@ RESUMO FINAL
 
 ☑️  LOGIN FEITO
 ☑️  DISCOVERY CARREGOU
-☑️  7 FILTROS TESTADOS (Paris, Lyon, Bordeaux, Côte d'Azur, Bruxelas, Luxembourg, Todas)
+☑️  7 FILTROS TESTADOS (Paris, Lyon, Bordeaux, Côte d'Azur, Bruxelas, Luxembourg, Toutes)
 ☑️  CADA FILTRO FUNCIONA CORRETAMENTE
 ☑️  GRID RECARREGA EM <1s
 ☑️  CONSOLA SEM ERROS
@@ -249,7 +249,7 @@ RESUMO FINAL
 
 ✅ TESTE PASSADO COM SUCESSO!
 
-TEMPO TOTAL: ~8 minutos
+TEMPO TOTAL: ~8 minutes
 BUGS ENCONTRADOS: 0
 ```
 
@@ -261,12 +261,12 @@ BUGS ENCONTRADOS: 0
 BUG ENCONTRADO NO CLIENTE 12
 ═════════════════════════════════════════════════════
 
-Tipo: Filtro Localização Não Funciona
+Tipo: Filtro Localisation Non Funciona
 
 Passo:
   1. Login: premium.ben@xlibertine.com
   2. Vai para /decouvrir
-  3. Dropdown Localização em "Paris"
+  3. Dropdown Localisation em "Paris"
   4. Grid não recarrega
   5. Mostra ainda perfis de outras cidades
 
@@ -305,25 +305,25 @@ Durante o teste, usa este rastreador:
 │          TRACKING - 50 CLIENTES                     │
 ├─────────────────────────────────────────────────────┤
 │                                                     │
-│ GRUPO 1-5  (Autenticação)                           │
+│ GRUPO 1-5  (Autenticaction)                           │
 │ ✅ C1 Registro - PRONTO                             │
 │ ✅ C2 Login - PRONTO                                │
-│ ✅ C3 Perfil - PRONTO                               │
+│ ✅ C3 Profil - PRONTO                               │
 │ ✅ C4 Reset (Request) - PRONTO                      │
-│ ⏳ C5 Reset (Confirmar) - TESTANDO                  │
+│ ⏳ C5 Reset (Confirmer) - TESTANDO                  │
 │                                                     │
 │ GRUPO 6-10 (Paywall)                                │
 │ ✅ C6 /decouvrir - PRONTO                           │
 │ ✅ C7 /chat - PRONTO                                │
-│ ✅ C8 Criar Grupo - PRONTO                          │
+│ ✅ C8 Criar Groupe - PRONTO                          │
 │ ⏳ C9 Upload Foto - TESTANDO                        │
 │ ⏳ C10 /eventos - AGUARDANDO                        │
 │                                                     │
 │ GRUPO 11-20 (Discovery)                             │
-│ ✅ C11 Página Básica - PRONTO                       │
+│ ✅ C11 Page Básica - PRONTO                       │
 │ ⏳ C12 Filtro Location - TESTANDO                   │
-│ ✅ C13 Filtro Idade - PRONTO                        │
-│ ⏳ C14 Filtro Género - TESTANDO                     │
+│ ✅ C13 Filtro Âge - PRONTO                        │
+│ ⏳ C14 Filtro Genre - TESTANDO                     │
 │ ⏳ C15-20 - AGUARDANDO START                        │
 │                                                     │
 │ ... (continuaria para todos 50)                     │
@@ -351,31 +351,31 @@ BUGS ENCONTRADOS
 Total de Bugs: 3
 
 CRITICO (Bloqueia teste):
-┌─ #1 [Chat] Mensagens não enviam
+┌─ #1 [Chat] Messages não enviam
    │  Cliente: 37
    │  Erro: "API error 500"
-   │  Como: Envia qualquer mensagem em grupo
+   │  Como: Envoie qualquer mensagem em grupo
    └─ Prioridade: 🔴 CRÍTICO
 
 MAJOR (Funcionalidade não funciona):
-┌─ #2 [Discovery] Filtro Localização não funciona
+┌─ #2 [Discovery] Filtro Localisation não funciona
    │  Cliente: 12
    │  Erro: Grid não recarrega
    │  Como: Seleciona "Paris" em filtro
    └─ Prioridade: 🟠 MAJOR
 
 MINOR (Cosmético):
-┌─ #3 [UI] Botão "Curtir" tem cor errada
+┌─ #3 [UI] Botão "Liker" tem cor errada
    │  Cliente: 21
    │  Erro: Rosa em vez de vermelho
-   │  Como: Página /decouvrir
+   │  Como: Page /decouvrir
    └─ Prioridade: 🟡 MINOR
 
 Total Testes: 105
 Testes Passados: 102 (97%)
 Testes Falhados: 3 (3%)
 
-Recomendação: 
+Recomendaction: 
 ✅ PRONTO PARA PRODUÇÃO (Bugs MAJOR podem esperar ou hotfix)
 ```
 
@@ -385,12 +385,12 @@ Recomendação:
 
 ```
 Antes de iniciar testes:
-☐ 53 utilizadores inseridos no Supabase
+☐ 53 utilisateurs inseridos no Supabase
 ☐ xlibertine.com online e responsivo
 ☐ 50 clientes receberam credenciais
-☐ 50 clientes receberam documentação
+☐ 50 clientes receberam documentaction
 ☐ Coordenador pronto em chat/grupo
-☐ Todos têm F12 DevTools aberto
+☐ Tous têm F12 DevTools aberto
 
 Durante testes:
 ☐ Coordenador monitora progresso
@@ -410,7 +410,7 @@ Depois de testes:
 
 ## 🚀 COMANDE PARA COMEÇAR
 
-**Enviar aos 50 clientes:**
+**Envoyer aos 50 clientes:**
 
 ```
 ═════════════════════════════════════════════════════
@@ -423,14 +423,14 @@ Tu és CLIENT #[número] e vais testar: [Funcionalidade]
 
 📋 CREDENCIAIS:
    Email: [seu_email@test.com]
-   Password: TestPass123
+   Mot de passe: TestPass123
 
 📖 GUIA:
    👉 Ver: TESTE_50_CLIENTES_DISTRIBUIDO.md
    👉 Procura: "CLIENTE [número]"
    👉 Segue os passos
 
-⏱️ DURAÇÃO: ~10-15 minutos
+⏱️ DURAÇÃO: ~10-15 minutes
 
 🎯 OBJETIVO:
    Testa TODOS os botões/opções da tua funcionalidade
@@ -447,5 +447,5 @@ Tu és CLIENT #[número] e vais testar: [Funcionalidade]
 
 **Data:** 09/08/2026  
 **Status:** Pronto para 50 clientes testarem  
-**Duração:** 3 horas  
+**Duraction:** 3 heures  
 **Resultado Esperado:** 97%+ de sucesso

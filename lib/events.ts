@@ -42,7 +42,7 @@ export async function createEvent(
   try {
     // Validate required fields
     if (!eventData.title || !eventData.description) {
-      return { success: false, error: 'Título e descrição são obrigatórios' };
+      return { success: false, error: 'Le titre et la description sont obligatoires' };
     }
 
     if (eventData.title.length < 10 || eventData.title.length > 255) {
@@ -50,7 +50,7 @@ export async function createEvent(
     }
 
     if (eventData.description.length < 50) {
-      return { success: false, error: 'Descrição deve ter no mínimo 50 caracteres' };
+      return { success: false, error: 'Description deve ter no mínimo 50 caracteres' };
     }
 
     // Calculate expiration
@@ -87,7 +87,7 @@ export async function createEvent(
     return { success: true, eventId: data.id };
   } catch (error) {
     console.error('Failed to create event:', error);
-    return { success: false, error: 'Falha ao criar anúncio' };
+    return { success: false, error: 'Échec de criar anúncio' };
   }
 }
 
@@ -284,7 +284,7 @@ export async function renewEvent(
     const event = await getEventDetails(eventId);
 
     if (!event || event.creator_id !== creatorId) {
-      return { success: false, error: 'Evento não encontrado ou sem permissão' };
+      return { success: false, error: 'Événement introuvable ou sans autorisation' };
     }
 
     const plan = EVENT_PLANS[planType];
@@ -306,7 +306,7 @@ export async function renewEvent(
     return { success: true };
   } catch (error) {
     console.error('Failed to renew event:', error);
-    return { success: false, error: 'Falha ao renovar anúncio' };
+    return { success: false, error: 'Échec de renovar anúncio' };
   }
 }
 

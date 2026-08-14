@@ -323,7 +323,7 @@ export default function RegisterPage() {
                   <span>Photo de Vérification (Recommandée)</span>
                 </div>
                 <p className="text-[11px] text-zinc-400">
-                  Transmettez un selfie avec mot manuscrit pour obtenir le badge Profil Vérifié immédiatement après inscription.
+                  Transmettez un selfie avec mot manuscrit pour obtenir le badge Profil Vérifié imméjourtement après inscription.
                 </p>
 
                 <div className="space-y-2 pt-1">

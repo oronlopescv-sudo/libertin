@@ -33,7 +33,7 @@ Onde pegar:
 
 ## 📋 COMO ADICIONAR (Passo-a-Passo)
 
-### Passo 1: Abrir Hostinger
+### Passo 1: Ouvrir Hostinger
 ```
 https://hpanel.hostinger.com
 → Login
@@ -42,19 +42,19 @@ https://hpanel.hostinger.com
 ### Passo 2: Ir a Variáveis
 ```
 Menu Esquerdo
-→ Configurações/Settings
+→ Paramètres/Settings
 → Build and Output Settings
 → Scroll down: "Environment Variables"
 ```
 
-### Passo 3: Adicionar Primeira Variável
+### Passo 3: Ajouter Primeira Variável
 ```
 Campo "Key": RESEND_API_KEY
 Campo "Value": re_xxxxx...
 Clica ✓ (ou deixa assim)
 ```
 
-### Passo 4: Adicionar Segunda Variável
+### Passo 4: Ajouter Segunda Variável
 ```
 Clica "+ Add more"
 Campo "Key": NEXT_PUBLIC_BASE_URL
@@ -66,7 +66,7 @@ Clica ✓
 ```
 Scroll down até fim
 Clica "Save and redeploy"
-Aguarda 2-3 minutos
+Aguarda 2-3 minutes
 ```
 
 ---
@@ -80,7 +80,7 @@ Hostinger vai:
 1. Pegar nas variáveis
 2. Fazer build automático
 3. Deploy do site
-4. 2-3 minutos depois...
+4. 2-3 minutes depois...
 5. Site funciona com Resend ✅
 ```
 
@@ -89,14 +89,14 @@ Hostinger vai:
 ## 🧪 TESTAR (Depois de redeploy)
 
 ```
-1. https://xlibertine.com/forgot-password
+1. https://xlibertine.com/forgot-mot de passe
 2. Email: teu@email.com
-3. "Enviar Link"
+3. "Envoyer Link"
 4. Vai a email
-5. Recebe email de reset ✅
+5. Recebe email de réinitialisation ✅
 6. Clica link
-7. Reseta password
-8. Login com nova password ✅
+7. Reseta mot de passe
+8. Login com nova mot de passe ✅
 ```
 
 ---
@@ -105,7 +105,7 @@ Hostinger vai:
 
 ### "Email not received"
 ```
-→ Verifica se RESEND_API_KEY está correto
+→ Vérifie se RESEND_API_KEY está correto
 → Chave começa com "re_"?
 → Copia novamente da https://resend.com/api-keys
 ```
@@ -113,7 +113,7 @@ Hostinger vai:
 ### "Email recebido mas link não funciona"
 ```
 → NEXT_PUBLIC_BASE_URL deve ser https://xlibertine.com
-→ Verifica se é exatamente isto (sem /)
+→ Vérifie se é exatamente isto (sem /)
 ```
 
 ### "Build failed"

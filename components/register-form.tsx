@@ -32,7 +32,7 @@ export function RegisterForm() {
       }
 
       if (formData.password.length < 8) {
-        throw new Error('Le mot de passe doit contenir au moins 8 caractères');
+        throw new Error('Le password doit contenir au moins 8 caractères');
       }
 
       const age = new Date().getFullYear() - new Date(formData.dateOfBirth).getFullYear();
@@ -132,14 +132,14 @@ export function RegisterForm() {
               </div>
             </div>
 
-            {/* Password */}
+            {/* Mot de passe */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-[#F5F0F8]">Mot de passe</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 w-5 h-5 text-[#D4145A]/50" />
                 <input
                   type="password"
-                  name="password"
+                  name="mot de passe"
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Minimum 8 caractères"

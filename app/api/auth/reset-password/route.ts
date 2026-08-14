@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
 
     if (!token || !email || !newPassword) {
       return NextResponse.json(
-        { error: 'Token, email e nova password são obrigatórios' },
+        { error: "Le jeton, l'email et le nouveau password sont obligatoires" },
         { status: 400 }
       );
     }
@@ -24,53 +24,53 @@ export async function POST(req: NextRequest) {
     // Hash do token que recebemos (para comparar com o guardado)
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
-    // Busca o reset token
-    const { data: resetRecord, error: resetError } = await supabase
-      .from('password_resets')
+    // Récupère o réinitialisation token
+    const { data: réinitialisationRecord, error: réinitialisationError } = await supabase
+      .from('mot de passe_réinitialisations')
       .select('userId, expiresAt, used')
       .eq('token', tokenHash)
       .single();
 
-    if (resetError || !resetRecord) {
+    if (réinitialisationError || !réinitialisationRecord) {
       return NextResponse.json(
-        { error: 'Token inválido ou expirado' },
+        { error: 'Jeton invalide ou expiré' },
         { status: 400 }
       );
     }
 
-    // Verifica se já foi usado
-    if (resetRecord.used) {
+    // Vérifie se já foi usado
+    if (réinitialisationRecord.used) {
       return NextResponse.json(
-        { error: 'Este link de reset já foi utilizado' },
+        { error: 'Este link de réinitialisation já foi utilizado' },
         { status: 400 }
       );
     }
 
-    // Verifica se expirou
-    if (new Date(resetRecord.expiresAt) < new Date()) {
+    // Vérifie se expirou
+    if (new Date(réinitialisationRecord.expiresAt) < new Date()) {
       return NextResponse.json(
-        { error: 'Link de reset expirou' },
+        { error: 'Link de réinitialisation expirou' },
         { status: 400 }
       );
     }
 
-    // Hash a nova password
+    // Hash a nova mot de passe
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     // Atualiza password do user
     const { error: updateError } = await supabase
       .from('users')
       .update({ hashedPassword })
-      .eq('id', resetRecord.userId)
+      .eq('id', réinitialisationRecord.userId)
       .eq('email', email);
 
     if (updateError) {
-      return NextResponse.json({ error: 'Erro ao atualizar password' }, { status: 500 });
+      return NextResponse.json({ error: 'Erreur lors de atualizar mot de passe' }, { status: 500 });
     }
 
     // Marca o token como usado
     const { error: markError } = await supabase
-      .from('password_resets')
+      .from('mot de passe_réinitialisations')
       .update({ used: true })
       .eq('token', tokenHash);
 
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(
-      { success: true, message: 'Password resetada com sucesso' },
+      { success: true, message: 'Mot de passe réinitialisationada avec succès' },
       { status: 200 }
     );
   } catch (error) {

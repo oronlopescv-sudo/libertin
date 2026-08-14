@@ -9,10 +9,10 @@ export async function POST(req: NextRequest) {
     const token = cookieStore.get('auth_token')?.value;
 
     if (!token) {
-      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
-    // Busca user do token
+    // Récupère user do token
     let userId: string;
     try {
       const tokenData = JSON.parse(Buffer.from(token, 'base64').toString());
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
     }
 
-    // Busca user para verificar subscrição
+    // Récupère l'utilisateur pour vérifier l'abonnement
     const { data: user, error: userError } = await supabase
       .from('users')
       .select('id, subscriptionTier, subscriptionEnd')
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (userError || !user) {
-      return NextResponse.json({ error: 'Utilizador não encontrado' }, { status: 404 });
+      return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
     }
 
     // ✅ VALIDAÇÃO: Apenas PREMIUM pode fazer upload
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
     if (!userIsPremium) {
       return NextResponse.json(
-        { error: 'Apenas utilizadores Premium podem fazer upload de fotos. Faça upgrade!' },
+        { error: 'Apenas utilisateurs Premium podem fazer upload de fotos. Effectuez upgrade!' },
         { status: 403 }
       );
     }
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     // Por enquanto, retorna sucesso
 
     return NextResponse.json(
-      { success: true, message: 'Upload com sucesso' },
+      { success: true, message: 'Upload avec succès' },
       { status: 200 }
     );
   } catch (error) {

@@ -2,7 +2,7 @@
 
 **Objetivo:** Cada cliente testa um conjunto específico de botões/opções  
 **Total:** 50 clientes + 3 agentes  
-**Duração:** 2-3 horas  
+**Duraction:** 2-3 heures  
 **Status:** Teste paralelo de TODAS as funcionalidades
 
 ---
@@ -11,13 +11,13 @@
 
 ```
 50 CLIENTES
-├─ Grupo 1-5 (FREE) → Autenticação (5 clientes)
-├─ Grupo 6-10 (FREE) → Paywall & Bloqueios (5 clientes)
-├─ Grupo 11-20 (PREMIUM) → Discovery & Filtros (10 clientes)
-├─ Grupo 21-25 (PREMIUM) → Likes & Admiradores (5 clientes)
-├─ Grupo 26-35 (PREMIUM) → Grupos (10 clientes)
-├─ Grupo 36-45 (PREMIUM) → Chat & Mensagens (10 clientes)
-├─ Grupo 46-50 (MIX) → Edge Cases & Bugs (5 clientes)
+├─ Groupe 1-5 (FREE) → Autenticaction (5 clientes)
+├─ Groupe 6-10 (FREE) → Paywall & Bloqueios (5 clientes)
+├─ Groupe 11-20 (PREMIUM) → Discovery & Filtres (10 clientes)
+├─ Groupe 21-25 (PREMIUM) → Likes & Admiradores (5 clientes)
+├─ Groupe 26-35 (PREMIUM) → Groupes (10 clientes)
+├─ Groupe 36-45 (PREMIUM) → Chat & Messages (10 clientes)
+├─ Groupe 46-50 (MIX) → Edge Cases & Bugs (5 clientes)
 └─ 3 AGENTES → Admin Functions (quando implementado)
 ```
 
@@ -37,19 +37,19 @@ Client 5: client.emma@xlibertine.com / TestPass123
 ### Cliente 1: REGISTRO
 **Botões/Opções para testar:**
 ```
-☐ Página: /register
+☐ Page: /register
   ☐ Botão "Rejoindre Maintenant" (clica)
   ☐ Input Email (preenche: newuser1@test.com)
   ☐ Input Username (preenche: NewUser1)
-  ☐ Input Password (preenche: Pass12345678)
-  ☐ Confirmar Password (preenche: Pass12345678)
-  ☐ Dropdown Idade (seleciona 25+)
-  ☐ Radio Género (seleciona Mulher)
-  ☐ Dropdown Localização (seleciona Paris)
+  ☐ Input Mot de passe (preenche: Pass12345678)
+  ☐ Confirmer Mot de passe (preenche: Pass12345678)
+  ☐ Dropdown Âge (seleciona 25+)
+  ☐ Radio Genre (seleciona Femme)
+  ☐ Dropdown Localisation (seleciona Paris)
   ☐ Checkbox Termos (marca)
   ☐ Botão "Criar Conta" (clica)
   ☐ Redirecionamento: /login ✅
-  ☐ Mensagem de sucesso (verifica)
+  ☐ Message de sucesso (verifica)
 
 ✅ RESULTADO: Account criada
 ```
@@ -57,12 +57,12 @@ Client 5: client.emma@xlibertine.com / TestPass123
 ### Cliente 2: LOGIN
 **Botões/Opções para testar:**
 ```
-☐ Página: /login
+☐ Page: /login
   ☐ Input Email (preenche: client.bob@xlibertine.com)
-  ☐ Input Password (preenche: TestPass123)
+  ☐ Input Mot de passe (preenche: TestPass123)
   ☐ Botão "Se Connecter" (clica)
   ☐ Redirecionamento: /profil ✅
-  ☐ Auth token em localStorage (verifica F12)
+  ☐ Auth token em localStorage (vérifie F12)
   ☐ Navbar atualiza (mostra username) ✅
   ☐ Link "Mot de passe oublié?" (visível)
 
@@ -72,48 +72,48 @@ Client 5: client.emma@xlibertine.com / TestPass123
 ### Cliente 3: PERFIL - VER & EDITAR
 **Botões/Opções para testar:**
 ```
-☐ Página: /profil
+☐ Page: /profil
   ☐ Dados visíveis:
     ☐ Username (carol/david/etc)
     ☐ Email
-    ☐ Tipo Subscrição (FREE)
-    ☐ Localização
-  ☐ Botão "Editar Perfil" (se existe)
+    ☐ Tipo Abonnement (FREE)
+    ☐ Localisation
+  ☐ Botão "Modifier Profil" (se existe)
   ☐ Botão "Upload Foto" (tenta)
   ☐ Botão "Alternar Privacidade" (tenta)
   ☐ Botão "Logout" (clica)
   ☐ Redirecionamento: /login ✅
   ☐ Token removido de localStorage ✅
 
-✅ RESULTADO: Perfil visto, logout feito
+✅ RESULTADO: Profil visto, logout feito
 ```
 
 ### Cliente 4: PASSWORD RESET - REQUEST
 **Botões/Opções para testar:**
 ```
-☐ Página: /forgot-password
+☐ Page: /forgot-mot de passe
   ☐ Link "Mot de passe oublié?" (se vindo de /login)
   ☐ Input Email (preenche: client.david@xlibertine.com)
-  ☐ Botão "Enviar Link de Reset" (clica)
-  ☐ Mensagem de sucesso (verifica)
+  ☐ Botão "Envoyer Link de Reset" (clica)
+  ☐ Message de sucesso (verifica)
   ☐ Redirecionamento: /login (ou modal de sucesso) ✅
 
-✅ RESULTADO: Email de reset enviado (Resend)
+✅ RESULTADO: Email de réinitialisation enviado (Resend)
 ```
 
 ### Cliente 5: PASSWORD RESET - CONFIRMAR
 **Botões/Opções para testar:**
 ```
-☐ Simula: Clica link de email
-☐ URL: /reset-password?token=abc123...
-  ☐ Input Nova Password (preenche: NewPass12345)
-  ☐ Confirmar Password (preenche: NewPass12345)
-  ☐ Botão "Resetar Password" (clica)
-  ☐ Mensagem de sucesso ✅
+☐ Ouiula: Clica link de email
+☐ URL: /réinitialisation-mot de passe?token=abc123...
+  ☐ Input Nova Mot de passe (preenche: NewPass12345)
+  ☐ Confirmer Mot de passe (preenche: NewPass12345)
+  ☐ Botão "Réinitialiser Mot de passe" (clica)
+  ☐ Message de sucesso ✅
   ☐ Redirecionamento: /login ✅
-  ☐ Tenta login com nova password ✅
+  ☐ Tenta login com nova mot de passe ✅
 
-✅ RESULTADO: Password resetada, login com nova
+✅ RESULTADO: Mot de passe réinitialisationada, login com nova
 ```
 
 ---
@@ -137,10 +137,10 @@ Client 10: client.jack@xlibertine.com / TestPass123
   ☐ Vê: Lock Screen 🔒
   ☐ Ícone Lock (visível)
   ☐ Texto: "Apenas Premium" (lê)
-  ☐ Descrição paywall (lê)
-  ☐ Botão "Fazer Upgrade para Premium" (clica)
+  ☐ Description paywall (lê)
+  ☐ Botão "Passer à Premium" (clica)
   ☐ Redirecionamento: /abonnements ✅
-  ☐ Volta botão "Voltar" (testa)
+  ☐ Volta botão "Retour" (testa)
   ☐ Redireciona: /decouvrir (com lock novamente) ✅
 
 ✅ RESULTADO: Paywall funcionando
@@ -152,9 +152,9 @@ Client 10: client.jack@xlibertine.com / TestPass123
 ☐ Login: client.grace@xlibertine.com
 ☐ Tenta acessar: /chat/any-group-id
   ☐ Vê: Lock Screen 🔒
-  ☐ Mensagem: "Apenas Premium"
+  ☐ Message: "Apenas Premium"
   ☐ Botão "Fazer Upgrade"
-  ☐ Botão "Voltar"
+  ☐ Botão "Retour"
   ☐ Redirecionamento: /abonnements ou /groupes ✅
 
 ✅ RESULTADO: Chat bloqueado
@@ -165,15 +165,15 @@ Client 10: client.jack@xlibertine.com / TestPass123
 ```
 ☐ Login: client.henry@xlibertine.com
 ☐ Vai para: /groupes
-  ☐ Botão "Criar Grupo" está DISABLED
+  ☐ Botão "Criar Groupe" está DISABLED
   ☐ Tenta clicar (não faz nada)
   ☐ Hover mostra tooltip: "Premium only"
   ☐ Ou vê lock screen quando tenta
   ☐ Opção "Juntar-se" a grupo (tenta)
   ☐ Erro: 403 "Apenas Premium"
-  ☐ Mensagem de erro renderizada ✅
+  ☐ Message de erro renderizada ✅
 
-✅ RESULTADO: Criação bloqueada
+✅ RESULTADO: Criaction bloqueada
 ```
 
 ### Cliente 9: PAYWALL - UPLOAD FOTO
@@ -198,11 +198,11 @@ Client 10: client.jack@xlibertine.com / TestPass123
 ☐ Tenta acessar: /eventos
   ☐ Vê: Lock Screen 🔒
   ☐ Ou redireciona a /abonnements
-  ☐ Botão "Criar Evento" (se visível, tenta)
-  ☐ Bloqueado ou 403 ✅
-  ☐ Mensagem: "Apenas Premium"
+  ☐ Botão "Criar Événement" (se visível, tenta)
+  ☐ Bloqué ou 403 ✅
+  ☐ Message: "Apenas Premium"
 
-✅ RESULTADO: Eventos bloqueados
+✅ RESULTADO: Événements bloqueados
 ```
 
 ---
@@ -228,18 +228,18 @@ Client 20: premium.quinn@xlibertine.com / TestPass123 (PREMIUM 12M)
 ```
 ☐ Login: premium.alice@xlibertine.com
 ☐ Vai para: /decouvrir
-  ☐ Página carrega (sem lock) ✅
-  ☐ Titulo: "Descobrir Perfis" (visível)
+  ☐ Page carrega (sem lock) ✅
+  ☐ Titulo: "Découvrir les profils" (visível)
   ☐ Secção de filtros (visível)
   ☐ Grid de perfis (20 por página)
   ☐ Cada perfil mostra:
     ☐ Avatar/Placeholder
     ☐ Username
-    ☐ Idade
-    ☐ Localização
-    ☐ Género/Orientação
-  ☐ Botão "Curtir" em cada perfil
-  ☐ Paginação (Anterior/Próximo)
+    ☐ Âge
+    ☐ Localisation
+    ☐ Genre/Orientaction
+  ☐ Botão "Liker" em cada perfil
+  ☐ Paginaction (Précédent/Suivant)
 
 ✅ RESULTADO: Discovery carregado
 ```
@@ -249,19 +249,19 @@ Client 20: premium.quinn@xlibertine.com / TestPass123 (PREMIUM 12M)
 ```
 ☐ Login: premium.ben@xlibertine.com
 ☐ Em: /decouvrir
-  ☐ Dropdown Localização:
+  ☐ Dropdown Localisation:
     ☐ Seleciona "Paris"
     ☐ Grid recarrega (20 perfis de Paris)
     ☐ Seleciona "Lyon"
     ☐ Grid recarrega (20 perfis de Lyon)
     ☐ Seleciona "Bordeaux"
     ☐ Grid recarrega (20 perfis de Bordeaux)
-    ☐ Seleciona "Todas"
+    ☐ Seleciona "Toutes"
     ☐ Grid volta a mostrar mix
   ☐ Cada mudança refresca lista ✅
-  ☐ Página volta a 1 ✅
+  ☐ Page volta a 1 ✅
 
-✅ RESULTADO: Filtro localização funciona
+✅ RESULTADO: Filtro localizaction funciona
 ```
 
 ### Cliente 13: FILTRO - IDADE
@@ -269,15 +269,15 @@ Client 20: premium.quinn@xlibertine.com / TestPass123 (PREMIUM 12M)
 ```
 ☐ Login: premium.clara@xlibertine.com
 ☐ Em: /decouvrir
-  ☐ Slider Idade Min:
+  ☐ Slider Âge Min:
     ☐ Começa em 18
     ☐ Arrasta para 25
-    ☐ Label atualiza: "Idade Min: 25" ✅
+    ☐ Label atualiza: "Âge Min: 25" ✅
     ☐ Grid recarrega (só 25+)
-  ☐ Slider Idade Max:
+  ☐ Slider Âge Max:
     ☐ Começa em 60
     ☐ Arrasta para 40
-    ☐ Label atualiza: "Idade Max: 40" ✅
+    ☐ Label atualiza: "Âge Max: 40" ✅
     ☐ Grid recarrega (25-40)
   ☐ Ambos sliders juntos:
     ☐ Min: 30, Max: 45
@@ -291,14 +291,14 @@ Client 20: premium.quinn@xlibertine.com / TestPass123 (PREMIUM 12M)
 ```
 ☐ Login: premium.daniel@xlibertine.com
 ☐ Em: /decouvrir
-  ☐ Dropdown Género:
+  ☐ Dropdown Genre:
     ☐ Seleciona "femme"
     ☐ Grid recarrega (só mulheres)
     ☐ Ícone ♀️ em cada perfil
     ☐ Seleciona "homme"
     ☐ Grid recarrega (só homens)
     ☐ Ícone ♂️ em cada perfil
-    ☐ Seleciona "Todos"
+    ☐ Seleciona "Tous"
     ☐ Grid volta a mix ✅
 
 ✅ RESULTADO: Filtro género funciona
@@ -309,18 +309,18 @@ Client 20: premium.quinn@xlibertine.com / TestPass123 (PREMIUM 12M)
 ```
 ☐ Login: premium.eva@xlibertine.com
 ☐ Em: /decouvrir
-  ☐ Dropdown Orientação:
+  ☐ Dropdown Orientaction:
     ☐ Seleciona "heterosexuelle"
     ☐ Grid recarrega (hetero)
     ☐ Seleciona "bisexuelle"
     ☐ Grid recarrega (bi)
     ☐ Seleciona "lesbienne"
     ☐ Grid recarrega (lésbica)
-    ☐ Seleciona "Todas"
+    ☐ Seleciona "Toutes"
     ☐ Grid volta a mix ✅
   ☐ Badge em cada perfil: "bisexuelle", etc ✅
 
-✅ RESULTADO: Filtro orientação funciona
+✅ RESULTADO: Filtro orientaction funciona
 ```
 
 ### Cliente 16: FILTRO COMBINADO
@@ -329,17 +329,17 @@ Client 20: premium.quinn@xlibertine.com / TestPass123 (PREMIUM 12M)
 ☐ Login: premium.maya@xlibertine.com
 ☐ Em: /decouvrir
   ☐ Combina filtros:
-    ☐ Localização: "Paris"
-    ☐ Idade: 25-35
-    ☐ Género: "femme"
-    ☐ Orientação: "bisexuelle"
+    ☐ Localisation: "Paris"
+    ☐ Âge: 25-35
+    ☐ Genre: "femme"
+    ☐ Orientaction: "bisexuelle"
     ☐ Grid recarrega (Paris + 25-35 + femme + bi) ✅
   ☐ Muda um filtro:
-    ☐ Género: "homme"
+    ☐ Genre: "homme"
     ☐ Grid recarrega (Paris + 25-35 + homme + bi) ✅
-  ☐ Remove filtros (volta a Todos)
+  ☐ Remove filtros (volta a Tous)
 
-✅ RESULTADO: Filtros combinados funcionam
+✅ RESULTADO: Filtres combinados funcionam
 ```
 
 ### Cliente 17: PAGINAÇÃO - BOTÕES
@@ -347,22 +347,22 @@ Client 20: premium.quinn@xlibertine.com / TestPass123 (PREMIUM 12M)
 ```
 ☐ Login: premium.nathan@xlibertine.com
 ☐ Em: /decouvrir
-  ☐ Página 1 carregada (20 perfis)
-  ☐ Botão "Anterior" está DISABLED
-  ☐ Botão "Próximo" está ENABLED
-  ☐ Counter mostra: "Página 1"
-  ☐ Clica "Próximo"
+  ☐ Page 1 carregada (20 perfis)
+  ☐ Botão "Précédent" está DISABLED
+  ☐ Botão "Suivant" está ENABLED
+  ☐ Counter mostra: "Page 1"
+  ☐ Clica "Suivant"
     ☐ Carrega página 2 (20 novos perfis)
-    ☐ Counter: "Página 2" ✅
-    ☐ Botão "Anterior" ENABLED
-    ☐ Botão "Próximo" ENABLED
-  ☐ Clica "Anterior"
+    ☐ Counter: "Page 2" ✅
+    ☐ Botão "Précédent" ENABLED
+    ☐ Botão "Suivant" ENABLED
+  ☐ Clica "Précédent"
     ☐ Volta página 1 ✅
-    ☐ Botão "Anterior" DISABLED novamente
-  ☐ Clica "Próximo" várias vezes
-    ☐ Páginas incrementam
+    ☐ Botão "Précédent" DISABLED novamente
+  ☐ Clica "Suivant" várias vezes
+    ☐ Pages incrementam
 
-✅ RESULTADO: Paginação funciona
+✅ RESULTADO: Paginaction funciona
 ```
 
 ### Cliente 18-20: PAGINAÇÃO COM FILTROS
@@ -371,17 +371,17 @@ Client 20: premium.quinn@xlibertine.com / TestPass123 (PREMIUM 12M)
 ☐ Login: premium.osha (18), premium.paul (19), premium.quinn (20)
 ☐ Em: /decouvrir
   ☐ Aplica filtro: "Paris"
-  ☐ Página 1 (Paris, 20 perfis)
-  ☐ Clica "Próximo"
-    ☐ Página 2 (Paris novamente, 20 novos)
+  ☐ Page 1 (Paris, 20 perfis)
+  ☐ Clica "Suivant"
+    ☐ Page 2 (Paris novamente, 20 novos)
     ☐ Filtro mantém-se ✅
   ☐ Muda filtro: "Lyon"
-    ☐ Página reseta para 1 ✅
+    ☐ Page réinitialisationa para 1 ✅
     ☐ Mostra Lyon, página 1
-  ☐ Clica "Próximo"
+  ☐ Clica "Suivant"
     ☐ Lyon, página 2 ✅
 
-✅ RESULTADO: Paginação + filtros sincronizados
+✅ RESULTADO: Paginaction + filtros sincronizados
 ```
 
 ---
@@ -403,14 +403,14 @@ Client 25: premium.vera@xlibertine.com / TestPass123
 ☐ Login: premium.rosa@xlibertine.com
 ☐ Em: /decouvrir
   ☐ Vê um perfil (ex: "Benjamin")
-  ☐ Botão "Curtir" (oco, branco)
-  ☐ Clica "Curtir"
+  ☐ Botão "Liker" (oco, branco)
+  ☐ Clica "Liker"
     ☐ Botão fica vermelho ❤️
-    ☐ Texto muda: "Curtido"
+    ☐ Texto muda: "Liké"
     ☐ API POST /api/likes (sucesso 201) ✅
   ☐ Clica novamente (Unlike)
     ☐ Botão volta branco
-    ☐ Texto muda: "Curtir"
+    ☐ Texto muda: "Liker"
     ☐ API DELETE (sucesso 200) ✅
   ☐ Clica múltiplas vezes (toggle)
     ☐ Sempre togga corretamente ✅
@@ -423,7 +423,7 @@ Client 25: premium.vera@xlibertine.com / TestPass123
 ```
 ☐ Login: premium.sergio@xlibertine.com
 ☐ Faz alguns likes em /decouvrir
-  ☐ Clica "Curtir" em 3-4 perfis
+  ☐ Clica "Liker" em 3-4 perfis
   ☐ Botões ficam vermelhos ✅
 ☐ Vai para: /profil
   ☐ Vê secção "Meus Likes"
@@ -431,10 +431,10 @@ Client 25: premium.vera@xlibertine.com / TestPass123
   ☐ Cada perfil tem:
     ☐ Avatar/Placeholder
     ☐ Username
-    ☐ Botão "Remover" (Unlike)
-    ☐ Botão "Ver Perfil" (opcional)
-  ☐ Clica "Remover"
-    ☐ Perfil sai da lista ✅
+    ☐ Botão "Retirer" (Unlike)
+    ☐ Botão "Ver Profil" (optionnel)
+  ☐ Clica "Retirer"
+    ☐ Profil sai da lista ✅
     ☐ Contador decresce ✅
 
 ✅ RESULTADO: Meus Likes funciona
@@ -446,16 +446,16 @@ Client 25: premium.vera@xlibertine.com / TestPass123
 ☐ Login: premium.tina@xlibertine.com
 ☐ Vai para: /profil
   ☐ Vê secção "Meus Admiradores"
-  ☐ Mostra quem curtiu seu perfil
+  ☐ Mostra quem curtiu votre profil
   ☐ Contador: "X Admiradores"
   ☐ Cada admirador mostra:
     ☐ Avatar/Placeholder
     ☐ Username
-    ☐ Idade
-    ☐ Localização
-    ☐ Botão "Curtir de Volta" (opcional)
-    ☐ Botão "Ver Perfil" (opcional)
-  ☐ Clica "Curtir de Volta"
+    ☐ Âge
+    ☐ Localisation
+    ☐ Botão "Liker de Volta" (optionnel)
+    ☐ Botão "Ver Profil" (optionnel)
+  ☐ Clica "Liker de Volta"
     ☐ Curtida enviada ✅
   ☐ Lista atualiza em tempo real (refresh)
 
@@ -469,7 +469,7 @@ Client 25: premium.vera@xlibertine.com / TestPass123
 ☐ Vai para: /profil
   ☐ Vê secção "Matches" (quando implementado)
   ☐ Mostra matches (pessoas que ambos se curtiram)
-  ☐ Botão "Ver Conversa" (opcional)
+  ☐ Botão "Ver Conversation" (optionnel)
   ☐ Botão "Ir para Chat"
 
 ✅ RESULTADO: Matches funciona (quando pronto)
@@ -480,18 +480,18 @@ Client 25: premium.vera@xlibertine.com / TestPass123
 ```
 ☐ Login: premium.vera@xlibertine.com
 ☐ Em: /decouvrir
-  ☐ Vê perfil que quer bloquear
-  ☐ Botão "Bloquear" ou opções (menu)
-  ☐ Confirmação: "Tem a certeza?"
-  ☐ Clica "Sim"
-    ☐ Utilizador bloqueado ✅
-    ☐ Não aparece mais em discovery
+  ☐ Vê perfil que quer bloquer
+  ☐ Botão "Bloquer" ou opções (menu)
+  ☐ Confirmaction: "Tem a certeza?"
+  ☐ Clica "Oui"
+    ☐ Utilisateur bloqueado ✅
+    ☐ Non aparece mais em discovery
   ☐ Vai para: /profil
-  ☐ Vê secção "Bloqueados" (opcional)
+  ☐ Vê secção "Bloqués" (optionnel)
   ☐ Mostra lista de bloqueados
-  ☐ Botão "Desbloquear"
-  ☐ Clica "Desbloquear"
-    ☐ Utilizador removido da lista ✅
+  ☐ Botão "Desbloquer"
+  ☐ Clica "Desbloquer"
+    ☐ Utilisateur removido da lista ✅
     ☐ Aparece novamente em discovery
 
 ✅ RESULTADO: Bloqueio funciona
@@ -520,32 +520,32 @@ Client 35: premium.yuri@xlibertine.com / TestPass123 (VIP)
 ```
 ☐ Login: premium.felix@xlibertine.com
 ☐ Vai para: /groupes
-  ☐ Botão "Criar Grupo" (ENABLED, não disabled)
-  ☐ Clica "Criar Grupo"
+  ☐ Botão "Criar Groupe" (ENABLED, não disabled)
+  ☐ Clica "Criar Groupe"
     ☐ Modal abre ✅
   ☐ Formulário no modal:
-    ☐ Input "Nome do Grupo"
-      ☐ Preenche: "Grupo Teste 1"
-    ☐ Textarea "Descrição"
-      ☐ Preenche: "Grupo para testar funcionalidades"
-    ☐ Dropdown "Categoria"
+    ☐ Input "Nome do Groupe"
+      ☐ Preenche: "Groupe Teste 1"
+    ☐ Textarea "Description"
+      ☐ Preenche: "Groupe para testar funcionalidades"
+    ☐ Dropdown "Catégorie"
       ☐ Seleciona: "Diversão"
     ☐ Input "Max Membros"
       ☐ Preenche: "20"
-    ☐ Toggle "Privado?"
+    ☐ Toggle "Privé?"
       ☐ Marca/Desmarca
-    ☐ Botão "Cancelar" (fecha modal)
-    ☐ Botão "Criar Grupo" (cria)
+    ☐ Botão "Annuler" (fecha modal)
+    ☐ Botão "Criar Groupe" (cria)
       ☐ API POST /api/groups (201) ✅
       ☐ Modal fecha ✅
       ☐ Novo grupo aparece no topo da lista ✅
   ☐ Novo grupo mostra:
-    ☐ Nome: "Grupo Teste 1"
-    ☐ Descrição
+    ☐ Nome: "Groupe Teste 1"
+    ☐ Description
     ☐ Membros: "1/20"
     ☐ Badge: "PRIVATE" ou "PUBLIC"
 
-✅ RESULTADO: Criação de grupo funciona
+✅ RESULTADO: Criaction de grupo funciona
 ```
 
 ### Cliente 27: VER DETALHES GRUPO
@@ -555,16 +555,16 @@ Client 35: premium.yuri@xlibertine.com / TestPass123 (VIP)
 ☐ Em: /groupes
   ☐ Clica num grupo existente (não seu)
   ☐ Expande/Abre detalhes:
-    ☐ Nome do grupo
-    ☐ Descrição completa
+    ☐ Nom du groupe
+    ☐ Description completa
     ☐ Admin: username do criador
     ☐ Membros: "X/20"
     ☐ Privacidade: "PRIVATE" ou "PUBLIC"
-    ☐ Data criação
+    ☐ Data criaction
   ☐ Botões disponíveis:
     ☐ "Juntar-se" (se não membro)
-    ☐ "Ver Mensagens" (se membro)
-    ☐ "Sair" (se membro)
+    ☐ "Ver Messages" (se membro)
+    ☐ "Se déconnecter" (se membro)
 
 ✅ RESULTADO: Detalhes grupo visíveis
 ```
@@ -574,15 +574,15 @@ Client 35: premium.yuri@xlibertine.com / TestPass123 (VIP)
 ```
 ☐ Login: premium.harry@xlibertine.com
 ☐ Em: /groupes
-  ☐ Vê um grupo público
+  ☐ Vê um grupo public
   ☐ Botão "Juntar-se" (azul)
   ☐ Clica "Juntar-se"
     ☐ API PATCH /api/groups/join (200) ✅
-    ☐ Botão muda para "Sair" ✅
+    ☐ Botão muda para "Se déconnecter" ✅
     ☐ Contador: "2/20" (ou mais) ✅
     ☐ Agora é membro do grupo
-  ☐ Botão "Ver Mensagens" ativa ✅
-  ☐ Botão "Sair" ativa ✅
+  ☐ Botão "Ver Messages" ativa ✅
+  ☐ Botão "Se déconnecter" ativa ✅
 
 ✅ RESULTADO: Juntar-se funciona
 ```
@@ -594,16 +594,16 @@ Client 35: premium.yuri@xlibertine.com / TestPass123 (VIP)
 ☐ Já membro de um grupo
 ☐ Em: /groupes
   ☐ Vê o grupo que está
-  ☐ Botão "Sair" (vermelho ou cinzento)
-  ☐ Clica "Sair"
-    ☐ Confirmação: "Tem a certeza?"
-    ☐ Clica "Sim"
+  ☐ Botão "Se déconnecter" (vermelho ou cinzento)
+  ☐ Clica "Se déconnecter"
+    ☐ Confirmaction: "Tem a certeza?"
+    ☐ Clica "Oui"
     ☐ API PATCH /api/groups/leave (200) ✅
     ☐ Botão muda para "Juntar-se" ✅
     ☐ Contador decresce: "3/20" → "2/20" ✅
     ☐ Já não é membro
 
-✅ RESULTADO: Sair funciona
+✅ RESULTADO: Se déconnecter funciona
 ```
 
 ### Cliente 30-35: EDITAR GRUPO (admin)
@@ -611,28 +611,28 @@ Client 35: premium.yuri@xlibertine.com / TestPass123 (VIP)
 ```
 ☐ Login: premium.josh (30), premium.kira (31), premium.lucas (32)
 ☐ Em: /groupes
-  ☐ Grupo que CRIARAM (admin)
-  ☐ Botão "Editar Grupo" (verde ou azul)
-  ☐ Clica "Editar"
-    ☐ Modal/Página abre com formulário ✅
+  ☐ Groupe que CRIARAM (admin)
+  ☐ Botão "Modifier Groupe" (verde ou azul)
+  ☐ Clica "Modifier"
+    ☐ Modal/Page abre com formulário ✅
   ☐ Campos editáveis:
     ☐ Nome (muda: "Novo Nome")
-    ☐ Descrição (muda: "Nova desc")
-    ☐ Categoria (muda: "Casual")
+    ☐ Description (muda: "Nova desc")
+    ☐ Catégorie (muda: "Casual")
     ☐ Max Membros (muda: "30")
     ☐ Privacidade (toggle)
-  ☐ Botão "Salvar"
+  ☐ Botão "Enregistrer"
     ☐ API PATCH /api/groups/:id (200) ✅
     ☐ Modal fecha ✅
-    ☐ Grupo atualizado na lista ✅
+    ☐ Groupe atualizado na lista ✅
 
-☐ Botão "Deletar Grupo" (vermelho, com warning)
-  ☐ Confirmação: "Isto vai deletar permanentemente"
+☐ Botão "Deletar Groupe" (vermelho, com warning)
+  ☐ Confirmaction: "Isto vai deletar permanentemente"
   ☐ Clica "Deletar"
     ☐ API DELETE /api/groups/:id (200) ✅
-    ☐ Grupo removido da lista ✅
+    ☐ Groupe removido da lista ✅
 
-✅ RESULTADO: Editar/Deletar funciona (3 clients testam)
+✅ RESULTADO: Modifier/Deletar funciona (3 clients testam)
 ```
 
 ### Clients 33-35 (VIP): ADMIN FUNCTIONS
@@ -641,8 +641,8 @@ Client 35: premium.yuri@xlibertine.com / TestPass123 (VIP)
 ☐ Login: premium.walter (33), premium.xenia (34), premium.yuri (35)
 ☐ Em: /groupes
   ☐ Como admin/VIP, testa:
-    ☐ Botão "Banir Membro" (em grupo meu)
-    ☐ Confirmação warning
+    ☐ Botão "Bannir Membro" (em grupo meu)
+    ☐ Confirmaction warning
     ☐ Membro removido e bloqueado ✅
     ☐ Botão "Promover Moderador"
     ☐ Membro fica mod ✅
@@ -676,14 +676,14 @@ Client 45: premium.quinn@xlibertine.com
 ☐ Login: premium.alice@xlibertine.com
 ☐ Vai para: /groupes
   ☐ Participa em um grupo
-  ☐ Clica "Ver Mensagens" ou no grupo
+  ☐ Clica "Ver Messages" ou no grupo
   ☐ URL: /chat/grupo-id
-  ☐ Página carrega ✅
+  ☐ Page carrega ✅
   ☐ Componentes visíveis:
-    ☐ Nome do grupo (topo)
-    ☐ Lista de mensagens (vazia ou com histórico)
+    ☐ Nom du groupe (topo)
+    ☐ Lista de mensagens (vazia ou com historique)
     ☐ Input para escrever mensagem (fundo)
-    ☐ Botão "Enviar" ou botão ➤
+    ☐ Botão "Envoyer" ou botão ➤
     ☐ Lista de membros (side/bottom)
 
 ✅ RESULTADO: Chat carrega
@@ -697,16 +697,16 @@ Client 45: premium.quinn@xlibertine.com
   ☐ Campo input vazio
   ☐ Clica no input
   ☐ Escreve: "Olá! Isto é um teste 🎉"
-  ☐ Botão "Enviar" ativa ✅
-  ☐ Clica "Enviar" ou pressiona Enter
+  ☐ Botão "Envoyer" ativa ✅
+  ☐ Clica "Envoyer" ou pressiona Enter
     ☐ API POST /api/messages (201) ✅
-    ☐ Mensagem aparece no histórico ✅
+    ☐ Message aparece no historique ✅
     ☐ Mostra:
       ☐ Username: "Ben"
-      ☐ Mensagem: "Olá! Isto é um teste 🎉"
+      ☐ Message: "Olá! Isto é um teste 🎉"
       ☐ Timestamp: "14:32"
     ☐ Input limpa ✅
-  ☐ Envia outra: "Segunda mensagem"
+  ☐ Envoie outra: "Segunda mensagem"
     ☐ Aparece abaixo ✅
 
 ✅ RESULTADO: Envio de mensagens funciona
@@ -716,16 +716,16 @@ Client 45: premium.quinn@xlibertine.com
 **Botões/Opções para testar:**
 ```
 ☐ Login: premium.clara@xlibertine.com
-☐ Em: /chat/grupo-id (com histórico)
-  ☐ Scroll up (histórico carrega)
+☐ Em: /chat/grupo-id (com historique)
+  ☐ Scroll up (historique carrega)
   ☐ Botão "Carregar mais" ou auto-load ✅
-  ☐ Mensagens mais antigas aparecem ✅
+  ☐ Messages mais antigas aparecem ✅
   ☐ Ordem: Antiga → Recente (cronológica) ✅
   ☐ Scroll down (vai a mensagens recentes)
   ☐ Auto-scroll para mensagem nova ✅
-  ☐ Notificação: "Nova mensagem" (se há)
+  ☐ Notificaction: "Nova mensagem" (se há)
 
-✅ RESULTADO: Histórico funciona
+✅ RESULTADO: Historique funciona
 ```
 
 ### Cliente 39: LISTA DE MEMBROS
@@ -744,8 +744,8 @@ Client 45: premium.quinn@xlibertine.com
     ☐ Username/Avatar
     ☐ Status online (se implementado)
     ☐ Menu (3 dots) com opções:
-      ☐ "Ver Perfil"
-      ☐ "Bloquear" (se não admin)
+      ☐ "Ver Profil"
+      ☐ "Bloquer" (se não admin)
       ☐ "Reportar" (se não admin)
 
 ✅ RESULTADO: Lista membros funciona
@@ -757,11 +757,11 @@ Client 45: premium.quinn@xlibertine.com
 ☐ Login: premium.eva@xlibertine.com
 ☐ Em: /chat/grupo-id
   ☐ Hover sobre uma mensagem
-  ☐ Ícone de reação (😊 emoji) aparece ✅
+  ☐ Ícone de reaction (😊 emoji) aparece ✅
   ☐ Clica ícone
     ☐ Emoji picker abre (quando implementado)
     ☐ Seleciona: ❤️ (heart)
-    ☐ Reação adicionada à mensagem ✅
+    ☐ Reaction adicionada à mensagem ✅
     ☐ Contador: "1 ❤️"
   ☐ Clica novamente
     ☐ Seu ❤️ removido (se era seu)
@@ -778,19 +778,19 @@ Client 45: premium.quinn@xlibertine.com
 ☐ Em: /chat/grupo-id
 ☐ Sua própria mensagem:
   ☐ Hover mostra botões (editar, deletar)
-  ☐ Clica botão "Editar" (lápis)
-    ☐ Mensagem fica editável (inline) ✅
+  ☐ Clica botão "Modifier" (lápis)
+    ☐ Message fica editável (inline) ✅
     ☐ Input mostra conteúdo atual
-    ☐ Clica "Salvar"
-    ☐ Mensagem atualizada ✅
+    ☐ Clica "Enregistrer"
+    ☐ Message atualizada ✅
     ☐ Mostra: "[Editada]" ou label similar
   ☐ Clica botão "Deletar" (lixo)
-    ☐ Confirmação: "Deletar?"
-    ☐ Clica "Sim"
-    ☐ Mensagem removida ✅
-    ☐ Mostra placeholder: "Mensagem deletada"
+    ☐ Confirmaction: "Deletar?"
+    ☐ Clica "Oui"
+    ☐ Message removida ✅
+    ☐ Mostra placeholder: "Message deletada"
 
-✅ RESULTADO: Editar/Deletar funciona
+✅ RESULTADO: Modifier/Deletar funciona
 ```
 
 ### Cliente 42: TIPAGEM EM TEMPO REAL (Typing Indicator)
@@ -802,9 +802,9 @@ Client 45: premium.quinn@xlibertine.com
   ☐ Client 43 começa a escrever
   ☐ Client 42 vê: "Nathan está escrevendo..."
     ☐ Indicator com dots animados ✅
-  ☐ Client 43 envia mensagem
+  ☐ Client 43 envoie mensagem
   ☐ Client 42 vê: Indicator desaparece
-  ☐ Mensagem aparece normalmente
+  ☐ Message aparece normalmente
 
 ✅ RESULTADO: Typing indicator funciona (quando implementado)
 ```
@@ -815,12 +815,12 @@ Client 45: premium.quinn@xlibertine.com
 ☐ Login: premium.osha (43), premium.paul (44), premium.quinn (45)
 ☐ Saem de /chat/grupo-id
 ☐ Vão para /profil (fora do grupo)
-☐ Outro client (42, 44, 45) envia mensagem
+☐ Outro client (42, 44, 45) envoie mensagem
 ☐ Notificações:
   ☐ Badge no ícone do grupo: "1 nova msg" ✅
   ☐ Push notification (se browser permite) ✅
   ☐ Email notification (se enabled) ✅
-☐ Clica notificação
+☐ Clica notificaction
   ☐ Redireciona a /chat/grupo-id ✅
 
 ✅ RESULTADO: Notificações funcionam
@@ -844,19 +844,19 @@ Client 50: premium.harry@xlibertine.com / TestPass123 (PREMIUM 3M)
 ```
 ☐ Vai para: /register
   ☐ Preenche: Email (novo)
-  ☐ Preenche Password: "123"
+  ☐ Preenche Mot de passe: "123"
   ☐ Botão "Criar" tenta
-  ☐ Erro: "Mínimo 8 caracteres" ✅
+  ☐ Erro: "Minimum 8 caracteres" ✅
   ☐ Botão permanece desabilitado até validar
 
-☐ Preenche Password: "Pass"
-  ☐ Erro: "Mínimo 8 caracteres" ✅
+☐ Preenche Mot de passe: "Pass"
+  ☐ Erro: "Minimum 8 caracteres" ✅
 
-☐ Preenche Password: "TestPass123"
+☐ Preenche Mot de passe: "TestPass123"
   ☐ Erro desaparece ✅
-  ☐ Validação em tempo real (debounce)
+  ☐ Validaction em tempo real (debounce)
 
-✅ RESULTADO: Validação password funciona
+✅ RESULTADO: Validaction mot de passe funciona
 ```
 
 ### Cliente 47: CASOS DE ERRO - EMAIL DUPLICADO
@@ -869,13 +869,13 @@ Client 50: premium.harry@xlibertine.com / TestPass123 (PREMIUM 3M)
   ☐ Erro: "Email já registado" ✅
   ☐ Botão desabilitado ou pode-se corrigir
 
-✅ RESULTADO: Validação email duplicado funciona
+✅ RESULTADO: Validaction email duplicado funciona
 ```
 
 ### Cliente 48: RESPONSIVIDADE MOBILE
 **Testes (em iPhone/móvel):**
 ```
-☐ Todas as páginas responsive:
+☐ Toutes as páginas responsive:
   ☐ /login - Input alinhados, botão grande ✅
   ☐ /profil - Dados empilhados, lê bem ✅
   ☐ /decouvrir - Grid 1 coluna, swipe ✅
@@ -887,7 +887,7 @@ Client 50: premium.harry@xlibertine.com / TestPass123 (PREMIUM 3M)
   ☐ Swipe (se implementado) funciona ✅
   ☐ Scroll é smooth ✅
 
-☐ Orientação:
+☐ Orientaction:
   ☐ Landscape → UI ajusta ✅
   ☐ Portrait → UI ajusta ✅
 
@@ -900,7 +900,7 @@ Client 50: premium.harry@xlibertine.com / TestPass123 (PREMIUM 3M)
 ☐ Tempo de carregamento (F12 → Network):
   ☐ /decouvrir carrega em <2s ✅
   ☐ Imagens load lazy (placeholders first) ✅
-  ☐ /chat carrega histórico progressivo ✅
+  ☐ /chat carrega historique progressivo ✅
 
 ☐ Memory:
   ☐ Sem memory leaks (DevTools) ✅
@@ -944,14 +944,14 @@ Client 50: premium.harry@xlibertine.com / TestPass123 (PREMIUM 3M)
 
 ## 📊 MATRIZ DE TESTE FINAL
 
-| Grupo | Clientes | Foco | Test Cases | Tempo |
+| Groupe | Clientes | Foco | Test Cases | Tempo |
 |-------|----------|------|-----------|-------|
-| 1-5 | 5 | Autenticação | 10 | 30 min |
+| 1-5 | 5 | Autenticaction | 10 | 30 min |
 | 6-10 | 5 | Paywall | 10 | 25 min |
-| 11-20 | 10 | Discovery + Filtros | 20 | 45 min |
+| 11-20 | 10 | Discovery + Filtres | 20 | 45 min |
 | 21-25 | 5 | Likes + Admiradores | 10 | 25 min |
-| 26-35 | 10 | Grupos | 20 | 50 min |
-| 36-45 | 10 | Chat + Mensagens | 20 | 50 min |
+| 26-35 | 10 | Groupes | 20 | 50 min |
+| 36-45 | 10 | Chat + Messages | 20 | 50 min |
 | 46-50 | 5 | Edge Cases + Security | 15 | 30 min |
 | **TOTAL** | **50** | **7 Áreas** | **105** | **3h 15min** |
 
@@ -962,12 +962,12 @@ Client 50: premium.harry@xlibertine.com / TestPass123 (PREMIUM 3M)
 Cada cliente tem:
 ```
 [ ] Username logado corretamente
-[ ] Subscrição verificada
-[ ] Todos botões clicáveis
+[ ] Abonnement verificada
+[ ] Tous botões clicáveis
 [ ] Sem errors no console (F12)
 [ ] UI responsive (testado em mobile)
 [ ] Sem timeout (carrega em <5s)
-[ ] Mensagens de erro claras
+[ ] Messages de erro claras
 [ ] Validações funcionam
 [ ] API calls bem sucedidas
 [ ] RLS não permite acesso indevido
@@ -983,7 +983,7 @@ Cada cliente que encontrar bug:
 2. Captura screenshot
 3. Abre F12 → Console → copia errors
 4. Tira print do Network tab
-5. Envia em: testing@xlibertine.com
+5. Envoie em: testing@xlibertine.com
    Assunto: "[BUG] Nome do bug"
    Body: Passo + Screenshot + Console errors
 ```
@@ -995,11 +995,11 @@ Cada cliente que encontrar bug:
 Após os 50 clientes testarem:
 
 ```
-✅ Autenticação:     100% (5 clientes)
+✅ Autenticaction:     100% (5 clientes)
 ✅ Paywall:          100% (5 clientes)
 ✅ Discovery:        100% (10 clientes)
 ✅ Likes:            100% (5 clientes)
-✅ Grupos:           95% (10 clientes)
+✅ Groupes:           95% (10 clientes)
 ✅ Chat:             90% (10 clientes)
 ✅ Security:         100% (5 clientes)
 
@@ -1012,5 +1012,5 @@ PRONTO PARA PRODUÇÃO
 
 **Data:** 09/08/2026  
 **Total de testes:** 105 (7 áreas × múltiplos casos)  
-**Duração:** ~3 horas  
-**50 Clientes Testando Simultaneamente** ✅
+**Duraction:** ~3 heures  
+**50 Clientes Testando Ouiultaneamente** ✅

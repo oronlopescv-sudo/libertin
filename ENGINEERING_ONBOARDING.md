@@ -33,10 +33,10 @@ npm run dev
 
 | Feature | Status | Quem faz |
 |---------|--------|----------|
-| Autenticação | ✅ COMPLETA | Feito |
-| Password Recovery | ✅ COMPLETA (Resend) | Feito |
+| Autenticaction | ✅ COMPLETA | Feito |
+| Mot de passe Recovery | ✅ COMPLETA (Resend) | Feito |
 | Banco de Dados | ✅ RLS + Segurança | Feito |
-| 36 Perfis Fake | ✅ CRIADOS | Feito |
+| 36 Profils Fake | ✅ CRIADOS | Feito |
 | **Stripe Payments** | ❌ **PENDENTE** | Próxima tarefa |
 | Email Verification | ❌ TODO | Depois |
 | 2FA/MFA | ❌ TODO | Depois |
@@ -48,22 +48,22 @@ npm run dev
 
 ### Integrar Stripe para Pagamentos
 
-**Planos a vender:**
+**Plans a vender:**
 - FREE: €0
-- PREMIUM_3M: €5.33/mês (€16 total)
-- PREMIUM_12M: €2.08/mês (€25 total)
-- VIP_24M: €2.91/mês (€70 total)
+- PREMIUM_3M: €5.33/mois (€16 total)
+- PREMIUM_12M: €2.08/mois (€25 total)
+- VIP_24M: €2.91/mois (€70 total)
 
 **O que fazer:**
-1. Criar conta Stripe
+1. Créer un compte Stripe
 2. Implementar `/api/payments/create-checkout`
 3. Implementar `/api/payments/webhook`
-4. Wiring nos botões de planos
-5. Atualizar user subscription
+4. Wiring nos botões de plans
+5. Atualizar user abonnement
 
-**Docs:** https://stripe.com/docs/billing/subscriptions
+**Docs:** https://stripe.com/docs/billing/abonnements
 
-**Tempo estimado:** 2-3 horas
+**Tempo estimado:** 2-3 heures
 
 ---
 
@@ -81,15 +81,15 @@ npm run dev
 2. Login com credenciais
 3. Check se vai para /profil com dados
 
-# Password Recovery
+# Mot de passe Recovery
 1. Clica "Mot de passe oublié?"
 2. Preenche email
 3. Check console (Resend não configurado, vê token no console)
-4. Clica /reset-password?token=xxx
-5. Preenche nova password
-6. Reseta com sucesso
+4. Clica /réinitialisation-mot de passe?token=xxx
+5. Preenche nova mot de passe
+6. Reseta avec succès
 
-# Páginas Protegidas
+# Pages Protegidas
 1. Logout
 2. Tenta aceder /profil
 3. Check se redireciona /login
@@ -102,7 +102,7 @@ Se tudo passa → Pronto para next task!
 ## 💾 GIT WORKFLOW
 
 ```bash
-# 1. Cria branch feature
+# 1. Crée branch feature
 git checkout -b feature/stripe-integration
 
 # 2. Trabalha normalmente
@@ -115,7 +115,7 @@ git commit -m "feat: stripe integration complete"
 # 4. Push
 git push origin feature/stripe-integration
 
-# 5. Cria Pull Request
+# 5. Crée Pull Request
 # → GitHub → Compare & Pull Request
 # → Descreve mudanças
 # → Pede review
@@ -132,7 +132,7 @@ git push origin feature/stripe-integration
 
 **Ler primeiro:**
 - `ENGINEERING_HANDOFF.md` — Tudo técnico
-- `RESEND_COMPLETE.md` — Como password recovery funciona
+- `RESEND_COMPLETE.md` — Como mot de passe recovery funciona
 - `.env.example` — Variáveis necessárias
 
 **Referência:**
@@ -142,7 +142,7 @@ git push origin feature/stripe-integration
 - `middleware.ts` — Proteção de rotas
 
 **APIs:**
-- `app/api/auth/*` — Autenticação
+- `app/api/auth/*` — Autenticaction
 - `app/api/payments/*` — Pagamentos (TODO)
 
 ---
@@ -168,7 +168,7 @@ rm -rf .next
 npm run build
 ```
 
-### Página branca em produção
+### Page branca em produção
 1. Check Hostinger logs
 2. Check build passou
 3. Clear cache (Hostinger panel)
@@ -180,11 +180,11 @@ npm run build
 
 Docs:
 - `ENGINEERING_HANDOFF.md` — Tudo técnico
-- `RESEND_COMPLETE.md` — Password recovery details
+- `RESEND_COMPLETE.md` — Mot de passe recovery details
 - `.env.example` — Variáveis
 
 GitHub Issues:
-- Cria issue se encontrar bug
+- Crée issue se encontrar bug
 - Reference the commit hash
 
 ---

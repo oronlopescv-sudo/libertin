@@ -9,50 +9,50 @@
 
 ### 1. APIS (2 Endpoints)
 
-**`POST /api/auth/forgot-password`**
-- ✅ Recebe email do utilizador
+**`POST /api/auth/forgot-mot de passe`**
+- ✅ Recebe email do utilisateur
 - ✅ Gera token único (crypto.randomBytes)
 - ✅ Hash do token com SHA256
-- ✅ Guarda em `password_resets` table (Supabase)
-- ✅ Envia email com Resend
-- ✅ Email com link de reset válido 1 hora
-- ✅ Segurança: Não revela se email existe
+- ✅ Guarda em `mot de passe_réinitialisations` table (Supabase)
+- ✅ Envoie email com Resend
+- ✅ Email com link de réinitialisation válido 1 heure
+- ✅ Segurança: Non revela se email existe
 
-**`POST /api/auth/reset-password`**
-- ✅ Recebe token + email + nova password
+**`POST /api/auth/réinitialisation-mot de passe`**
+- ✅ Recebe token + email + nova mot de passe
 - ✅ Valida token (não expirado, não usado)
-- ✅ Hash nova password com bcryptjs (10 rounds)
+- ✅ Hash nova mot de passe com bcryptjs (10 rounds)
 - ✅ Atualiza `users` table
 - ✅ Marca token como "usado" (não pode reutilizar)
-- ✅ Retorna sucesso
+- ✅ Renvoie sucesso
 
 ### 2. COMPONENTES (2 Forms)
 
-**`<ForgotPasswordForm />`**
+**`<ForgotMot de passeForm />`**
 - ✅ Campo de email
-- ✅ Validação básica
-- ✅ Chamada para `/api/auth/forgot-password`
-- ✅ Success message com confir mação
-- ✅ Link "Voltar para Login"
+- ✅ Validaction básica
+- ✅ Chamada para `/api/auth/forgot-mot de passe`
+- ✅ Success message com confir maction
+- ✅ Link "Retour para Login"
 
-**`<ResetPasswordForm />`**
-- ✅ 2x password fields (nova + confirmar)
-- ✅ Validação: 8+ chars
-- ✅ Validação: senhas iguais
+**`<ResetMot de passeForm />`**
+- ✅ 2x mot de passe fields (nova + confirmar)
+- ✅ Validaction: 8+ chars
+- ✅ Validaction: senhas iguais
 - ✅ Extrai token + email dos query params
-- ✅ Chamada para `/api/auth/reset-password`
+- ✅ Chamada para `/api/auth/réinitialisation-mot de passe`
 - ✅ Success message + redireção para /login
 - ✅ Error handling para token expirado/inválido
 
 ### 3. PÁGINAS (2 Routes)
 
-**`/forgot-password`**
-- ✅ Renderiza ForgotPasswordForm
-- ✅ Acessível sem autenticação
-- ✅ Link de "Voltar" para /login
+**`/forgot-mot de passe`**
+- ✅ Renderiza ForgotMot de passeForm
+- ✅ Acessível sem autenticaction
+- ✅ Link de "Retour" para /login
 
-**`/reset-password?token=xxx&email=yyy`**
-- ✅ Renderiza ResetPasswordForm
+**`/réinitialisation-mot de passe?token=xxx&email=yyy`**
+- ✅ Renderiza ResetMot de passeForm
 - ✅ Extrai token dos query params
 - ✅ Suspense boundary (Next.js 15 requirement)
 - ✅ Valida parametros antes de renderizar
@@ -62,13 +62,13 @@
 **Email Template**
 - ✅ Logo xlibertine com gradiente
 - ✅ Greeting personalizado (username)
-- ✅ Botão "Resetar Password"
-- ✅ Link válido 1 hora
-- ✅ Informação sobre expiração
+- ✅ Botão "Réinitialiser Mot de passe"
+- ✅ Link válido 1 heure
+- ✅ Informaction sobre expiraction
 - ✅ Disclaimer 18+
 - ✅ Responsivo HTML (mobile-friendly)
 
-**Configuração**
+**Configuraction**
 - ✅ Variável `.env`: `RESEND_API_KEY`
 - ✅ Fallback seguro se chave não configurada
 - ✅ Console log do token em dev (sem Resend)
@@ -78,66 +78,66 @@
 ✅ **Token:**
 - Gerado com crypto.randomBytes(32)
 - Hash com SHA256 antes de guardar
-- Único por utilizador + timestamp
-- Expira após 1 hora
+- Único por utilisateur + timestamp
+- Expira após 1 heure
 - Marcado como "usado" após consumir
 - Impossível reutilizar
 
-✅ **Password:**
+✅ **Mot de passe:**
 - Hash com bcryptjs 10 rounds
 - Nunca guardado em plaintext
 - Validado 8+ caracteres
 
 ✅ **Email:**
-- Não revela se email existe (anti brute force)
-- Mensagem genérica para ambos sucesso/falha
+- Non revela se email existe (anti brute force)
+- Message genérica para ambos sucesso/falha
 
 ✅ **Database:**
-- RLS ativo em `password_resets`
-- Bloqueado para anon key
+- RLS ativo em `mot de passe_réinitialisations`
+- Bloqué para ann key
 
 ### 6. FLUXO COMPLETO
 
 ```
 1. User em /login clica "Mot de passe oublié?"
    ↓
-2. Vai para /forgot-password
+2. Vai para /forgot-mot de passe
    ↓
 3. Preenche email: john@example.com
    ↓
-4. Clica "Enviar Link de Reset"
+4. Clica "Envoyer Link de Reset"
    ↓
-5. POST /api/auth/forgot-password
-   → Busca user pelo email
+5. POST /api/auth/forgot-mot de passe
+   → Récupère user pelo email
    → Gera token: 3a9f2c1d...
    → Hash do token: 5e2a8b3f...
-   → Insere em password_resets: { userId, token, expiresAt, used: false }
-   → Envia email com Resend
-   → Link: /reset-password?token=3a9f2c1d...&email=john@example.com
+   → Insere em mot de passe_réinitialisations: { userId, token, expiresAt, used: false }
+   → Envoie email com Resend
+   → Link: /réinitialisation-mot de passe?token=3a9f2c1d...&email=john@example.com
    ↓
 6. Email recebido em john@example.com
    ↓
-7. User clica link "Resetar Password"
+7. User clica link "Réinitialiser Mot de passe"
    ↓
-8. Vai para /reset-password?token=3a9f2c1d...&email=john@example.com
+8. Vai para /réinitialisation-mot de passe?token=3a9f2c1d...&email=john@example.com
    ↓
-9. Preenche: nova password 2x
+9. Preenche: nova mot de passe 2x
    ↓
-10. Clica "Resetar Password"
+10. Clica "Réinitialiser Mot de passe"
     ↓
-11. POST /api/auth/reset-password
+11. POST /api/auth/réinitialisation-mot de passe
     → Hash token recebido: 5e2a8b3f...
-    → Busca na password_resets pelo token hash
+    → Récupère na mot de passe_réinitialisations pelo token hash
     → Valida: não expirado, não usado
-    → Hash nova password: $2b$10$abc123...
-    → UPDATE users SET hashedPassword WHERE id=user_id
-    → UPDATE password_resets SET used=true WHERE token
+    → Hash nova mot de passe: $2b$10$abc123...
+    → UPDATE users SET hashedMot de passe WHERE id=user_id
+    → UPDATE mot de passe_réinitialisations SET used=true WHERE token
     ↓
-12. Success! "Password Resetada!"
+12. Success! "Mot de passe Resetada!"
     ↓
 13. Redireciona para /login após 2s
     ↓
-14. User faz login com nova password
+14. User faz login com nova mot de passe
 ```
 
 ---
@@ -146,30 +146,30 @@
 
 **APIs:**
 ```
-app/api/auth/forgot-password/route.ts     (150 linhas)
-app/api/auth/reset-password/route.ts      (120 linhas)
+app/api/auth/forgot-mot de passe/route.ts     (150 linhas)
+app/api/auth/réinitialisation-mot de passe/route.ts      (120 linhas)
 ```
 
 **Componentes:**
 ```
-components/forgot-password-form.tsx        (130 linhas)
-components/reset-password-form.tsx         (160 linhas)
+components/forgot-mot de passe-form.tsx        (130 linhas)
+components/réinitialisation-mot de passe-form.tsx         (160 linhas)
 ```
 
-**Páginas:**
+**Pages:**
 ```
-app/forgot-password/page.tsx               (10 linhas)
-app/reset-password/page.tsx                (15 linhas)
+app/forgot-mot de passe/page.tsx               (10 linhas)
+app/réinitialisation-mot de passe/page.tsx                (15 linhas)
 ```
 
-**Documentação:**
+**Documentaction:**
 ```
 RESEND_SETUP.md                            (Complete setup guide)
 ```
 
 **Atualizado:**
 ```
-components/login-form.tsx                  (+2 links: forgot-password)
+components/login-form.tsx                  (+2 links: forgot-mot de passe)
 ```
 
 ---
@@ -179,7 +179,7 @@ components/login-form.tsx                  (+2 links: forgot-password)
 ### Ataque: Brute Force Email
 ```
 Attacker tenta 1000 emails
-→ API retorna sempre: "Se o email existir, será enviado reset"
+→ API retorna sempre: "Se o email existir, será enviado réinitialisation"
 → Impossível saber quais emails estão registrados
 ```
 
@@ -197,9 +197,9 @@ Token é crypto.randomBytes(32) = 32 bytes = 256 bits
 Impossível prever (2^256 combinações)
 ```
 
-### Ataque: Password Weak
+### Ataque: Mot de passe Weak
 ```
-User tenta password com <8 chars
+User tenta mot de passe com <8 chars
 → Frontend: Erro "8+ caracteres"
 → Backend: Valida novamente, rejeita
 ```
@@ -209,60 +209,60 @@ User tenta password com <8 chars
 ## ✅ CHECKLIST DE TESTES
 
 ```bash
-# Test 1: Esqueci Password - Email Válido
+# Test 1: Esqueci Mot de passe - Email Válido
 [ ] Clica "Mot de passe oublié?" em /login
-[ ] Vai para /forgot-password
+[ ] Vai para /forgot-mot de passe
 [ ] Preenche email válido (john@example.com)
-[ ] Clica "Enviar Link de Reset"
+[ ] Clica "Envoyer Link de Reset"
 [ ] Vê sucesso: "Email enviado!"
-[ ] Email recebido com link /reset-password?token=...
+[ ] Email recebido com link /réinitialisation-mot de passe?token=...
 
-# Test 2: Esqueci Password - Email Inválido
+# Test 2: Esqueci Mot de passe - Email Inválido
 [ ] Clica "Mot de passe oublié?"
 [ ] Preenche email fake (fake@fake.fake)
-[ ] Clica "Enviar"
+[ ] Clica "Envoyer"
 [ ] Vê mesma mensagem de sucesso (segurança)
 [ ] Nenhum email recebido
 
-# Test 3: Reset Password - Token Válido
+# Test 3: Reset Mot de passe - Token Válido
 [ ] Recebe email com link
-[ ] Clica link → vai para /reset-password
+[ ] Clica link → vai para /réinitialisation-mot de passe
 [ ] Form renderiza (não vazio)
-[ ] Preenche: nova password 2x (mesma)
-[ ] Clica "Resetar Password"
-[ ] Vê sucesso: "Password Resetada!"
+[ ] Preenche: nova mot de passe 2x (mesma)
+[ ] Clica "Réinitialiser Mot de passe"
+[ ] Vê sucesso: "Mot de passe Resetada!"
 [ ] Redireciona para /login após 2s
 
-# Test 4: Reset Password - Token Expirado
-[ ] Espera 1+ horas
+# Test 4: Reset Mot de passe - Token Expirado
+[ ] Espera 1+ heures
 [ ] Clica link antigo
 [ ] Vê erro: "Link expirado"
-[ ] Deve fazer novo request em /forgot-password
+[ ] Deve fazer novo request em /forgot-mot de passe
 
-# Test 5: Reset Password - Token Inválido
+# Test 5: Reset Mot de passe - Token Inválido
 [ ] Edita token na URL (qualquer caractere)
 [ ] Clica
 [ ] Vê erro: "Link inválido"
 
 # Test 6: Reutilizar Token
-[ ] Faz reset com sucesso
+[ ] Faz réinitialisation avec succès
 [ ] Volta atrás (history)
-[ ] Tenta fazer reset novamente com mesma form
+[ ] Tenta fazer réinitialisation novamente com mesma form
 [ ] Vê erro: "Link já foi utilizado"
 
-# Test 7: Password Fraca
-[ ] Clica "Resetar"
-[ ] Preenche password com <8 chars (ex: "abc")
-[ ] Clica "Resetar"
+# Test 7: Mot de passe Fraca
+[ ] Clica "Réinitialiser"
+[ ] Preenche mot de passe com <8 chars (ex: "abc")
+[ ] Clica "Réinitialiser"
 [ ] Vê erro: "8+ caracteres"
 
-# Test 8: Login com Nova Password
-[ ] Reset com sucesso
+# Test 8: Login com Nova Mot de passe
+[ ] Reset avec succès
 [ ] Vai para /login
-[ ] Tenta login com ANTIGA password
+[ ] Tenta login com ANTIGA mot de passe
 [ ] Erro: "Credenciais inválidas"
-[ ] Tenta login com NOVA password
-[ ] Sucesso! Vai para /profil
+[ ] Tenta login com NOVA mot de passe
+[ ] Succès! Vai para /profil
 ```
 
 ---
@@ -305,24 +305,24 @@ SUPABASE_SERVICE_ROLE_KEY=...
    - https://resend.com
    - Copiar API Key (formato: `re_...`)
 
-2. **Adicionar ao Hostinger:**
+2. **Ajouter ao Hostinger:**
    - Painel → Variáveis de Ambiente
    - `RESEND_API_KEY=re_xxx`
    - `NEXT_PUBLIC_BASE_URL=https://xlibertine.com`
 
 3. **Testar em production:**
-   - Ir para /forgot-password
+   - Ir para /forgot-mot de passe
    - Submeter email
    - Verificar se email foi recebido
    - Clicar link
-   - Resetar password
-   - Fazer login com nova password
+   - Réinitialiser mot de passe
+   - Fazer login com nova mot de passe
 
 4. **Configurar domínio de email:**
    - Resend → Domains
-   - Adicionar xlibertine.com
+   - Ajouter xlibertine.com
    - Seguir DNS setup
-   - (Opcional para melhor deliverability)
+   - (Optionnel para melhor deliverability)
 
 ---
 
@@ -335,15 +335,15 @@ SUPABASE_SERVICE_ROLE_KEY=...
 | Email Template | ✅ Bonito |
 | Segurança | ✅ Forte |
 | Build | ✅ Passa |
-| Documentação | ✅ Completa |
+| Documentaction | ✅ Completa |
 
 **Pronto para Produção:** 🟢 SIM
 
 ---
 
 *Equipa: 6 Engenheiros + 4 Técnicos*  
-*Tempo: ~1 hora*  
+*Tempo: ~1 heure*  
 *Linhas de código: ~600*  
 *APIs: 2*  
-*Páginas: 2*  
+*Pages: 2*  
 *Componentes: 2*

@@ -7,10 +7,10 @@ export async function POST(req: NextRequest) {
     const { email, password } = await req.json();
 
     if (!email || !password) {
-      return NextResponse.json({ error: 'Email e senha obrigatórios' }, { status: 400 });
+      return NextResponse.json({ error: 'Email e senha obligatoires' }, { status: 400 });
     }
 
-    // Busca user
+    // Récupère user
     const { data, error } = await supabase
       .from('users')
       .select('id, email, username, hashedPassword')
@@ -21,13 +21,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Credenciais inválidas' }, { status: 401 });
     }
 
-    // Valida password
+    // Valida mot de passe
     const isValid = await bcrypt.compare(password, data.hashedPassword);
     if (!isValid) {
       return NextResponse.json({ error: 'Credenciais inválidas' }, { status: 401 });
     }
 
-    // Cria JWT
+    // Crée JWT
     const token = Buffer.from(JSON.stringify({ id: data.id, email: data.email })).toString('base64');
 
     // Response com cookie
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 dias
+      maxAge: 60 * 60 * 24 * 7, // 7 jours
     });
 
     return response;

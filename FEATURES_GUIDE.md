@@ -6,28 +6,28 @@
 
 #### What it does:
 - Users can join any group with a choice: **Identified** or **Anonymous**
-- Anonymous members show as "Anônimo #XXXX" instead of their real name
-- No photo, location, or personal info visible when anonymous
-- **PREMIUM users only** can join anonymously (FREE users must be identified)
+- Anonymous members show as "Anonyme #XXXX" instead of their real name
+- No photo, location, or personal info visible when annymous
+- **PREMIUM users only** can join annymously (FREE users must be identified)
 
 #### Key Components:
-- `lib/anonymous-groups.ts` — Service for anonymity logic
-- `components/join-group-modal.tsx` — Join modal with anonymity selector
-- Database: `group_memberships.is_anonymous`, `messages.displayed_username`
+- `lib/annymous-groups.ts` — Service for annymity logic
+- `components/join-group-modal.tsx` — Join modal with annymity selector
+- Database: `group_memberships.is_annymous`, `messages.displayed_username`
 
 #### Workflow:
 ```
 User clicks "Join Group"
   ↓
-Modal appears: "Entrar como seu nome" or "Entrar Anônimo"?
+Modal appears: "Se connecter como seu nome" or "Se connecter Anonyme"?
   ↓
 If Anonymous:
   - Check: User is PREMIUM? ✓
-  - Generate: "Anônimo #4521"
+  - Generate: "Anonyme #4521"
   - Hide: Photo, location, name
   ↓
 Join succeeds → User sees all members
-               → Other members see "Anônimo #4521"
+               → Other members see "Anonyme #4521"
 ```
 
 ---
@@ -37,7 +37,7 @@ Join succeeds → User sees all members
 #### Pricing:
 - **Create Group:** €50 (valid for 5 months)
 - **Renew Group:** €50 (extends 5 more months)
-- Applies to all groups (except "Nudes Anônimos" which is permanent)
+- Applies to all groups (except "Nudes Anonymes" which is permanent)
 
 #### What happens:
 ```
@@ -55,30 +55,30 @@ Day 159:    Group auto-deactivates, hidden from discovery
 ```sql
 groups.expires_at       -- Timestamp when group expires
 groups.is_active        -- Boolean, auto-set to false if expired
-groups.allows_anonymous -- Can members join anonymously?
+groups.allows_annymous -- Can members join annymously?
 ```
 
 ---
 
-### 3. **Nudes Anônimos — Special Group** 🔞
+### 3. **Nudes Anonymes — Special Group** 🔞
 
 #### Features:
-- **Name:** "Nudes Anônimos"
+- **Name:** "Nudes Anonymes"
 - **Access:** PREMIUM users only
-- **Anonymity:** Mandatory (everyone is anonymous)
+- **Anonymity:** Mandatory (everyone is annymous)
 - **NSFW Detection:** Enabled automatically
 - **Max Members:** 500
 - **Duration:** Permanent (no expiration)
 
 #### Auto-created at deployment:
 ```sql
-INSERT INTO groups (name, is_nsfw, allows_anonymous, ...)
-VALUES ('Nudes Anônimos', true, true, ...)
+INSERT INTO groups (name, is_nsfw, allows_annymous, ...)
+VALUES ('Nudes Anonymes', true, true, ...)
 ```
 
 #### Rules:
 - ✅ Share any content you want
-- ✅ Everyone anonymous by default
+- ✅ Everyone annymous by default
 - ✅ No photo/location shared
 - ❌ No personal info allowed
 - ❌ Harassment = instant ban
@@ -98,8 +98,8 @@ VALUES ('Nudes Anônimos', true, true, ...)
 #### Event Types:
 - 🎉 **Festa Privada** — Private party (apt, hotel, etc)
 - 🔥 **Gang Bang** — Looking for multiple men
-- 💑 **Troca de Casais** — Couple swapping
-- ⭐ **Outro Evento** — Other
+- 💑 **Troca de Couples** — Couple swapping
+- ⭐ **Outro Événement** — Other
 
 #### Workflow:
 
@@ -148,7 +148,7 @@ events
 ├─ title, description
 ├─ location, city, date_time
 ├─ is_date_flexible
-├─ looking_for ("8 homens, 18-50 anos")
+├─ looking_for ("8 homens, 18-50 ans")
 ├─ min/max_participants
 ├─ plan_type (basic|featured|vip_gold)
 ├─ amount_paid, payment_status, stripe_payment_id
@@ -170,36 +170,36 @@ event_photos (for event gallery)
 
 ---
 
-## 📊 Updated Subscription Tiers
+## 📊 Updated Abonnement Tiers
 
 ```
 FREE
 ├─ Profiles, discovery
 ├─ Pode entrar em grupos (identificado)
-└─ Sem acesso a "Nudes Anônimos"
+└─ Sem acesso a "Nudes Anonymes"
 
 PREMIUM_3M — €24,99
-├─ Mensagens privadas
+├─ Messages privadas
 ├─ Anonimato em grupos
 ├─ Acesso completo
 
 CREATOR_3M — €74,99
 ├─ Tudo do PREMIUM_3M +
 ├─ Criar grupos (€50 incluído)
-├─ Válido 5 meses
+├─ Válido 5 mois
 
 PREMIUM_12M — €59,99
-├─ 12 meses premium
+├─ 12 mois premium
 ├─ Anonimato
 └─ Sem criar grupos
 
 CREATOR_12M — €109,99
-├─ 12 meses premium +
+├─ 12 mois premium +
 ├─ Criar 1 grupo (€50 incluído)
-└─ Válido 5 meses
+└─ Válido 5 mois
 
 VIP_24M — €149,99
-├─ 24 meses premium
+├─ 24 mois premium
 ├─ Criar 2 grupos (€50 cada incluído)
 ├─ Priority support
 └─ Featured listing
@@ -228,9 +228,9 @@ VIP_24M — €149,99
 
 ### New Files:
 ```
-supabase/migrations/add_anonymity_and_events.sql
+supabase/migrations/add_annymity_and_events.sql
 lib/events.ts
-lib/anonymous-groups.ts
+lib/annymous-groups.ts
 app/api/events/checkout.ts
 components/event-card.tsx
 components/join-group-modal.tsx
@@ -281,9 +281,9 @@ lib/types.ts (added Event, EventParticipant, EventPhoto types)
 
 6. **Test**
    - Create free account
-   - Join group anonymously (should fail)
+   - Join group annymously (should fail)
    - Upgrade to PREMIUM
-   - Join anonymously (should work)
+   - Join annymously (should work)
    - Create event
    - Test Stripe checkout
    - Verify email notifications
@@ -305,8 +305,8 @@ Configured in `lib/email.ts`:
 ## 🛡️ Security Notes
 
 - ✅ Anonymity is **per-group** (not per-user)
-- ✅ Free users **cannot** be anonymous
-- ✅ Admin can still see real user behind "Anônimo"
+- ✅ Free users **cannot** be annymous
+- ✅ Admin can still see real user behind "Anonyme"
 - ✅ Event data validated server-side
 - ✅ Stripe keys use `.env` (never client-side secret)
 - ✅ RLS policies ensure privacy
@@ -322,7 +322,7 @@ Free user
   ↓
 Upgrade PREMIUM_3M (€24,99)
   ↓
-Join anonymous groups ✓
+Join annymous groups ✓
   ↓
 Want to create event?
   Upgrade to CREATOR or pay €100 for event

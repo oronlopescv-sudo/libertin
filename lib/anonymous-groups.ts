@@ -1,6 +1,6 @@
 /**
  * Anonymous Groups Service
- * Manage group membership with optional anonymity
+ * Manage group membership with optional annymity
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -11,7 +11,7 @@ const supabase = createClient(
 );
 
 /**
- * Join group with anonymity option
+ * Join group with annymity option
  */
 export async function joinGroupAnonymous(
   groupId: string,
@@ -19,7 +19,7 @@ export async function joinGroupAnonymous(
   isAnonymous: boolean
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    // Check if user is PREMIUM (required for anonymity)
+    // Check if user is PREMIUM (required for annymity)
     if (isAnonymous) {
       const { data: user, error: userError } = await supabase
         .from('users')
@@ -28,10 +28,10 @@ export async function joinGroupAnonymous(
         .single();
 
       if (userError || !user) {
-        return { success: false, error: 'Usuário não encontrado' };
+        return { success: false, error: 'Utilisateur introuvable' };
       }
 
-      // FREE users can't be anonymous
+      // FREE users can't be annymous
       if (user.subscription_tier === 'FREE') {
         return { success: false, error: 'Upgrade para PREMIUM para entrar anônimo' };
       }
@@ -52,14 +52,14 @@ export async function joinGroupAnonymous(
     }
 
     if (existing) {
-      return { success: false, error: 'Você já é membro deste grupo' };
+      return { success: false, error: 'Vous já é membro deste grupo' };
     }
 
-    // Generate anonymous name if needed
-    let anonymousName = null;
+    // Generate annymous name if needed
+    let annymousName = null;
     if (isAnonymous) {
       const randomId = Math.floor(Math.random() * 9000) + 1000;
-      anonymousName = `Anônimo #${randomId}`;
+      annymousName = `Anonyme #${randomId}`;
     }
 
     // Join group
@@ -67,8 +67,8 @@ export async function joinGroupAnonymous(
       group_id: groupId,
       user_id: userId,
       role: 'member',
-      is_anonymous: isAnonymous,
-      anonymous_name: anonymousName,
+      is_annymous: isAnonymous,
+      annymous_name: annymousName,
     });
 
     if (error) throw error;
@@ -76,7 +76,7 @@ export async function joinGroupAnonymous(
     return { success: true };
   } catch (error) {
     console.error('Failed to join group:', error);
-    return { success: false, error: 'Falha ao entrar no grupo' };
+    return { success: false, error: 'Échec de entrar no grupo' };
   }
 }
 
@@ -90,18 +90,18 @@ export async function getGroupMemberDisplayName(
   try {
     const { data, error } = await supabase
       .from('group_memberships')
-      .select('is_anonymous, anonymous_name')
+      .select('is_annymous, annymous_name')
       .eq('group_id', groupId)
       .eq('user_id', userId)
       .single();
 
     if (error) return null;
 
-    if (data.is_anonymous) {
-      return data.anonymous_name;
+    if (data.is_annymous) {
+      return data.annymous_name;
     }
 
-    // Get username if not anonymous
+    // Get username if not annymous
     const { data: user } = await supabase
       .from('users')
       .select('username')
@@ -116,7 +116,7 @@ export async function getGroupMemberDisplayName(
 }
 
 /**
- * Get group members (with anonymity handled)
+ * Get group members (with annymity handled)
  */
 export async function getGroupMembers(groupId: string): Promise<
   Array<{
@@ -130,14 +130,14 @@ export async function getGroupMembers(groupId: string): Promise<
   try {
     const { data: memberships, error: memberError } = await supabase
       .from('group_memberships')
-      .select('user_id, is_anonymous, anonymous_name')
+      .select('user_id, is_annymous, annymous_name')
       .eq('group_id', groupId);
 
     if (memberError) throw memberError;
 
     if (!memberships) return [];
 
-    // Get user details for non-anonymous members
+    // Get user details for non-annymous members
     const memberIds = memberships.map((m) => m.user_id);
     const { data: users } = await supabase
       .from('users')
@@ -147,10 +147,10 @@ export async function getGroupMembers(groupId: string): Promise<
     const userMap = new Map(users?.map((u) => [u.id, u]) || []);
 
     return memberships.map((m) => {
-      if (m.is_anonymous) {
+      if (m.is_annymous) {
         return {
           id: m.user_id,
-          displayName: m.anonymous_name || 'Anônimo',
+          displayName: m.annymous_name || 'Anonyme',
           isAnonymous: true,
         };
       }
@@ -171,7 +171,7 @@ export async function getGroupMembers(groupId: string): Promise<
 }
 
 /**
- * Check if user is anonymous in group
+ * Check if user is annymous in group
  */
 export async function isUserAnonymousInGroup(
   groupId: string,
@@ -180,16 +180,16 @@ export async function isUserAnonymousInGroup(
   try {
     const { data, error } = await supabase
       .from('group_memberships')
-      .select('is_anonymous')
+      .select('is_annymous')
       .eq('group_id', groupId)
       .eq('user_id', userId)
       .single();
 
     if (error) return false;
 
-    return data?.is_anonymous || false;
+    return data?.is_annymous || false;
   } catch (error) {
-    console.error('Failed to check anonymity:', error);
+    console.error('Failed to check annymity:', error);
     return false;
   }
 }
@@ -207,13 +207,13 @@ export async function createGroupWithExpiry(
     category?: string;
     cover_url?: string;
     is_nsfw?: boolean;
-    allows_anonymous?: boolean;
+    allows_annymous?: boolean;
   }
 ): Promise<{ success: boolean; groupId?: string; error?: string }> {
   try {
     // Validate name
     if (!groupData.name || groupData.name.length < 3 || groupData.name.length > 100) {
-      return { success: false, error: 'Nome do grupo deve ter 3-100 caracteres' };
+      return { success: false, error: 'Nom du groupe deve ter 3-100 caracteres' };
     }
 
     // Calculate expiration (5 months)
@@ -240,7 +240,7 @@ export async function createGroupWithExpiry(
         category: groupData.category || 'casual',
         cover_url: groupData.cover_url,
         is_nsfw: groupData.is_nsfw ?? false,
-        allows_anonymous: groupData.allows_anonymous ?? true,
+        allows_annymous: groupData.allows_annymous ?? true,
         expires_at: expiresAt.toISOString(),
         is_active: true,
       })
@@ -254,13 +254,13 @@ export async function createGroupWithExpiry(
       group_id: data.id,
       user_id: creatorId,
       role: 'creator',
-      is_anonymous: false,
+      is_annymous: false,
     });
 
     return { success: true, groupId: data.id };
   } catch (error) {
     console.error('Failed to create group:', error);
-    return { success: false, error: 'Falha ao criar grupo' };
+    return { success: false, error: 'Échec de criar grupo' };
   }
 }
 
@@ -280,7 +280,7 @@ export async function renewGroup(
       .single();
 
     if (groupError || group.creator_id !== creatorId) {
-      return { success: false, error: 'Grupo não encontrado ou sem permissão' };
+      return { success: false, error: 'Groupe introuvable ou sans autorisation' };
     }
 
     // Extend expiration by 5 months
@@ -301,7 +301,7 @@ export async function renewGroup(
     return { success: true };
   } catch (error) {
     console.error('Failed to renew group:', error);
-    return { success: false, error: 'Falha ao renovar grupo' };
+    return { success: false, error: 'Échec de renovar grupo' };
   }
 }
 

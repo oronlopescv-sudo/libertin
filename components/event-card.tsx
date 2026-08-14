@@ -15,8 +15,8 @@ export function EventCard({ event, onJoin, isJoined }: EventCardProps) {
   const eventTypes: Record<string, string> = {
     festa: '🎉 Festa Privada',
     gang_bang: '🔥 Gang Bang',
-    troca: '💑 Troca de Casais',
-    other: '⭐ Outro Evento',
+    troca: '💑 Troca de Couples',
+    other: '⭐ Outro Événement',
   };
 
   const planIcons: Record<string, string> = {
@@ -83,7 +83,7 @@ export function EventCard({ event, onJoin, isJoined }: EventCardProps) {
           </span>
           {daysUntilExpiry > 0 && (
             <span className={daysUntilExpiry < 7 ? 'text-amber-400' : 'text-zinc-400'}>
-              Expira em {daysUntilExpiry} dias
+              Expira em {daysUntilExpiry} jours
             </span>
           )}
         </div>
@@ -92,7 +92,7 @@ export function EventCard({ event, onJoin, isJoined }: EventCardProps) {
       {/* Footer */}
       <div className="p-4 bg-[#160B21] border-t border-[#2C1B3D] flex gap-2">
         <Link
-          href={`/eventos/${event.id}`}
+          href={`/evenements/${event.id}`}
           className="flex-1 py-2 px-3 text-center text-sm font-bold text-[#E86B7A] hover:text-white transition-colors"
         >
           Ver Detalhes

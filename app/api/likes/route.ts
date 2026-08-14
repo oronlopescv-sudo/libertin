@@ -9,10 +9,10 @@ export async function POST(req: NextRequest) {
     const token = cookieStore.get('auth_token')?.value;
 
     if (!token) {
-      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
-    // Busca user do token
+    // Récupère user do token
     let userId: string;
     try {
       const tokenData = JSON.parse(Buffer.from(token, 'base64').toString());
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
     }
 
-    // Busca user para verificar subscrição
+    // Récupère l'utilisateur pour vérifier l'abonnement
     const { data: user, error: userError } = await supabase
       .from('users')
       .select('id, subscriptionTier, subscriptionEnd')
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (userError || !user) {
-      return NextResponse.json({ error: 'Utilizador não encontrado' }, { status: 404 });
+      return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
     }
 
     // ✅ VALIDAÇÃO: Apenas PREMIUM pode curtir
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
     if (!userIsPremium) {
       return NextResponse.json(
-        { error: 'Apenas utilizadores Premium podem curtir. Faça upgrade!' },
+        { error: 'Seuls les membres Premium peuvent liker. Passez à Premium !' },
         { status: 403 }
       );
     }
@@ -45,11 +45,11 @@ export async function POST(req: NextRequest) {
     const { likedUserId } = await req.json();
 
     if (!likedUserId) {
-      return NextResponse.json({ error: 'ID do utilizador obrigatório' }, { status: 400 });
+      return NextResponse.json({ error: 'ID do utilisateur obligatoire' }, { status: 400 });
     }
 
     if (likedUserId === userId) {
-      return NextResponse.json({ error: 'Não podes curtir a ti mesmo' }, { status: 400 });
+      return NextResponse.json({ error: 'Non podes curtir a ti mesmo' }, { status: 400 });
     }
 
     // Verificar se já existe like
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
         .eq('likedUserId', likedUserId);
 
       if (deleteError) {
-        return NextResponse.json({ error: 'Erro ao remover like' }, { status: 500 });
+        return NextResponse.json({ error: 'Erreur lors de remover like' }, { status: 500 });
       }
 
       return NextResponse.json(
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
         { status: 200 }
       );
     } else {
-      // Adicionar novo like
+      // Ajouter novo like
       const { error: insertError } = await supabase
         .from('likes')
         .insert([
@@ -89,11 +89,11 @@ export async function POST(req: NextRequest) {
 
       if (insertError) {
         console.error('Like error:', insertError);
-        return NextResponse.json({ error: 'Erro ao curtir' }, { status: 500 });
+        return NextResponse.json({ error: 'Erreur lors de curtir' }, { status: 500 });
       }
 
       return NextResponse.json(
-        { success: true, message: 'Perfil curtido', liked: true },
+        { success: true, message: 'Profil curtido', liked: true },
         { status: 201 }
       );
     }
@@ -110,10 +110,10 @@ export async function GET(req: NextRequest) {
     const token = cookieStore.get('auth_token')?.value;
 
     if (!token) {
-      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
-    // Busca user do token
+    // Récupère user do token
     let userId: string;
     try {
       const tokenData = JSON.parse(Buffer.from(token, 'base64').toString());
@@ -122,14 +122,14 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
     }
 
-    // Busca meus likes
+    // Récupère meus likes
     const { data: likes, error } = await supabase
       .from('likes')
       .select('likedUserId')
       .eq('userId', userId);
 
     if (error) {
-      return NextResponse.json({ error: 'Erro ao buscar likes' }, { status: 500 });
+      return NextResponse.json({ error: 'Erreur lors de la récupération des likes' }, { status: 500 });
     }
 
     return NextResponse.json(

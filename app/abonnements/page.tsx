@@ -3,7 +3,7 @@
 import React from 'react';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
-import { SubscriptionPlans } from '@/components/subscription-plans';
+import { AbonnementPlans } from '@/components/subscription-plans';
 import { Crown, ShieldCheck, Lock, Sparkles, Check } from 'lucide-react';
 
 export default function AbonnementsPage() {
@@ -27,7 +27,7 @@ export default function AbonnementsPage() {
         </div>
 
         {/* Pricing Table Component */}
-        <SubscriptionPlans />
+        <AbonnementPlans />
 
         {/* Feature Comparison Table */}
         <div className="p-6 rounded-3xl bg-[#1C102B] border border-[#2C1B3D] space-y-6">
@@ -81,7 +81,7 @@ export default function AbonnementsPage() {
             <Lock className="w-6 h-6 text-[#E86B7A] shrink-0" />
             <div>
               <strong className="block text-white">Discrétion Bancaire</strong>
-              Intitulé bancaire anonyme &quot;RP-SERVICES&quot; sans mention libertine.
+              Intitulé bancaire annyme &quot;RP-SERVICES&quot; sans mention libertine.
             </div>
           </div>
           <div className="p-4 rounded-2xl bg-[#1C102B] border border-[#2C1B3D] flex items-center gap-3">

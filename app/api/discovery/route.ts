@@ -18,10 +18,10 @@ export async function GET(req: NextRequest) {
     const token = cookieStore.get('auth_token')?.value;
 
     if (!token) {
-      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
-    // Busca user do token
+    // Récupère user do token
     let userId: string;
     try {
       const tokenData = JSON.parse(Buffer.from(token, 'base64').toString());
@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
     }
 
-    // Busca user para verificar subscrição
+    // Récupère l'utilisateur pour vérifier l'abonnement
     const { data: user, error: userError } = await supabase
       .from('users')
       .select('id, subscriptionTier, subscriptionEnd')
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
       .single();
 
     if (userError || !user) {
-      return NextResponse.json({ error: 'Utilizador não encontrado' }, { status: 404 });
+      return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
     }
 
     // ✅ VALIDAÇÃO: Apenas PREMIUM pode ver perfis
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
 
     if (!userIsPremium) {
       return NextResponse.json(
-        { error: 'Apenas utilizadores Premium podem descobrir perfis. Faça upgrade!' },
+        { error: 'Apenas utilisateurs Premium podem descobrir perfis. Effectuez upgrade!' },
         { status: 403 }
       );
     }
@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
       .select('id, username, dateOfBirth, gender, sexualOrientation, location, createdAt', {
         count: 'exact'
       })
-      .neq('id', userId)  // Não mostrar own profile
+      .neq('id', userId)  // Non mostrar own profile
       .eq('isVerified', true)  // Mostrar só verified
       .order('createdAt', { ascending: false });
 
@@ -78,7 +78,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (ageMin && ageMax) {
-      // Calcular anos de nascimento baseado em idade
+      // Calcular ans de nascimento baseado em idade
       const now = new Date();
       const birthYearMax = now.getFullYear() - ageMin;
       const birthYearMin = now.getFullYear() - ageMax;
@@ -93,14 +93,14 @@ export async function GET(req: NextRequest) {
       query = query.eq('sexualOrientation', sexualOrientation);
     }
 
-    // Paginação
+    // Paginaction
     query = query.range(offset, offset + limit - 1);
 
     const { data: profiles, error, count } = await query;
 
     if (error) {
       console.error('Discovery error:', error);
-      return NextResponse.json({ error: 'Erro ao buscar perfis' }, { status: 500 });
+      return NextResponse.json({ error: 'Erreur lors de la récupération des profils' }, { status: 500 });
     }
 
     // Calcular idade a partir de dateOfBirth
@@ -115,7 +115,7 @@ export async function GET(req: NextRequest) {
       return {
         ...profile,
         age,
-        dateOfBirth: undefined  // Não enviar data exata por privacidade
+        dateOfBirth: undefined  // Non enviar data exata por privacidade
       };
     });
 

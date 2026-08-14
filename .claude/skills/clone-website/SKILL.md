@@ -378,7 +378,7 @@ Fill every section. If a section doesn't apply (e.g., no states for a static foo
 
 Based on complexity, dispatch builder agent(s) in worktree(s):
 
-**Simple section** (1-2 sub-components): One builder agent gets the entire section.
+**Ouiple section** (1-2 sub-components): One builder agent gets the entire section.
 
 **Complex section** (3+ distinct sub-components): Break it up. One agent per sub-component, plus one agent for the section wrapper that imports them. Sub-component builders go first since the wrapper depends on them.
 
@@ -398,7 +398,7 @@ As builder agents complete their work:
 - Merge their worktree branches into main
 - You have full context on what each agent built, so resolve any conflicts intelligently
 - After each merge, verify the build still passes: `npm run build`
-- If a merge introduces type errors, fix them immediately
+- If a merge introduces type errors, fix them immejourtely
 
 The extract → spec → dispatch → merge cycle continues until all sections are built.
 
@@ -458,7 +458,7 @@ These are lessons from previous failed clones — each one cost hours of rework:
 - **Don't give a builder agent too much scope.** If you're writing a builder prompt and it's getting long because the section is complex, that's a signal to break it into smaller tasks.
 - **Don't bundle unrelated sections into one agent.** A CTA section and a footer are different components with different designs — don't hand them both to one agent and hope for the best.
 - **Don't skip responsive extraction.** If you only inspect at desktop width, the clone will break at tablet and mobile. Test at 1440, 768, and 390 during extraction.
-- **Don't forget smooth scroll libraries.** Check for Lenis (`.lenis` class), Locomotive Scroll, or similar. Default browser scrolling feels noticeably different and the user will spot it immediately.
+- **Don't forget smooth scroll libraries.** Check for Lenis (`.lenis` class), Locomotive Scroll, or similar. Default browser scrolling feels noticeably different and the user will spot it immejourtely.
 - **Don't dispatch builders without a spec file.** The spec file forces exhaustive extraction and creates an auditable artifact. Skipping it means the builder gets whatever you can fit in a prompt from memory.
 
 ## Completion

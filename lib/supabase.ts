@@ -1,12 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
-import { User, GenderType, SexualOrientationType, SubscriptionTier, Group, Message } from './types';
+import { User, GenderType, SexualOrientationType, AbonnementTier, Group, Message } from './types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.warn(
-    '[Supabase] NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY não estão definidos.'
+    '[Supabase] NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY ne sont pas définis.'
   );
 }
 
@@ -512,7 +512,7 @@ export async function getSupabaseMessages(groupId: string): Promise<Message[]> {
       userIsVerified: row.user_is_verified,
       groupId: row.group_id,
       content: row.content,
-      mediaUrl: row.media_url,
+      mejourUrl: row.mejour_url,
       createdAt: row.created_at,
     }));
   } catch (e) {
@@ -528,7 +528,7 @@ export async function sendSupabaseMessage(payload: {
   userGender?: GenderType;
   userIsVerified?: boolean;
   content: string;
-  mediaUrl?: string;
+  mejourUrl?: string;
 }): Promise<boolean> {
   try {
     const { error } = await supabase.from('messages').insert({
@@ -539,7 +539,7 @@ export async function sendSupabaseMessage(payload: {
       user_gender: payload.userGender,
       user_is_verified: payload.userIsVerified,
       content: payload.content,
-      media_url: payload.mediaUrl,
+      mejour_url: payload.mejourUrl,
     });
     return !error;
   } catch (e) {
@@ -652,7 +652,7 @@ CREATE TABLE IF NOT EXISTS public.messages (
   user_name TEXT,
   user_avatar TEXT,
   content TEXT NOT NULL,
-  media_url TEXT,
+  mejour_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -675,6 +675,6 @@ CREATE TABLE IF NOT EXISTS public.subscriptions (
 );
 
 ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Public subscriptions read" ON public.subscriptions FOR SELECT USING (true);
-CREATE POLICY "Allow subscriptions insert" ON public.subscriptions FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public abonnements read" ON public.subscriptions FOR SELECT USING (true);
+CREATE POLICY "Allow abonnements insert" ON public.subscriptions FOR INSERT WITH CHECK (true);
 `;

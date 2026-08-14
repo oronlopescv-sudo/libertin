@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { ProfileCard } from '@/components/profile-card';
-import { SubscriptionPlans } from '@/components/subscription-plans';
+import { AbonnementPlans } from '@/components/subscription-plans';
 import { useAuth } from '@/context/auth-context';
 import {
   Flame,
@@ -54,7 +54,7 @@ export default function HomePage() {
       author: 'Sophie',
       city: 'Bordeaux (33)',
       role: 'Femme Solo',
-      text: 'Le respect et la modération sont primordiaux pour une femme solo. Les profils vérifiés rassurent dès les premiers échanges.',
+      text: 'Le respect et la modération sont primorjourux pour une femme solo. Les profils vérifiés rassurent dès les premiers échanges.',
       stars: 5,
     },
     {
@@ -89,7 +89,7 @@ export default function HomePage() {
               <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-tight">
                 Rencontres Libertines <br />
                 <span className="bg-gradient-to-r from-[#D4145A] via-[#E86B7A] to-purple-400 bg-clip-text text-transparent">
-                  Couples, Femmes & Solos
+                  Couples, Femmes & Célibataires
                 </span>
               </h1>
 
@@ -207,13 +207,13 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Subscriptions Section */}
+        {/* Abonnements Section */}
         <section className="py-16 bg-[#160B21] border-b border-[#2C1B3D]" id="abonnements">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-2xl mx-auto mb-12">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D4145A]/20 text-[#E86B7A] text-xs font-bold mb-3">
                 <Crown className="w-4 h-4" />
-                <span>Formules de Subscriptions</span>
+                <span>Formules de Abonnements</span>
               </div>
               <h2 className="text-3xl font-extrabold text-white">
                 Choisissez Votre Niveau de Privilège
@@ -223,7 +223,7 @@ export default function HomePage() {
               </p>
             </div>
 
-            <SubscriptionPlans />
+            <AbonnementPlans />
           </div>
         </section>
 

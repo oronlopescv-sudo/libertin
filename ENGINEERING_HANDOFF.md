@@ -53,8 +53,8 @@ libertin/
 │   │   │   ├── register/route.ts          ← POST /api/auth/register
 │   │   │   ├── login/route.ts              ← POST /api/auth/login
 │   │   │   ├── logout/route.ts             ← POST /api/auth/logout
-│   │   │   ├── forgot-password/route.ts    ← POST /api/auth/forgot-password
-│   │   │   └── reset-password/route.ts     ← POST /api/auth/reset-password
+│   │   │   ├── forgot-mot de passe/route.ts    ← POST /api/auth/forgot-mot de passe
+│   │   │   └── réinitialisation-mot de passe/route.ts     ← POST /api/auth/réinitialisation-mot de passe
 │   │   ├── groups/
 │   │   ├── messages/
 │   │   ├── payments/
@@ -63,12 +63,12 @@ libertin/
 │   │   ├── page.tsx                        ← Homepage
 │   │   ├── register/page.tsx               ← Registo (2-step form)
 │   │   ├── login/page.tsx                  ← Login
-│   │   ├── profil/page.tsx                 ← Perfil (protegido)
-│   │   ├── forgot-password/page.tsx        ← Reset password request
-│   │   ├── reset-password/page.tsx         ← Reset password (com token)
+│   │   ├── profil/page.tsx                 ← Profil (protegido)
+│   │   ├── forgot-mot de passe/page.tsx        ← Reset mot de passe request
+│   │   ├── réinitialisation-mot de passe/page.tsx         ← Reset mot de passe (com token)
 │   │   ├── decouvrir/page.tsx              ← Ver perfis
-│   │   ├── groupes/page.tsx                ← Grupos
-│   │   ├── abonnements/page.tsx            ← Planos
+│   │   ├── groupes/page.tsx                ← Groupes
+│   │   ├── abonnements/page.tsx            ← Plans
 │   │   ├── admin/page.tsx                  ← Admin panel
 │   │   └── chat/[groupId]/page.tsx         ← Chat
 │   └── layout.tsx                          ← Root layout
@@ -78,9 +78,9 @@ libertin/
 │   ├── footer.tsx
 │   ├── register-form.tsx
 │   ├── login-form.tsx
-│   ├── forgot-password-form.tsx
-│   ├── reset-password-form.tsx
-│   ├── subscription-plans.tsx
+│   ├── forgot-mot de passe-form.tsx
+│   ├── réinitialisation-mot de passe-form.tsx
+│   ├── abonnement-plans.tsx
 │   ├── profile-card.tsx
 │   ├── group-card.tsx
 │   ├── event-card.tsx
@@ -92,7 +92,7 @@ libertin/
 ├── lib/
 │   ├── supabase.ts                        ← Supabase client
 │   ├── types.ts                           ← TypeScript interfaces
-│   └── geo.ts                             ← Cidades e coordenadas
+│   └── geo.ts                             ← Villes e coordenadas
 │
 ├── middleware.ts                          ← Proteção de rotas
 │
@@ -112,7 +112,7 @@ libertin/
 ├── TEST_REPORT_2026-08-09.md             ← Testes
 ├── FIXES_COMPLETED.md                    ← O que foi feito
 ├── RESEND_SETUP.md                       ← Setup Resend
-└── RESEND_COMPLETE.md                    ← Documentação Resend
+└── RESEND_COMPLETE.md                    ← Documentaction Resend
 ```
 
 ---
@@ -125,18 +125,18 @@ libertin/
 id UUID PRIMARY KEY
 email VARCHAR UNIQUE
 username VARCHAR
-hashedPassword VARCHAR
+hashedMot de passe VARCHAR
 dateOfBirth DATE
 gender VARCHAR (couple, femme, homme)
 sexualOrientation VARCHAR
 location VARCHAR
-subscriptionTier VARCHAR (FREE, PREMIUM_3M, PREMIUM_12M, VIP_24M)
-subscriptionEnd TIMESTAMP
+abonnementTier VARCHAR (FREE, PREMIUM_3M, PREMIUM_12M, VIP_24M)
+abonnementEnd TIMESTAMP
 isVerified BOOLEAN
 createdAt TIMESTAMP
 updatedAt TIMESTAMP
 
--- password_resets (com RLS - bloqueado para anon)
+-- mot de passe_réinitialisations (com RLS - bloqueado para ann)
 id UUID PRIMARY KEY
 userId UUID FK users
 token VARCHAR UNIQUE (SHA256 hash)
@@ -170,12 +170,12 @@ price DECIMAL
 currency VARCHAR
 durationMonths INTEGER
 
--- photos, verification_photos, subscriptions, likes, blocked_users, etc.
+-- photos, verification_photos, abonnements, likes, blocked_users, etc.
 ```
 
 ### RLS Policies Ativas
 - `users`: Leitura pública, edição própria
-- `password_resets`: Bloqueado anon, auth só own
+- `mot de passe_réinitialisations`: Bloqué ann, auth só own
 - `pricing_plans`: Leitura pública
 - Resto: Acesso restrito ao proprietário
 
@@ -188,7 +188,7 @@ durationMonths INTEGER
 // POST /api/auth/register
 {
   email: "user@example.com",
-  password: "SecurePass123",
+  mot de passe: "SecurePass123",
   username: "john_doe",
   dateOfBirth: "1995-05-15",
   gender: "homme",
@@ -212,7 +212,7 @@ durationMonths INTEGER
 // POST /api/auth/login
 {
   email: "user@example.com",
-  password: "SecurePass123"
+  mot de passe: "SecurePass123"
 }
 
 // Retorna:
@@ -222,26 +222,26 @@ durationMonths INTEGER
   token: "eyJ..."
 }
 
-// Salva: localStorage + cookie auth_token (httpOnly, 7 dias)
+// Salva: localStorage + cookie auth_token (httpOnly, 7 jours)
 // Redireciona: /profil
 ```
 
 ### 3. PASSWORD RECOVERY
 ```typescript
-// Step 1: POST /api/auth/forgot-password
+// Step 1: POST /api/auth/forgot-mot de passe
 { email: "user@example.com" }
-// → Gera token, envia email com link
+// → Gera token, envoie email com link
 
 // Step 2: User clica link no email
-// → Vai para /reset-password?token=xxx&email=yyy
+// → Vai para /réinitialisation-mot de passe?token=xxx&email=yyy
 
-// Step 3: POST /api/auth/reset-password
+// Step 3: POST /api/auth/réinitialisation-mot de passe
 {
   token: "abc123...",
   email: "user@example.com",
-  newPassword: "NewPass456"
+  newMot de passe: "NewPass456"
 }
-// → Valida token, atualiza password, marca como usado
+// → Valida token, atualiza mot de passe, marca como usado
 ```
 
 ### 4. ROTAS PROTEGIDAS
@@ -281,12 +281,12 @@ npm install
 # Copy from .env.example
 cp .env.example .env.local
 
-# Editar .env.local com:
+# Modifier .env.local com:
 NEXT_PUBLIC_SUPABASE_URL=https://mfchfnsekoluicxnguoh.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 SUPABASE_SERVICE_ROLE_KEY=sb_secret_cygq9idx0_yFtcXd7_T3FQ_56YbevHn
 
-RESEND_API_KEY=re_test_key (opcional em dev)
+RESEND_API_KEY=re_test_key (optionnel em dev)
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
 ```
 
@@ -310,7 +310,7 @@ npm run build
 ```bash
 # 1. Commit localmente
 git add .
-git commit -m "feat: descrição"
+git commit -m "feat: description"
 
 # 2. Push para main
 git push origin main
@@ -361,15 +361,15 @@ npm run dev
 # Registo
 curl -X POST http://localhost:3000/api/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"Test12345",...}'
+  -d '{"email":"test@example.com","mot de passe":"Test12345",...}'
 
 # Login
 curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"Test12345"}'
+  -d '{"email":"test@example.com","mot de passe":"Test12345"}'
 
-# Forgot Password
-curl -X POST http://localhost:3000/api/auth/forgot-password \
+# Forgot Mot de passe
+curl -X POST http://localhost:3000/api/auth/forgot-mot de passe \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com"}'
 ```
@@ -380,14 +380,14 @@ curl -X POST http://localhost:3000/api/auth/forgot-password \
 
 ### P0 (Crítico - Produção)
 - [ ] Configurar Resend API Key
-- [ ] Testar password recovery em produção
+- [ ] Testar mot de passe recovery em produção
 - [ ] Integrar Stripe (APIs + webhooks + payment forms)
 - [ ] Setup de domínio de email Resend (DNS)
 - [ ] Monitorar logs de produção
 
 ### P1 (Alto - Semana 1)
-- [ ] Email verification (opcional)
-- [ ] 2FA/MFA (opcional)
+- [ ] Email verification (optionnel)
+- [ ] 2FA/MFA (optionnel)
 - [ ] OAuth (Google/Facebook)
 - [ ] Admin dashboard completo
 - [ ] Moderation tools
@@ -416,19 +416,19 @@ curl -X POST http://localhost:3000/api/auth/forgot-password \
 - Repo: `oronlopescv-sudo/libertin` (private)
 - Token novo: **GERAR EM https://github.com/settings/tokens**
   - Escopo: `repo, workflow`
-  - Validade: 90 dias
-  - Guardar em `.gitignore` (nunca commitar)
+  - Validade: 90 jours
+  - Enregistrer em `.gitignore` (nunca commitar)
 
 ### Supabase
 - Project: `mfchfnsekoluicxnguoh`
 - Anon Key: (visto acima - já commitada, considerar rotar)
 - Service Role: (visto acima - commitada também)
-- ⚠️ **Ação:** Rotar chaves se expustas
+- ⚠️ **Action:** Rotar chaves se expustas
 
 ### Resend
 - Gerar em: https://resend.com/api-keys
 - Formato: `re_xxxxxx`
-- Guardar em `.env.production` (Hostinger panel)
+- Enregistrer em `.env.production` (Hostinger panel)
 
 ### Hostinger
 - Panel: https://hpanel.hostinger.com
@@ -443,7 +443,7 @@ Antes de fazer push para produção:
 
 ```
 [ ] npm run build → sem erros
-[ ] Todas as variáveis .env configuradas
+[ ] Toutes as variáveis .env configuradas
 [ ] RLS ativo em todas as tabelas Supabase
 [ ] Resend API key válida
 [ ] Testar em localhost:
@@ -451,7 +451,7 @@ Antes de fazer push para produção:
     [ ] Login com novo user
     [ ] Aceder /profil
     [ ] Logout
-    [ ] Password recovery workflow
+    [ ] Mot de passe recovery workflow
     [ ] Rotas protegidas redirecionam /login
 [ ] Testes automatizados passando (se houver)
 [ ] Sem console errors/warnings
@@ -487,7 +487,7 @@ Ler nesta ordem:
 1. **FIXES_COMPLETED.md** - O que foi implementado
 2. **AUDIT_REPORT_2026-08-09.md** - Issues encontradas
 3. **TEST_REPORT_2026-08-09.md** - Testes feitos
-4. **RESEND_COMPLETE.md** - Password recovery em detalhe
+4. **RESEND_COMPLETE.md** - Mot de passe recovery em detalhe
 
 ---
 
@@ -501,7 +501,7 @@ Ficheiros a criar:
 - `/components/payment-modal.tsx`
 - `/lib/stripe.ts`
 
-Usar docs: https://stripe.com/docs/billing/subscriptions
+Usar docs: https://stripe.com/docs/billing/abonnements
 
 ---
 

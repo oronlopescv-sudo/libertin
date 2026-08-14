@@ -1,5 +1,5 @@
-import { User, Group, Message, VerificationPhoto, SubscriptionTier } from './types';
-import { calculateSubscriptionEndDate } from './stripe';
+import { User, Group, Message, VerificationPhoto, AbonnementTier } from './types';
+import { calculateAbonnementEndDate } from './stripe';
 
 // NOTE: legacy localStorage data store.
 // Most app logic now uses Supabase directly. This file remains only for
@@ -59,6 +59,6 @@ export const Store = {
     return this.getBlockedIds().includes(targetUserId);
   },
 
-  // Helper for subscription end date calculation
-  calculateSubscriptionEndDate,
+  // Helper for abonnement end date calculation
+  calculateAbonnementEndDate,
 };

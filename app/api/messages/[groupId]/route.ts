@@ -12,10 +12,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gro
   try {
     const { groupId } = await params;
     const body = await req.json();
-    const { userSubscriptionTier, content, userRole } = body;
+    const { userAbonnementTier, content, userRole } = body;
 
     // Premium Gating Check (Bug #1 Fix): Free accounts cannot send messages
-    if (userSubscriptionTier === 'FREE' && userRole !== 'admin') {
+    if (userAbonnementTier === 'FREE' && userRole !== 'admin') {
       return NextResponse.json(
         { error: 'Abonnement requis. Seuls les membres Premium peuvent participer aux tchats de groupe.' },
         { status: 403 }

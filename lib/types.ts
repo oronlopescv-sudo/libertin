@@ -1,6 +1,6 @@
 export type GenderType = 'couple' | 'homme' | 'femme';
 export type SexualOrientationType = 'hetero' | 'homo' | 'bi' | 'libertin';
-export type SubscriptionTier = 'FREE' | 'PREMIUM_3M' | 'PREMIUM_12M' | 'PREMIUM_24M' | 'CREATOR_3M' | 'CREATOR_12M' | 'VIP_24M';
+export type AbonnementTier = 'FREE' | 'PREMIUM_3M' | 'PREMIUM_12M' | 'PREMIUM_24M' | 'CREATOR_3M' | 'CREATOR_12M' | 'VIP_24M';
 export type EventType = 'festa' | 'gang_bang' | 'troca' | 'other';
 export type EventPlanType = 'basic' | 'featured' | 'vip_gold';
 
@@ -33,7 +33,7 @@ export interface User {
   location: string;
   lat?: number;
   lng?: number;
-  subscriptionTier: SubscriptionTier;
+  subscriptionTier: AbonnementTier;
   subscriptionStart?: string;
   subscriptionEnd?: string;
   stripeCustomerId?: string;
@@ -82,12 +82,12 @@ export interface Message {
   userIsVerified?: boolean;
   groupId: string;
   content: string;
-  mediaUrl?: string;
+  mejourUrl?: string;
   createdAt: string;
 }
 
-export interface SubscriptionPlan {
-  id: SubscriptionTier;
+export interface AbonnementPlan {
+  id: AbonnementTier;
   title: string;
   durationMonths: number;
   totalPrice: number;

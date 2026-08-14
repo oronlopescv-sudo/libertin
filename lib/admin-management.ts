@@ -143,7 +143,7 @@ export async function banUser(
               <h2>Compte suspendu</h2>
               <p>Votre compte xlibertine a été suspendu pour la raison suivante:</p>
               <p><strong>${reason}</strong></p>
-              <p>Si vous pensez qu'il s'agit d'une erreur, contactez support@xlibertine.com</p>
+              <p>Si vous pensez qu"il s'agit d"une erreur, contactez support@xlibertine.com</p>
             `,
           }),
         });

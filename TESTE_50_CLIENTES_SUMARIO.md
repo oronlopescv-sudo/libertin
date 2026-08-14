@@ -16,7 +16,7 @@
 │  👥 PARTICIPANTES:     50 Clientes + 3 Agentes          │
 │  🎯 FUNCIONALIDADES:   7 áreas principais               │
 │  🧪 TEST CASES:        105 scenarios                     │
-│  ⏱️  DURAÇÃO:           3 horas                           │
+│  ⏱️  DURAÇÃO:           3 heures                           │
 │  📁 DOCUMENTAÇÃO:      8 ficheiros                       │
 │  ✅ STATUS:            PRONTO                            │
 │                                                          │
@@ -27,14 +27,14 @@
 
 ## 📚 DOCUMENTAÇÃO CRIADA
 
-### **Utilizadores de Teste**
+### **Utilisateurs de Teste**
 ```
 TESTE_USUARIOS.sql                    (240 linhas - SQL)
 TESTE_USUARIOS_GUIA.md                (Guia completo)
 TESTE_RAPIDO.md                       (3 passos)
 ```
-✅ 53 utilizadores prontos (3 agentes + 50 clientes)  
-✅ Password para todos: `TestPass123`
+✅ 53 utilisateurs prontos (3 agentes + 50 clientes)  
+✅ Mot de passe para todos: `TestPass123`
 
 ### **Lógica & Funcionalidades**
 ```
@@ -44,9 +44,9 @@ app/api/admirers/route.ts             (95 linhas)
 app/decouvrir/page.tsx                (290 linhas)
 ```
 ✅ 4 APIs + 1 página implementadas  
-✅ Todos com validações e RLS
+✅ Tous com validações e RLS
 
-### **Planos de Teste**
+### **Plans de Teste**
 ```
 TEST_SCENARIOS.md                     (40+ test cases)
 TESTING_CHECKLIST.md                  (Executável)
@@ -60,7 +60,7 @@ TESTE_50_CLIENTES_DISTRIBUIDO.md      (1000+ linhas!)
 COMO_EXECUTAR_50_CLIENTES.md          (Prático + exemplos)
 ```
 ✅ Cada cliente tem teste específico  
-✅ Todos os botões/opções cobertos
+✅ Tous os botões/opções cobertos
 
 ---
 
@@ -68,80 +68,80 @@ COMO_EXECUTAR_50_CLIENTES.md          (Prático + exemplos)
 
 ### **FEATURE 1: AUTENTICAÇÃO** ✅
 ```
-✅ Registro (email, password, age, gender, location)
+✅ Registro (email, mot de passe, age, gender, location)
 ✅ Login (email ou username)
 ✅ Logout (limpa token)
-✅ Password Reset (com Resend)
+✅ Mot de passe Reset (com Resend)
 ✅ Token Security (httpOnly, base64)
 ```
-**Testado por:** Grupo 1-5 (5 clientes)
+**Testado por:** Groupe 1-5 (5 clientes)
 
 ### **FEATURE 2: PAYWALL** ✅
 ```
 ✅ Bloqueio de 5 features para FREE users:
    ├─ /decouvrir (Discovery)
-   ├─ /chat (Grupos)
-   ├─ Criar Grupos
-   ├─ Upload Fotos
+   ├─ /chat (Groupes)
+   ├─ Criar Groupes
+   ├─ Upload Photos
    └─ /eventos
-✅ Mensagens de erro claras
+✅ Messages de erro claras
 ✅ Links para upgrade
 ```
-**Testado por:** Grupo 6-10 (5 clientes)
+**Testado por:** Groupe 6-10 (5 clientes)
 
 ### **FEATURE 3: DISCOVERY** ✅
 ```
 ✅ Ver 20 perfis por página
-✅ 7 Filtros funcionais:
-   ├─ Localização (Paris, Lyon, Bordeaux, etc)
-   ├─ Idade (min-max sliders)
-   ├─ Género (femme/homme)
-   ├─ Orientação Sexual (hetero/bi/lesbian)
-   ├─ Combinação de filtros
-   ├─ Paginação (Anterior/Próximo)
+✅ 7 Filtres funcionais:
+   ├─ Localisation (Paris, Lyon, Bordeaux, etc)
+   ├─ Âge (min-max sliders)
+   ├─ Genre (femme/homme)
+   ├─ Orientaction Sexual (hetero/bi/lesbian)
+   ├─ Combinaction de filtros
+   ├─ Paginaction (Précédent/Suivant)
    └─ Reset de página ao filtrar
 ✅ Performance: <1s por carregamento
 ```
-**Testado por:** Grupo 11-20 (10 clientes)
+**Testado por:** Groupe 11-20 (10 clientes)
 
 ### **FEATURE 4: LIKES** ✅
 ```
-✅ Curtir/Uncurtir perfis (toggle)
+✅ Liker/Uncurtir perfis (toggle)
 ✅ Ver "Meus Likes" em perfil
 ✅ Botão muda cor (vermelho quando curtido)
 ✅ Contador de likes
 ✅ RLS: Cada user vê só seus likes
 ```
-**Testado por:** Grupo 21-25 (5 clientes)
+**Testado por:** Groupe 21-25 (5 clientes)
 
 ### **FEATURE 5: ADMIRADORES** ✅
 ```
-✅ Ver quem curtiu seu perfil
-✅ Lista com dados completos (nome, idade, localização)
+✅ Ver quem curtiu votre profil
+✅ Lista com dados completos (nome, idade, localizaction)
 ✅ Contador de admiradores
-✅ Botão "Curtir de Volta"
+✅ Botão "Liker de Volta"
 ✅ RLS: Cada user vê só admiradores dele
 ```
-**Testado por:** Grupo 21-25 (5 clientes)
+**Testado por:** Groupe 21-25 (5 clientes)
 
 ### **FEATURE 6: GRUPOS** ✅
 ```
-✅ Criar grupo (nome, descrição, categoria, max membros, privado)
+✅ Criar grupo (nome, description, catégorie, max membros, privé)
 ✅ Ver detalhes do grupo
 ✅ Juntar-se a grupo (botão toggle)
-✅ Sair de grupo (confirmação)
-✅ Editar grupo (admin)
+✅ Se déconnecter de grupo (confirmaction)
+✅ Modifier grupo (admin)
 ✅ Deletar grupo (admin)
-✅ Admin functions (promover mod, banir, etc)
+✅ Admin functions (promover mod, bannir, etc)
 ✅ RLS: Apenas membros veem
 ```
-**Testado por:** Grupo 26-35 (10 clientes)
+**Testado por:** Groupe 26-35 (10 clientes)
 
 ### **FEATURE 7: CHAT** ✅
 ```
-✅ Ver histórico de mensagens
-✅ Enviar mensagens
-✅ Editar próprias mensagens
+✅ Ver historique de mensagens
+✅ Envoyer mensagens
+✅ Modifier próprias mensagens
 ✅ Deletar próprias mensagens
 ✅ Ver lista de membros
 ✅ Reações a mensagens (emoji)
@@ -149,20 +149,20 @@ COMO_EXECUTAR_50_CLIENTES.md          (Prático + exemplos)
 ✅ Notificações (badge, push, email)
 ✅ RLS: Apenas membros veem
 ```
-**Testado por:** Grupo 36-45 (10 clientes)
+**Testado por:** Groupe 36-45 (10 clientes)
 
 ### **FEATURE 8: SEGURANÇA** ✅
 ```
 ✅ SQL Injection protection (prepared statements)
-✅ XSS protection (sanitização)
+✅ XSS protection (sanitizaction)
 ✅ CSRF protection (httpOnly cookies)
 ✅ RLS (7 tabelas com políticas)
 ✅ Token validation (middleware)
-✅ Password strength (8+ chars)
+✅ Mot de passe strength (8+ chars)
 ✅ Email validation
 ✅ Age validation (18+)
 ```
-**Testado por:** Grupo 46-50 (5 clientes)
+**Testado por:** Groupe 46-50 (5 clientes)
 
 ---
 
@@ -173,13 +173,13 @@ COMO_EXECUTAR_50_CLIENTES.md          (Prático + exemplos)
 │          7 GRUPOS × 50 CLIENTES                    │
 ├────────────────────────────────────────────────────┤
 │                                                    │
-│ Grupo  │ Clientes │ Foco           │ Test Cases   │
+│ Groupe  │ Clientes │ Foco           │ Test Cases   │
 ├────────┼──────────┼────────────────┼──────────────┤
-│ 1-5    │ 5        │ Autenticação   │ 10           │
+│ 1-5    │ 5        │ Autenticaction   │ 10           │
 │ 6-10   │ 5        │ Paywall        │ 10           │
 │ 11-20  │ 10       │ Discovery      │ 20           │
 │ 21-25  │ 5        │ Likes          │ 10           │
-│ 26-35  │ 10       │ Grupos         │ 20           │
+│ 26-35  │ 10       │ Groupes         │ 20           │
 │ 36-45  │ 10       │ Chat           │ 20           │
 │ 46-50  │ 5        │ Edge Cases     │ 15           │
 ├────────┼──────────┼────────────────┼──────────────┤
@@ -196,65 +196,65 @@ COMO_EXECUTAR_50_CLIENTES.md          (Prático + exemplos)
 ```
 Client 1: Registro completo
 Client 2: Login (email/username)
-Client 3: Perfil & Logout
-Client 4: Password Reset (request)
-Client 5: Password Reset (confirmar)
+Client 3: Profil & Logout
+Client 4: Mot de passe Reset (request)
+Client 5: Mot de passe Reset (confirmar)
 ```
 
 ### **PAYWALL (Clients 6-10)**
 ```
 Client 6: /decouvrir bloqueado
 Client 7: /chat bloqueado
-Client 8: Criar Grupo bloqueado
+Client 8: Criar Groupe bloqueado
 Client 9: Upload Foto bloqueado
 Client 10: /eventos bloqueado
 ```
 
 ### **DISCOVERY (Clients 11-20)**
 ```
-Client 11: Página básica
-Client 12: Filtro Localização
-Client 13: Filtro Idade
-Client 14: Filtro Género
-Client 15: Filtro Orientação
-Client 16: Filtros Combinados
-Client 17: Paginação (Botões)
-Clients 18-20: Paginação + Filtros
+Client 11: Page básica
+Client 12: Filtro Localisation
+Client 13: Filtro Âge
+Client 14: Filtro Genre
+Client 15: Filtro Orientaction
+Client 16: Filtres Combinados
+Client 17: Paginaction (Botões)
+Clients 18-20: Paginaction + Filtres
 ```
 
 ### **LIKES (Clients 21-25)**
 ```
-Client 21: Curtir/Uncurtir
+Client 21: Liker/Uncurtir
 Client 22: Meus Likes (lista)
 Client 23: Admiradores
 Client 24: Matches
-Client 25: Bloquear Utilizador
+Client 25: Bloquer Utilisateur
 ```
 
 ### **GRUPOS (Clients 26-35)**
 ```
-Client 26: Criar Grupo
+Client 26: Criar Groupe
 Client 27: Ver Detalhes
 Client 28: Juntar-se
-Client 29: Sair
-Clients 30-35: Editar/Deletar/Admin
+Client 29: Se déconnecter
+Clients 30-35: Modifier/Deletar/Admin
 ```
 
 ### **CHAT (Clients 36-45)**
 ```
 Client 36: Ver Chat (membro)
-Client 37: Enviar Mensagem
-Client 38: Histórico
+Client 37: Envoyer Message
+Client 38: Historique
 Client 39: Lista Membros
 Client 40: Reações
-Client 41: Editar Mensagem
+Client 41: Modifier Message
 Client 42: Typing Indicator
 Clients 43-45: Notificações
 ```
 
 ### **EDGE CASES (Clients 46-50)**
 ```
-Client 46: Password Fraca
+Client 46: Mot de passe Fraca
 Client 47: Email Duplicado
 Client 48: Responsividade Mobile
 Client 49: Performance
@@ -283,7 +283,7 @@ Build: 15.9s ✅
 ```
 Projeto: mfchfnsekoluicxnguoh
 RLS: Ativa ✅
-Utilizadores: 53 prontos
+Utilisateurs: 53 prontos
 APIs: 4 endpoints
 ```
 
@@ -291,20 +291,20 @@ APIs: 4 endpoints
 
 ## 🚀 COMO INICIAR
 
-### **Passo 1: Inserir Utilizadores (3 min)**
+### **Passo 1: Inserir Utilisateurs (3 min)**
 ```
 1. https://app.supabase.com
 2. SQL Editor
 3. Cola: TESTE_USUARIOS.sql
 4. Clica RUN
-✅ 53 utilizadores criados
+✅ 53 utilisateurs criados
 ```
 
 ### **Passo 2: Distribuir Credenciais (2 min)**
 ```
-Envia 50 clientes:
+Envoie 50 clientes:
 - Seu email (ex: client.alice@xlibertine.com)
-- Password: TestPass123
+- Mot de passe: TestPass123
 - Seu Cliente #: [número]
 - Link guia: TESTE_50_CLIENTES_DISTRIBUIDO.md
 ```
@@ -315,19 +315,19 @@ Envias mensagem simultaneamente a todos:
 "Teste começa agora! Segue os passos do guia."
 ```
 
-### **Passo 4: Monitorizar (3 horas)**
+### **Passo 4: Monitorizar (3 heures)**
 ```
 Coordenador fica on-call
 Recolhe bugs em tempo real
 Ajuda com problemas técnicos
 ```
 
-### **Passo 5: Compilar Resultados (30 min)**
+### **Passo 5: Compilar Résultats (30 min)**
 ```
 Recolhe feedback de todos 50
-Cria lista de bugs
+Crée lista de bugs
 Classifica por severidade
-Cria PRs para fixes
+Crée PRs para fixes
 ```
 
 ---
@@ -337,11 +337,11 @@ Cria PRs para fixes
 ```
 TAXA DE SUCESSO POR ÁREA
 
-Autenticação:       ✅ 100% (5/5)
+Autenticaction:       ✅ 100% (5/5)
 Paywall:            ✅ 100% (5/5)
 Discovery:          ✅ 100% (10/10)
 Likes:              ✅ 100% (5/5)
-Grupos:             ✅ 95% (9.5/10)
+Groupes:             ✅ 95% (9.5/10)
 Chat:               ✅ 90% (9/10)
 Segurança:          ✅ 100% (5/5)
 
@@ -376,7 +376,7 @@ TESTE_50_CLIENTES_DISTRIBUIDO.md      ← Distribuição
 COMO_EXECUTAR_50_CLIENTES.md          ← Execução prática
 
 📊 TOTAL: 14 ficheiros
-📝 TOTAL: ~4000+ linhas de documentação
+📝 TOTAL: ~4000+ linhas de documentaction
 ✅ TOTAL: 100% coberto
 ```
 
@@ -385,7 +385,7 @@ COMO_EXECUTAR_50_CLIENTES.md          ← Execução prática
 ## 🎯 METRICAS DE SUCESSO
 
 ### **Coverage**
-- ✅ 100% autenticação
+- ✅ 100% autenticaction
 - ✅ 100% paywall
 - ✅ 100% discovery
 - ✅ 100% likes
@@ -421,7 +421,7 @@ COMO_EXECUTAR_50_CLIENTES.md          ← Execução prática
 ║   7 Funcionalidades                               ║
 ║   105 Test Cases                                  ║
 ║   3 Horas                                         ║
-║   97% Sucesso esperado                            ║
+║   97% Succès esperado                            ║
 ║                                                   ║
 ║   🚀 LAUNCH READY                                 ║
 ║                                                   ║
@@ -432,7 +432,7 @@ COMO_EXECUTAR_50_CLIENTES.md          ← Execução prática
 
 ## 📞 PRÓXIMOS PASSOS
 
-1. **Hoje:** Inserir utilizadores + distribuir credenciais
+1. **Hoje:** Inserir utilisateurs + distribuir credenciais
 2. **Amanhã:** Executar teste com 50 clientes (3h)
 3. **Depois:** Compilar bugs + fixar CRITICAL
 4. **Semana:** Implementar features faltantes (Admin Panel, etc)
@@ -443,8 +443,8 @@ COMO_EXECUTAR_50_CLIENTES.md          ← Execução prática
 **Commit:** `b57be55`  
 **Data:** 09/08/2026  
 **Status:** ✅ COMPLETAMENTE PRONTO  
-**Teste:** Pode começar imediatamente! 🚀
+**Teste:** Pode começar imejourtamente! 🚀
 
 ---
 
-*Documentação criada para 50 clientes testarem simultaneamente todas as funcionalidades da plataforma xlibertine.com*
+*Documentaction criada para 50 clientes testarem simultaneamente todas as funcionalidades da plateforme xlibertine.com*

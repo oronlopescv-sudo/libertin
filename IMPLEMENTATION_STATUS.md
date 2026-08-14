@@ -13,20 +13,20 @@
 - [x] Profile search & filtering (geolocation)
 - [x] Group creation & management
 - [x] Real-time chat with Supabase Realtime
-- [x] Subscription system (4 tiers)
+- [x] Abonnement system (4 tiers)
 
 ### ✅ Payment System (Complete)
 - [x] Stripe integration (checkout sessions, webhooks)
-- [x] Subscription lifecycle management
+- [x] Abonnement lifecycle management
 - [x] Payment webhook handler
-- [x] Automatic subscription status updates
+- [x] Automatic abonnement status updates
 - [x] Payment failure notifications
 
 ### ✅ Email System (Complete)
 - [x] Resend integration
 - [x] Welcome emails
-- [x] Password reset emails
-- [x] Subscription confirmation emails
+- [x] Mot de passe réinitialisation emails
+- [x] Abonnement confirmation emails
 - [x] Photo verification approval/rejection emails
 - [x] Payment failure notifications
 
@@ -39,7 +39,7 @@
 - [x] Email notifications
 
 ### ✅ Security & Validation (Complete)
-- [x] Input validation (email, password, username, etc)
+- [x] Input validation (email, mot de passe, username, etc)
 - [x] Rate limiting (60 req/min API, 10 req/min auth)
 - [x] CSRF protection
 - [x] Security headers (CSP, X-Frame-Options, etc)
@@ -143,7 +143,7 @@
 - `lib/stripe.ts` — Updated with full Stripe integration
 
 **Email Service:**
-- `lib/email.ts` — 6 email templates (welcome, reset, subscription, etc)
+- `lib/email.ts` — 6 email templates (welcome, réinitialisation, abonnement, etc)
 
 **Real-time Chat:**
 - `lib/realtime-chat.ts` — Supabase Realtime hooks & functions
@@ -193,7 +193,7 @@ npm run dev
 
 # 6. Verify email
 # - Check Resend logs for welcome email
-# - Test password reset
+# - Test mot de passe réinitialisation
 
 # 7. Deploy to production
 npm run build
@@ -210,7 +210,7 @@ npm run build
 
 ## 📊 Key Metrics to Track
 
-**Immediately (Day 1):**
+**Immejourtely (Day 1):**
 - [ ] Stripe webhook delivery (should be 100%)
 - [ ] Email delivery rate (target: >99%)
 - [ ] Login success rate
@@ -218,7 +218,7 @@ npm run build
 
 **Week 1:**
 - [ ] Daily active users (DAU)
-- [ ] Signup-to-subscription conversion (target: 5-10%)
+- [ ] Signup-to-abonnement conversion (target: 5-10%)
 - [ ] Chat message volume
 - [ ] Photo verification queue length
 

@@ -8,13 +8,13 @@ import { isPremium as isPremiumFn } from '@/lib/premium';
 interface CreateGroupModalProps {
   isOpen: boolean;
   onClose: () => void;
-  userSubscription: {
+  userAbonnement: {
     tier: string;
     expiresAt: string | null;
   };
 }
 
-export function CreateGroupModal({ isOpen, onClose, userSubscription }: CreateGroupModalProps) {
+export function CreateGroupModal({ isOpen, onClose, userAbonnement }: CreateGroupModalProps) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
@@ -25,15 +25,15 @@ export function CreateGroupModal({ isOpen, onClose, userSubscription }: CreateGr
   const [success, setSuccess] = useState(false);
 
   const isPremium = isPremiumFn({
-    subscriptionTier: userSubscription.tier,
-    subscriptionEnd: userSubscription.expiresAt,
+    subscriptionTier: userAbonnement.tier,
+    subscriptionEnd: userAbonnement.expiresAt,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!isPremium) {
-      setError('Apenas utilizadores Premium podem criar grupos');
+      setError('Apenas utilisateurs Premium podem criar grupos');
       return;
     }
 
@@ -56,7 +56,7 @@ export function CreateGroupModal({ isOpen, onClose, userSubscription }: CreateGr
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Erro ao criar grupo');
+        throw new Error(data.error || 'Erreur lors de la création du groupe');
       }
 
       setSuccess(true);
@@ -66,7 +66,7 @@ export function CreateGroupModal({ isOpen, onClose, userSubscription }: CreateGr
       setMaxMembers(100);
       setCategory('general');
 
-      // Fechar modal após sucesso
+      // Fermer modal após sucesso
       setTimeout(() => {
         onClose();
         window.location.reload();
@@ -85,7 +85,7 @@ export function CreateGroupModal({ isOpen, onClose, userSubscription }: CreateGr
       <div className="bg-[#1C102B] rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto border border-[#2C1B3D]">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-[#2C1B3D] sticky top-0 bg-[#1C102B]">
-          <h2 className="text-lg font-bold text-white">Criar Grupo</h2>
+          <h2 className="text-lg font-bold text-white">Criar Groupe</h2>
           <button
             onClick={onClose}
             className="text-zinc-400 hover:text-white transition"
@@ -105,7 +105,7 @@ export function CreateGroupModal({ isOpen, onClose, userSubscription }: CreateGr
               <div>
                 <h3 className="text-lg font-bold text-white mb-2">Premium Apenas</h3>
                 <p className="text-zinc-400 text-sm mb-4">
-                  Apenas utilizadores com subscrição Premium podem criar grupos.
+                  Seuls les utilisateurs avec un abonnement Premium peuvent créer des groupes.
                 </p>
               </div>
               <Link
@@ -118,7 +118,7 @@ export function CreateGroupModal({ isOpen, onClose, userSubscription }: CreateGr
                 onClick={onClose}
                 className="w-full py-2 bg-[#2C1B3D] rounded-lg font-semibold text-white hover:bg-[#3C2B4D] transition"
               >
-                Cancelar
+                Annuler
               </button>
             </div>
           ) : (
@@ -132,7 +132,7 @@ export function CreateGroupModal({ isOpen, onClose, userSubscription }: CreateGr
 
               {success && (
                 <div className="p-3 rounded-lg bg-green-500/20 border border-green-500/50 text-green-200 text-sm">
-                  ✓ Grupo criado com sucesso!
+                  ✓ Groupe criado avec succès!
                 </div>
               )}
 
@@ -149,9 +149,9 @@ export function CreateGroupModal({ isOpen, onClose, userSubscription }: CreateGr
                 />
               </div>
 
-              {/* Descrição */}
+              {/* Description */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-[#F5F0F8]">Descrição</label>
+                <label className="text-sm font-medium text-[#F5F0F8]">Description</label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -161,19 +161,19 @@ export function CreateGroupModal({ isOpen, onClose, userSubscription }: CreateGr
                 />
               </div>
 
-              {/* Categoria */}
+              {/* Catégorie */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-[#F5F0F8]">Categoria</label>
+                <label className="text-sm font-medium text-[#F5F0F8]">Catégorie</label>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                   className="w-full px-4 py-2 bg-[#2C1B3D] border border-[#3C2B4D] rounded-lg text-white focus:outline-none focus:border-[#D4145A]"
                 >
                   <option value="general">Geral</option>
-                  <option value="couples">Casais</option>
-                  <option value="singles">Solteiros</option>
-                  <option value="women">Mulheres</option>
-                  <option value="events">Eventos</option>
+                  <option value="couples">Couples</option>
+                  <option value="singles">Célibataires</option>
+                  <option value="women">Femmes</option>
+                  <option value="events">Événements</option>
                   <option value="other">Outro</option>
                 </select>
               </div>
@@ -193,7 +193,7 @@ export function CreateGroupModal({ isOpen, onClose, userSubscription }: CreateGr
                 />
               </div>
 
-              {/* Privado */}
+              {/* Privé */}
               <div className="flex items-center gap-3">
                 <input
                   type="checkbox"
@@ -203,7 +203,7 @@ export function CreateGroupModal({ isOpen, onClose, userSubscription }: CreateGr
                   className="w-4 h-4 accent-[#D4145A]"
                 />
                 <label htmlFor="private-checkbox" className="text-sm text-[#F5F0F8]">
-                  Grupo privado (convite apenas)
+                  Groupe privé (convite apenas)
                 </label>
               </div>
 
@@ -214,14 +214,14 @@ export function CreateGroupModal({ isOpen, onClose, userSubscription }: CreateGr
                   onClick={onClose}
                   className="flex-1 py-2 bg-[#2C1B3D] rounded-lg font-semibold text-white hover:bg-[#3C2B4D] transition"
                 >
-                  Cancelar
+                  Annuler
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
                   className="flex-1 py-2 bg-gradient-to-r from-[#D4145A] to-[#E86B7A] rounded-lg font-semibold text-white hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? 'Criando...' : 'Criar Grupo'}
+                  {loading ? 'Criando...' : 'Criar Groupe'}
                 </button>
               </div>
             </form>

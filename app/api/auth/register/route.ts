@@ -6,9 +6,9 @@ export async function POST(req: NextRequest) {
   try {
     const { email, password, username, dateOfBirth, gender, sexualOrientation, location } = await req.json();
 
-    // Validação
+    // Validaction
     if (!email || !password || !username || !dateOfBirth) {
-      return NextResponse.json({ error: 'Campos obrigatórios faltando' }, { status: 400 });
+      return NextResponse.json({ error: 'Campos obligatoires faltando' }, { status: 400 });
     }
 
     if (password.length < 8) {
@@ -17,10 +17,10 @@ export async function POST(req: NextRequest) {
 
     const age = new Date().getFullYear() - new Date(dateOfBirth).getFullYear();
     if (age < 18) {
-      return NextResponse.json({ error: 'Deve ter 18+ anos' }, { status: 400 });
+      return NextResponse.json({ error: 'Deve ter 18+ ans' }, { status: 400 });
     }
 
-    // Hash password
+    // Hash mot de passe
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Insere no Supabase
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Email já existe' }, { status: 400 });
     }
 
-    // Cria JWT simples (em produção usar Supabase Auth)
+    // Crée un JWT simple (utiliser Supabase Auth en production)
     const token = Buffer.from(JSON.stringify({ id: data.id, email: data.email })).toString('base64');
 
     return NextResponse.json(

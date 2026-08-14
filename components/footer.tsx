@@ -63,7 +63,7 @@ export function Footer() {
             <ul className="space-y-2 text-xs text-zinc-400">
               <li className="flex items-center gap-2">
                 <Lock className="w-3.5 h-3.5 text-[#E86B7A]" />
-                <span>Intitulé bancaire anonyme</span>
+                <span>Intitulé bancaire annyme</span>
               </li>
               <li className="flex items-center gap-2">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />

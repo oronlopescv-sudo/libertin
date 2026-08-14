@@ -9,7 +9,7 @@
 ### ✅ VERIFICADO
 - RLS ligado em 7 tabelas ✓
 - Políticas criadas e ativas ✓
-- `password_resets` bloqueado para anon ✓
+- `mot de passe_réinitialisations` bloqueado para ann ✓
 - `users` com leitura pública ✓
 
 ### ❌ AINDA FALTAM
@@ -25,14 +25,14 @@
 
 ### ✅ CRIADO
 - `register-form.tsx` - Componente completo ✓
-- Validação de email ✓
-- Validação de idade (18+) ✓
-- Validação de password (8+ chars) ✓
+- Validaction de email ✓
+- Validaction de idade (18+) ✓
+- Validaction de mot de passe (8+ chars) ✓
 - Error handling com mensagens ✓
 - Success state com redireção ✓
 
 ### ❌ NÃO TESTADO AINDA
-- [ ] Página `/register` - conectado ao formulário?
+- [ ] Page `/register` - conectado ao formulário?
 - [ ] Envio de dados para API `/api/auth/register`
 - [ ] Resposta da API validada?
 - [ ] Redireção para login após sucesso?
@@ -101,15 +101,15 @@
 [ ] User clica "Activer Pass"
 [ ] → Modal de checkout (Stripe)
 [ ] → Paga (SKIPPED - Stripe para o fim)
-[ ] → Upgrade subscription
+[ ] → Upgrade abonnement
 ```
 **STATUS:** ❌ NÃO TESTADO (Stripe deixado)
 
 ---
 
-## 🔧 TÉCNICO #1 - Teste de Página Register
+## 🔧 TÉCNICO #1 - Teste de Page Register
 
-### TESTE 1: Página `/register` Carrega?
+### TESTE 1: Page `/register` Carrega?
 ```bash
 curl -s https://xlibertine.com/register | grep -c "Créer un compte"
 ```
@@ -124,7 +124,7 @@ document.querySelector('input[name="email"]')
 **Resultado esperado:** ✓ Input element  
 **Resultado real:** ? [PRECISA TESTE]
 
-### TESTE 3: Validação Email?
+### TESTE 3: Validaction Email?
 ```javascript
 // Preenche email inválido
 form.email = "nao-um-email"
@@ -133,9 +133,9 @@ form.submit()
 **Resultado esperado:** ❌ "Tous les champs sont requis" ou erro de email  
 **Resultado real:** ? [PRECISA TESTE]
 
-### TESTE 4: Validação Idade?
+### TESTE 4: Validaction Âge?
 ```javascript
-// Preenche data 10 anos atrás
+// Preenche data 10 ans atrás
 form.dateOfBirth = "2016-01-01"
 form.submit()
 ```
@@ -153,7 +153,7 @@ curl -X POST https://xlibertine.com/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "email":"test@example.com",
-    "password":"Test12345",
+    "mot de passe":"Test12345",
     "username":"TestUser",
     "dateOfBirth":"1995-01-01",
     "gender":"femme",
@@ -175,7 +175,7 @@ curl -X POST https://xlibertine.com/api/auth/register \
 
 ---
 
-## 🔧 TÉCNICO #3 - Teste de Autenticação
+## 🔧 TÉCNICO #3 - Teste de Autenticaction
 
 ### TESTE 1: JWT é armazenado?
 ```javascript
@@ -234,14 +234,14 @@ GET /profil sem JWT
 | Componente | Status | Problema |
 |-----------|--------|----------|
 | RLS + Segurança | ✅ DONE | Nenhum |
-| RegisterForm | ✅ CRIADO | Não ligado à página |
-| Página `/register` | ❌ NÃO TESTADO | Form não wired |
+| RegisterForm | ✅ CRIADO | Non ligado à página |
+| Page `/register` | ❌ NÃO TESTADO | Form não wired |
 | API `/auth/register` | ❌ NÃO EXISTE | Precisa ser criada |
 | LoginForm | ❌ NÃO EXISTE | Precisa ser criada |
 | API `/auth/login` | ❌ NÃO EXISTE | Precisa ser criada |
 | JWT Storage | ❌ NÃO TESTADO | Sem auth implementado |
-| Perfis Fake | ✅ EXISTEM | 36 criados |
-| Página `/decouvrir` | ⚠️ ? | UI pode estar vazia |
+| Profils Fake | ✅ EXISTEM | 36 criados |
+| Page `/decouvrir` | ⚠️ ? | UI pode estar vazia |
 | Botões Navbar | ⚠️ PARCIAL | Alguns não funcionam |
 
 ---
@@ -251,31 +251,31 @@ GET /profil sem JWT
 **Para o site FUNCIONAR:**
 
 1. **API `/api/auth/register` DEVE EXISTIR** (P0)
-   - Recebe: email, password, username, dateOfBirth, gender, sexualOrientation, location
+   - Recebe: email, mot de passe, username, dateOfBirth, gender, sexualOrientation, location
    - Retorna: user object + JWT
    - Insere em Supabase users table
 
 2. **API `/api/auth/login` DEVE EXISTIR** (P0)
-   - Recebe: email, password
+   - Recebe: email, mot de passe
    - Retorna: user object + JWT
    - Valida contra Supabase
 
-3. **Página `/register` DEVE TER REGISTER-FORM** (P0)
+3. **Page `/register` DEVE TER REGISTER-FORM** (P0)
    - Importar `<RegisterForm />` 
-   - Remover qualquer outro conteúdo
+   - Retirer qualquer outro conteúdo
 
 4. **LoginForm DEVE SER CRIADO** (P0)
-   - Similar ao RegisterForm
-   - Campos: email, password
+   - Ouiilar ao RegisterForm
+   - Campos: email, mot de passe
    - Chama `/api/auth/login`
 
-5. **Middleware de Autenticação** (P0)
+5. **Middleware de Autenticaction** (P0)
    - Proteger `/profil`, `/admin`, `/chat`
    - Redirecionar para `/login` se sem JWT
 
 ---
 
-## ✅ PRÓXIMOS PASSOS (30 minutos)
+## ✅ PRÓXIMOS PASSOS (30 minutes)
 
 ### AGORA (5 min)
 - [ ] Criar `/api/auth/register` endpoint
@@ -303,6 +303,6 @@ GET /profil sem JWT
 
 **Equipa consenso:** Site está 40% pronto. RLS fixo (segurança ✓), formulários criados (design ✓), mas backend ausente (funcionalidade ❌).
 
-**Recomendação:** Implementar as 3 APIs + 2 forms em paralelo. 30 minutos e termina.
+**Recomendaction:** Implementar as 3 APIs + 2 forms em paralelo. 30 minutes e termina.
 
 *Assinado:* Equipa de Teste (6 Engenheiros + 4 Técnicos)

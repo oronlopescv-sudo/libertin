@@ -18,61 +18,61 @@
 
 **Forms:**
 - RegisterForm (2-step wizard)
-- LoginForm (email + password)
-- ForgotPasswordForm
-- ResetPasswordForm
+- LoginForm (email + mot de passe)
+- ForgotMot de passeForm
+- ResetMot de passeForm
 
-**Páginas:**
+**Pages:**
 - /register — Registo
 - /login — Login
-- /profil — Perfil (protegido)
-- /forgot-password — Reset password request
-- /reset-password — Reset password (com token)
+- /profil — Profil (protegido)
+- /forgot-mot de passe — Reset mot de passe request
+- /réinitialisation-mot de passe — Reset mot de passe (com token)
 
 **Middleware:**
 - Protege /profil, /admin, /chat
 - Redireciona para /login se sem JWT
 
-### ✅ SEGURANÇA (RLS + Password Recovery)
+### ✅ SEGURANÇA (RLS + Mot de passe Recovery)
 
 **Database:**
 - RLS ligado em 7 tabelas
 - Políticas granulares por tabela
-- password_resets bloqueado para anon
+- mot de passe_réinitialisations bloqueado para ann
 
-**Passwords:**
+**Mot de passes:**
 - Hash com bcryptjs (10 rounds)
 - Nunca em plaintext
-- Validação 8+ caracteres
+- Validaction 8+ caracteres
 
 **Tokens:**
 - Crypto.randomBytes(32)
 - SHA256 hash antes de guardar
-- Expiram após 1 hora
+- Expiram após 1 heure
 - Só usáveis 1 vez
 - Impossível reutilizar
 
 ### ✅ EMAIL (Resend Integration)
 
 **2 APIs:**
-- `/api/auth/forgot-password` — Gera token + envia email
-- `/api/auth/reset-password` — Valida token + atualiza password
+- `/api/auth/forgot-mot de passe` — Gera token + envoie email
+- `/api/auth/réinitialisation-mot de passe` — Valida token + atualiza mot de passe
 
 **Email Template:**
 - HTML responsivo
 - Logo xlibertine
 - Greeting personalizado
-- Botão "Resetar Password"
+- Botão "Réinitialiser Mot de passe"
 - Disclaimer 18+
 
 **Segurança:**
-- Não revela se email existe
-- Token válido 1 hora
+- Non revela se email existe
+- Token válido 1 heure
 - Só funciona 1 vez
 
 ### ✅ DADOS
 
-**36 Perfis Fake:**
+**36 Profils Fake:**
 - 6 por cidade (Paris, Lyon, Bordeaux, Côte d'Azur, Bruxelas, Luxembourg)
 - Dados completos: email, username, age, gender, orientation, location
 - Prontos para testing
@@ -101,7 +101,7 @@
 **Para Produto:**
 - AUDIT_REPORT_2026-08-09.md — 30 issues identificadas
 - FIXES_COMPLETED.md — O que foi resolvido
-- RESEND_COMPLETE.md — Password recovery detalhes
+- RESEND_COMPLETE.md — Mot de passe recovery detalhes
 
 ---
 
@@ -110,29 +110,29 @@
 ### P0 - Stripe Payments (Tarefa Próxima)
 
 **Por fazer:**
-- Criar conta Stripe
+- Créer un compte Stripe
 - Implementar `/api/payments/create-checkout`
 - Implementar `/api/payments/webhook`
 - Payment modal/form
-- Wiring nos botões de planos
-- Atualizar subscription do user
+- Wiring nos botões de plans
+- Atualizar abonnement do user
 
-**Tempo estimado:** 2-3 horas  
-**Docs:** https://stripe.com/docs/billing/subscriptions
+**Tempo estimado:** 2-3 heures  
+**Docs:** https://stripe.com/docs/billing/abonnements
 
-### P1 - Email Verification (Opcional)
+### P1 - Email Verification (Optionnel)
 
-- Verificação de email no registo
-- Enviar code de confirmação
-- Redirecionar para verificação após registo
+- Verificaction de email no registo
+- Envoyer code de confirmaction
+- Redirecionar para verificaction após registo
 
-### P2 - 2FA/MFA (Opcional)
+### P2 - 2FA/MFA (Optionnel)
 
 - TOTP (Time-based OTP)
 - Resend como SMS (se quiser)
 - QR code para authenticators
 
-### P3 - OAuth (Opcional)
+### P3 - OAuth (Optionnel)
 
 - Google OAuth
 - Facebook OAuth
@@ -148,7 +148,7 @@
 | Ficheiros alterados | 40+ |
 | Linhas de código | ~3000+ |
 | APIs criadas | 5 |
-| Páginas criadas | 6 |
+| Pages criadas | 6 |
 | Componentes criados | 7 |
 | Tabelas com RLS | 7 |
 | Documentos criados | 5 |
@@ -164,13 +164,13 @@
 ✅ Logout  
 ✅ Aceder /profil (protegido)  
 ✅ Tentar /profil sem login (redireciona)  
-✅ Password recovery (fluxo completo)  
+✅ Mot de passe recovery (fluxo completo)  
 ✅ Token expiration  
-✅ Token reutilização (bloqueado)  
-✅ Validação de passwords  
-✅ Validação de emails  
-✅ Validação de idade (18+)  
-✅ Perfis fake aparecem em /decouvrir  
+✅ Token reutilizaction (bloqueado)  
+✅ Validaction de mot de passes  
+✅ Validaction de emails  
+✅ Validaction de idade (18+)  
+✅ Profils fake aparecem em /decouvrir  
 ✅ Build passa sem erros  
 ✅ Middleware funciona  
 
@@ -179,14 +179,14 @@
 ## 🚀 CHECKLIST PARA DEPLOY EM PRODUÇÃO
 
 - [x] Build sem erros
-- [x] Autenticação funcionando
-- [x] Password recovery funcionando
+- [x] Autenticaction funcionando
+- [x] Mot de passe recovery funcionando
 - [x] RLS configurado
-- [x] Perfis fake criados
+- [x] Profils fake criados
 - [ ] Resend API key configurada (PENSO - após push)
 - [ ] Stripe configurado (PENDENTE - próxima tarefa)
 - [ ] Email domain DNS setup (PENDENTE - Resend)
-- [ ] Testar password recovery em produção (PENDENTE)
+- [ ] Testar mot de passe recovery em produção (PENDENTE)
 - [ ] Monitorar logs (PENDENTE)
 
 ---
@@ -196,9 +196,9 @@
 ### HOJE (30 min)
 1. Equipa lê ENGINEERING_ONBOARDING.md
 2. Setup local: npm install + npm run dev
-3. Testa autenticação localmente
+3. Testa autenticaction localmente
 
-### AMANHÃ (2-3 horas)
+### AMANHÃ (2-3 heures)
 1. Engenheiro #1 integra Stripe
 2. Testes de pagamento
 3. PR para main
@@ -228,7 +228,7 @@
 - ✅ Middleware para proteção
 - ✅ GitHub auto-deploy
 
-### O Que Poderia Melhorar
+### O Que Poderia Melheurer
 - ⚠️ Testes automatizados (0%)
 - ⚠️ Error logging (básico)
 - ⚠️ Rate limiting (não implementado)
@@ -237,9 +237,9 @@
 
 ### Decisões de Arquitetura
 - JWT simples (sem refresh token)
-- Tokens de reset não reusáveis
+- Tokens de réinitialisation não reusáveis
 - RLS em todas as tabelas sensíveis
-- Email obrigatório para reset
+- Email obligatoire para réinitialisation
 - Base64 encoding para JWT simples
 
 ---
@@ -249,34 +249,34 @@
 ### Para Engenheiro novo
 1. **ENGINEERING_ONBOARDING.md** — 5 min, setup
 2. **ENGINEERING_HANDOFF.md** — 20 min, tudo técnico
-3. **RESEND_COMPLETE.md** — 15 min, password recovery
-4. Depois: AUDIT_REPORT, TEST_REPORT (opcional)
+3. **RESEND_COMPLETE.md** — 15 min, mot de passe recovery
+4. Depois: AUDIT_REPORT, TEST_REPORT (optionnel)
 
 ### Para Produto/Manager
 1. **FIXES_COMPLETED.md** — O que foi feito
 2. **AUDIT_REPORT_2026-08-09.md** — Issues resolvidas
-3. Depois: Handoff técnico (opcional)
+3. Depois: Handoff técnico (optionnel)
 
 ---
 
 ## 🎉 CONCLUSÃO
 
 **xlibertine.com está pronto para:**
-✅ Utilizadores se registarem  
-✅ Utilizadores fazerem login  
-✅ Utilizadores recuperarem passwords via email  
+✅ Utilisateurs se registarem  
+✅ Utilisateurs fazerem login  
+✅ Utilisateurs recuperarem mot de passes via email  
 ✅ Rotas protegidas funcionar  
 ✅ 36 perfis fake aparecerem  
 
 **Ainda precisa de:**
 ❌ Stripe para pagamentos  
-❌ Email verification (opcional)  
-❌ 2FA (opcional)  
-❌ OAuth (opcional)  
+❌ Email verification (optionnel)  
+❌ 2FA (optionnel)  
+❌ OAuth (optionnel)  
 
 **Segurança:**
 ✅ RLS em todas as tabelas  
-✅ Passwords hash com bcryptjs  
+✅ Mot de passes hash com bcryptjs  
 ✅ Tokens únicos e expiráveis  
 ✅ Anti brute force  
 ✅ httpOnly cookies  
@@ -289,7 +289,7 @@
 - 6 Engenheiros (Arquitetura, Backend, Frontend)
 - 4 Técnicos (QA, Deployment, Infra, Debugging)
 
-**Tempo total:** 8 horas  
+**Tempo total:** 8 heures  
 **Commits:** 11  
 **Issues resolvidas:** 17 P0s + P1s
 
@@ -302,5 +302,5 @@ Next Task: Stripe Integration (commit b38aa11 é base)
 ---
 
 *Documento gerado: 09/08/2026*  
-*Última atualização: b38aa11*  
+*Última atualizaction: b38aa11*  
 *Versão: 1.0 Final*

@@ -31,7 +31,7 @@ export function useRealtimeMessages(groupId: string) {
         .select(`
           id,
           content,
-          media_url,
+          mejour_url,
           created_at,
           user_id,
           group_id,
@@ -56,7 +56,7 @@ export function useRealtimeMessages(groupId: string) {
         userIsVerified: msg.users?.is_verified,
         groupId: msg.group_id,
         content: msg.content,
-        mediaUrl: msg.media_url,
+        mejourUrl: msg.mejour_url,
         createdAt: msg.created_at,
       })) || [];
 
@@ -91,7 +91,7 @@ export function useRealtimeMessages(groupId: string) {
             userIsVerified: payload.new.user_is_verified,
             groupId: payload.new.group_id,
             content: payload.new.content,
-            mediaUrl: payload.new.media_url,
+            mejourUrl: payload.new.mejour_url,
             createdAt: payload.new.created_at,
           };
           setMessages((prev) => [...prev, newMessage]);
@@ -181,7 +181,7 @@ export async function sendMessage(
   groupId: string,
   userId: string,
   content: string,
-  mediaUrl?: string
+  mejourUrl?: string
 ): Promise<Message | null> {
   try {
     // Validate content
@@ -199,13 +199,13 @@ export async function sendMessage(
         group_id: groupId,
         user_id: userId,
         content: content.trim(),
-        media_url: mediaUrl,
+        mejour_url: mejourUrl,
       })
       .select(
         `
         id,
         content,
-        media_url,
+        mejour_url,
         created_at,
         user_id,
         group_id
@@ -221,7 +221,7 @@ export async function sendMessage(
       userName: '', // Will be filled by realtime
       groupId: data.group_id,
       content: data.content,
-      mediaUrl: data.media_url,
+      mejourUrl: data.mejour_url,
       createdAt: data.created_at,
     };
   } catch (error) {
@@ -308,7 +308,7 @@ export async function searchMessages(
       .select(`
         id,
         content,
-        media_url,
+        mejour_url,
         created_at,
         user_id,
         group_id,
@@ -330,7 +330,7 @@ export async function searchMessages(
       userName: msg.users?.username || 'Anonyme',
       groupId: msg.group_id,
       content: msg.content,
-      mediaUrl: msg.media_url,
+      mejourUrl: msg.mejour_url,
       createdAt: msg.created_at,
     }));
   } catch (error) {

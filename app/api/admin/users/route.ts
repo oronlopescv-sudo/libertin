@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     const token = cookieStore.get('auth_token')?.value;
 
     if (!token) {
-      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
     let userId: string;
@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
     // Verificar se é admin
     const admin = await isAdmin(userId);
     if (!admin) {
-      return NextResponse.json({ error: 'Sem permissão de admin' }, { status: 403 });
+      return NextResponse.json({ error: 'Sans autorisation de admin' }, { status: 403 });
     }
 
     // Parse query params
@@ -81,14 +81,14 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST /api/admin/users/ban - Banir user
+// POST /api/admin/users/ban - Bannir user
 export async function POST(req: NextRequest) {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get('auth_token')?.value;
 
     if (!token) {
-      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
     let adminId: string;
@@ -102,42 +102,42 @@ export async function POST(req: NextRequest) {
     // Verificar se é admin
     const admin = await isAdmin(adminId);
     if (!admin) {
-      return NextResponse.json({ error: 'Sem permissão de admin' }, { status: 403 });
+      return NextResponse.json({ error: 'Sans autorisation de admin' }, { status: 403 });
     }
 
     const { userId, reason } = await req.json();
 
     if (!userId) {
-      return NextResponse.json({ error: 'userId obrigatório' }, { status: 400 });
+      return NextResponse.json({ error: 'userId obligatoire' }, { status: 400 });
     }
 
     if (userId === adminId) {
-      return NextResponse.json({ error: 'Não podes banir a ti mesmo' }, { status: 400 });
+      return NextResponse.json({ error: 'Non podes bannir a ti mesmo' }, { status: 400 });
     }
 
-    // Banir user
+    // Bannir user
     const { error } = await supabase
       .from('users')
       .update({ isBanned: true })
       .eq('id', userId);
 
     if (error) {
-      return NextResponse.json({ error: 'Erro ao banir user' }, { status: 500 });
+      return NextResponse.json({ error: 'Erreur lors de bannir user' }, { status: 500 });
     }
 
-    // Registar ação no log
+    // S'inscrire action no log
     await supabase.from('admin_logs').insert([
       {
         adminId,
         action: 'BAN_USER',
         targetId: userId,
-        reason: reason || 'Sem razão especificada',
+        reason: reason || 'Aucune raison précisée',
         timestamp: new Date().toISOString()
       }
     ]);
 
     return NextResponse.json(
-      { success: true, message: 'User banido com sucesso' },
+      { success: true, message: 'User banni avec succès' },
       { status: 200 }
     );
   } catch (error) {
@@ -153,7 +153,7 @@ export async function DELETE(req: NextRequest) {
     const token = cookieStore.get('auth_token')?.value;
 
     if (!token) {
-      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
     let adminId: string;
@@ -167,13 +167,13 @@ export async function DELETE(req: NextRequest) {
     // Verificar se é admin
     const admin = await isAdmin(adminId);
     if (!admin) {
-      return NextResponse.json({ error: 'Sem permissão de admin' }, { status: 403 });
+      return NextResponse.json({ error: 'Sans autorisation de admin' }, { status: 403 });
     }
 
     const userId = req.nextUrl.searchParams.get('userId');
 
     if (!userId) {
-      return NextResponse.json({ error: 'userId obrigatório' }, { status: 400 });
+      return NextResponse.json({ error: 'userId obligatoire' }, { status: 400 });
     }
 
     // Unban user
@@ -183,10 +183,10 @@ export async function DELETE(req: NextRequest) {
       .eq('id', userId);
 
     if (error) {
-      return NextResponse.json({ error: 'Erro ao desbanir user' }, { status: 500 });
+      return NextResponse.json({ error: 'Erreur lors de desbannir user' }, { status: 500 });
     }
 
-    // Registar ação
+    // S'inscrire action
     await supabase.from('admin_logs').insert([
       {
         adminId,
@@ -197,7 +197,7 @@ export async function DELETE(req: NextRequest) {
     ]);
 
     return NextResponse.json(
-      { success: true, message: 'User desblanido com sucesso' },
+      { success: true, message: 'User desblanido avec succès' },
       { status: 200 }
     );
   } catch (error) {

@@ -42,7 +42,7 @@ https://xlibertine.com
 
 1. Scroll down
 2. Clica **"Save and redeploy"**
-3. Aguarda 2-3 minutos
+3. Aguarda 2-3 minutes
 4. Site redeploy automático
 5. Email recovery funciona ✅
 
@@ -74,13 +74,13 @@ https://xlibertine.com
 Depois de redeploy:
 
 ```
-1. https://xlibertine.com/forgot-password
+1. https://xlibertine.com/forgot-mot de passe
 2. Preenche email (teu)
-3. Clica "Enviar Link"
+3. Clica "Envoyer Link"
 4. Vai à caixa de email
 5. Recebe email ✅
 6. Clica link
-7. Reseta password ✅
+7. Reseta mot de passe ✅
 8. Faz login ✅
 ```
 

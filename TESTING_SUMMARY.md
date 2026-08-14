@@ -2,7 +2,7 @@
 
 **Data:** 09 de Agosto de 2026  
 **Commit:** `1b37fc2`  
-**Testers:** 53 utilizadores (3 Agentes + 50 Clientes)  
+**Testers:** 53 utilisateurs (3 Agentes + 50 Clientes)  
 **Features Testáveis:** 6 maiores + 20+ scenarios
 
 ---
@@ -13,28 +13,28 @@
 ```
 ✅ 3 Agentes (VIP_24M - Admins)
 ✅ 25 Clientes FREE (Sem acesso a features)
-✅ 12 Clientes PREMIUM 3M (Acesso 3 meses)
-✅ 10 Clientes PREMIUM 12M (Acesso 12 meses)
-✅ 3 Clientes VIP 24M (Acesso 24 meses)
+✅ 12 Clientes PREMIUM 3M (Acesso 3 mois)
+✅ 10 Clientes PREMIUM 12M (Acesso 12 mois)
+✅ 3 Clientes VIP 24M (Acesso 24 mois)
 
-Total: 53 utilizadores prontos
-Password: TestPass123 (para todos)
+Total: 53 utilisateurs prontos
+Mot de passe: TestPass123 (para todos)
 ```
 
 ---
 
 ## 🔧 LÓGICA IMPLEMENTADA
 
-### A) DISCOVERY - Ver Perfis (`/api/discovery`)
+### A) DISCOVERY - Ver Profils (`/api/discovery`)
 ```
 ✅ GET /api/discovery
-   ├─ Validação: Só PREMIUM pode ver
-   ├─ Filtros:
+   ├─ Validaction: Só PREMIUM pode ver
+   ├─ Filtres:
    │   ├─ Location (Paris, Lyon, etc)
    │   ├─ Age Range (min-max)
    │   ├─ Gender (femme/homme)
    │   └─ Sexual Orientation
-   ├─ Paginação: 20 perfis/página
+   ├─ Paginaction: 20 perfis/página
    ├─ Query Params: ?location=Paris&ageMin=25&ageMax=40&page=1
    └─ Response: Array de perfis com idade calculada
 
@@ -42,16 +42,16 @@ File: /app/api/discovery/route.ts (110 linhas)
 Frontend: /app/decouvrir/page.tsx (290 linhas)
 ```
 
-### B) LIKES - Curtir Perfis (`/api/likes`)
+### B) LIKES - Liker Profils (`/api/likes`)
 ```
 ✅ POST /api/likes
-   ├─ Validação: Só PREMIUM pode curtir
+   ├─ Validaction: Só PREMIUM pode curtir
    ├─ Body: { likedUserId: "uuid" }
    ├─ Toggling: Click again para unlike
    └─ Response: { success, message, liked }
 
 ✅ GET /api/likes
-   ├─ Retorna lista de UUIDs que curtiu
+   ├─ Renvoie lista de UUIDs que curtiu
    └─ Response: { likes: ["uuid1", "uuid2"] }
 
 File: /app/api/likes/route.ts (130 linhas)
@@ -62,7 +62,7 @@ RLS: Cada user vê só seus próprios likes
 ### C) ADMIRERS - Ver Quem Curtiu (`/api/admirers`)
 ```
 ✅ GET /api/admirers
-   ├─ Validação: Só PREMIUM pode ver admiradores
+   ├─ Validaction: Só PREMIUM pode ver admiradores
    ├─ Query: SELECT * FROM likes WHERE likedUserId = userId
    ├─ Join: Com tabela users para dados completos
    ├─ Order: Mais recente primeiro
@@ -76,44 +76,44 @@ Frontend: Quando implementado em /profil
 ```
 ✅ Já existente (criado anteriormente)
 ✅ POST /api/groups (Criar)
-✅ PATCH /api/groups (Juntar-se/Sair)
+✅ PATCH /api/groups (Juntar-se/Se déconnecter)
 ✅ GET /api/groups (Listar todos)
-✅ Validação: Só PREMIUM pode criar/participar
+✅ Validaction: Só PREMIUM pode criar/participar
 ✅ RLS: Apenas membros veem mensagens do grupo
 ```
 
-### E) CHAT - Mensagens em Grupos (`/chat/[groupId]`)
+### E) CHAT - Messages de groupe (`/chat/[groupId]`)
 ```
-✅ Página: /app/chat/[groupId]/page.tsx
+✅ Page: /app/chat/[groupId]/page.tsx
 ✅ Realtime: Socket.io (quando implementado)
 ✅ Features:
-   ├─ Carregar histórico de mensagens
-   ├─ Enviar novas mensagens
+   ├─ Carregar historique de mensagens
+   ├─ Envoyer novas mensagens
    ├─ Ver membros do grupo
-   └─ Sair do grupo
+   └─ Se déconnecter do grupo
 
-✅ Validação: Só PREMIUM e membros podem enviar
+✅ Validaction: Só PREMIUM e membros podem enviar
 ```
 
 ### F) SEGURANÇA - RLS & Validações
 ```
 ✅ Row Level Security (RLS)
-   ├─ users: Cada user vê só seu perfil
+   ├─ users: Cada user vê só votre profil
    ├─ likes: Cada user vê só seus likes
    ├─ groups: Só membros veem grupo
-   ├─ group_memberships: Validação de tier
+   ├─ group_memberships: Validaction de tier
    └─ blocked_users: Implementado
 
 ✅ Token Validation
    ├─ httpOnly cookies
    ├─ JWT-like base64 (TODO: real JWT com jose)
-   ├─ Expiração (7 dias)
+   ├─ Expiraction (7 jours)
    └─ Middleware.ts na maioria das routes
 
-✅ Password Security
+✅ Mot de passe Security
    ├─ bcryptjs hash (10 rounds)
-   ├─ Mínimo 8 caracteres
-   └─ Não armazenar em plain text
+   ├─ Minimum 8 caracteres
+   └─ Non armazenar em plain text
 ```
 
 ---
@@ -122,9 +122,9 @@ Frontend: Quando implementado em /profil
 
 ### Test Scenario 1: FREE USER (25 testes)
 ```
-✅ T1.1-T1.4: Autenticação (registro, login, perfil, logout)
+✅ T1.1-T1.4: Autenticaction (registro, login, perfil, logout)
 ✅ T1.5-T1.9: Paywall (bloqueado em 5 features)
-✅ T1.10: Password Recovery (Resend)
+✅ T1.10: Mot de passe Recovery (Resend)
 
 Esperado: 100% bloqueado em features premium
 ```
@@ -132,9 +132,9 @@ Esperado: 100% bloqueado em features premium
 ### Test Scenario 2: PREMIUM USER (15 testes)
 ```
 ✅ T2.1-T2.3: Login + Acesso a /decouvrir
-✅ T2.4-T2.6: Curtir perfis, ver likes
+✅ T2.4-T2.6: Liker perfis, ver likes
 ✅ T2.7-T2.8: Criar e participar em grupos
-✅ T2.9-T2.15: Chat, upload foto, eventos, paginação
+✅ T2.9-T2.15: Chat, upload foto, eventos, paginaction
 
 Esperado: 100% acesso a todas features
 ```
@@ -157,7 +157,7 @@ Esperado: 100% bloqueado para ataques
 
 ## 📁 FICHEIROS CRIADOS
 
-### Utilizadores
+### Utilisateurs
 ```
 ✅ TESTE_USUARIOS.sql              - SQL com 53 users
 ✅ TESTE_USUARIOS_GUIA.md          - Guia completo com lista
@@ -167,12 +167,12 @@ Esperado: 100% bloqueado para ataques
 ### Lógica de Teste
 ```
 ✅ app/api/discovery/route.ts      - Ver perfis (110 linhas)
-✅ app/api/likes/route.ts          - Curtir perfis (130 linhas)
+✅ app/api/likes/route.ts          - Liker perfis (130 linhas)
 ✅ app/api/admirers/route.ts       - Ver admiradores (95 linhas)
 ✅ app/decouvrir/page.tsx          - UI Discovery (290 linhas)
 ```
 
-### Documentação de Teste
+### Documentaction de Teste
 ```
 ✅ TEST_SCENARIOS.md               - 40+ test cases
 ✅ TESTING_CHECKLIST.md            - Checklist executável
@@ -187,7 +187,7 @@ Esperado: 100% bloqueado para ataques
 ```
 1. Login: client.alice@xlibertine.com / TestPass123
 2. Vai para /profil ✅
-3. Clica "Descobrir" 
+3. Clica "Découvrir" 
 4. Vê lock screen 🔒
 5. Clica "Fazer Upgrade"
 6. Vai para /abonnements
@@ -201,8 +201,8 @@ Esperado: 100% bloqueado para ataques
 3. Vê 20 perfis
 4. Aplica filtro "Paris"
 5. Vê só 6 perfis de Paris
-6. Clica "Curtir" em um perfil
-7. Botão muda para "Curtido" ❤️
+6. Clica "Liker" em um perfil
+7. Botão muda para "Liké" ❤️
 8. Vai para /profil
 9. Vê secção "Meus Likes"
 ✅ Discovery e likes funcionando
@@ -212,17 +212,17 @@ Esperado: 100% bloqueado para ataques
 ```
 1. Login: premium.maya@xlibertine.com / TestPass123
 2. Vai para /groupes ✅
-3. Clica "Criar Grupo"
+3. Clica "Criar Groupe"
 4. Modal abre, preenche:
-   - Nome: "Grupo Teste"
-   - Descrição: "Grupo para testar"
+   - Nome: "Groupe Teste"
+   - Description: "Groupe para testar"
 5. Clica "Criar" ✅
 6. Novo grupo aparece na lista
 7. Outro user clica "Juntar-se"
 8. Vai para /chat/grupo-id
-9. Escreve "Olá!" e envia ✅
-10. Mensagem aparece para todos
-✅ Grupos e chat funcionando
+9. Escreve "Olá!" e envoie ✅
+10. Message aparece para todos
+✅ Groupes e chat funcionando
 ```
 
 ### FLUXO 4: ADMIN FUNCTIONS
@@ -239,20 +239,20 @@ Esperado: 100% bloqueado para ataques
 
 ### No Frontend
 ```
-✅ Autenticação: auth_token no localStorage
-✅ Paywall: Verificação de subscriptionTier
-✅ Formulários: Email, password, age validation
+✅ Autenticaction: auth_token no localStorage
+✅ Paywall: Verificaction de abonnementTier
+✅ Formulários: Email, mot de passe, age validation
 ✅ Erros: Toast/Alert messages
 ✅ Loading: Spinners enquanto carrega
-✅ Paginação: Anterior/Próximo buttons
-✅ Filtros: Actualizados em tempo real
+✅ Paginaction: Précédent/Suivant buttons
+✅ Filtres: Actualizados em tempo real
 ```
 
 ### No Backend (API)
 ```
-✅ Token Validation: Verifica auth_token válido
-✅ Subscrição: Premium tiers hardcoded
-✅ Expiração: Verifica subscriptionEnd
+✅ Token Validation: Vérifie auth_token válido
+✅ Abonnement: Premium tiers hardcoded
+✅ Expiraction: Vérifie abonnementEnd
 ✅ RLS: Supabase valida por user
 ✅ SQL Injection: Parameterized queries
 ✅ CSRF: httpOnly cookies
@@ -272,24 +272,24 @@ Esperado: 100% bloqueado para ataques
 ## 📈 MÉTRICAS DE TESTE ESPERADAS
 
 ```
-Autenticação:           ✅ 100%
+Autenticaction:           ✅ 100%
 - Registro:            ✅ 100%
 - Login:               ✅ 100%
 - Logout:              ✅ 100%
-- Password Reset:      ✅ 100%
+- Mot de passe Reset:      ✅ 100%
 
 Paywall (FREE):         ✅ 100%
-- Bloqueado em 5 features  ✅ 100%
-- Mensagens de erro    ✅ 100%
+- Bloqué em 5 features  ✅ 100%
+- Messages de erro    ✅ 100%
 
 Premium Features:       ✅ 95%
 - Discovery:           ✅ 100%
-- Filtros:             ✅ 100%
+- Filtres:             ✅ 100%
 - Likes:               ✅ 100%
 - Admirers:            ✅ 100%
-- Grupos:              ✅ 95%
+- Groupes:              ✅ 95%
 - Chat:                ✅ 85%
-- Paginação:           ✅ 100%
+- Paginaction:           ✅ 100%
 
 Segurança:              ✅ 100%
 - Token validation:    ✅ 100%
@@ -304,9 +304,9 @@ MÉDIA GERAL:            ✅ 97%
 
 ## 🚀 PRÓXIMOS PASSOS
 
-### Imediatamente
+### Imejourtamente
 ```
-1. [ ] Insere 53 utilizadores no Supabase (3 min)
+1. [ ] Insere 53 utilisateurs no Supabase (3 min)
    → Usa TESTE_USUARIOS.sql
 
 2. [ ] Compila e testa build local (2 min)
@@ -323,20 +323,20 @@ MÉDIA GERAL:            ✅ 97%
 1. [ ] Implementar Admin Panel (/admin)
    → Quando agentes começarem testes
 
-2. [ ] Melhorar Chat (real-time Socket.io)
+2. [ ] Melheurer Chat (real-time Socket.io)
    → Quando Discovery estiver perfeito
 
-3. [ ] Adicionar Eventos (/eventos)
+3. [ ] Ajouter Événements (/eventos)
    → Feature complementar
 
-4. [ ] Implementar Upload de Fotos
+4. [ ] Implementar Upload de Photos
    → Importante para discovery visual
 ```
 
 ### Médio Prazo
 ```
 1. [ ] Stripe Integration (pagamentos)
-   → Transformar em real subscription
+   → Transformar em real abonnement
 
 2. [ ] Notifications (email, push)
    → Quando user recebe like, msg, etc
@@ -354,24 +354,24 @@ MÉDIA GERAL:            ✅ 97%
 
 | Feature | Status | Testes | Implementado |
 |---------|--------|--------|--------------|
-| Autenticação | ✅ | Sim | 100% |
-| Paywall | ✅ | Sim | 100% |
-| Discovery | ✅ | Sim | 100% |
-| Likes | ✅ | Sim | 100% |
-| Admirers | ✅ | Sim | 100% |
-| Grupos | ✅ | Sim | 95% |
-| Chat | ⏳ | Sim | 70% |
-| Upload Fotos | ⏳ | Sim | 30% |
-| Eventos | ⏳ | Sim | 0% |
-| Admin Panel | ⏳ | Sim | 0% |
-| Stripe | ⏳ | Não | 0% |
+| Autenticaction | ✅ | Oui | 100% |
+| Paywall | ✅ | Oui | 100% |
+| Discovery | ✅ | Oui | 100% |
+| Likes | ✅ | Oui | 100% |
+| Admirers | ✅ | Oui | 100% |
+| Groupes | ✅ | Oui | 95% |
+| Chat | ⏳ | Oui | 70% |
+| Upload Photos | ⏳ | Oui | 30% |
+| Événements | ⏳ | Oui | 0% |
+| Admin Panel | ⏳ | Oui | 0% |
+| Stripe | ⏳ | Non | 0% |
 
 ---
 
 ## 💾 DEPLOYMENT STATUS
 
 ```
-Build:          ✅ Sucesso (15.9s)
+Build:          ✅ Succès (15.9s)
 Static Pages:   ✅ 28 páginas
 Auto-Deploy:    ✅ Ligado
 Live URL:       ✅ xlibertine.com
@@ -385,9 +385,9 @@ PRONTO PARA TESTE COM 50+ UTILIZADORES ✅
 
 ## 🎉 CONCLUSÃO
 
-**Criámos uma plataforma funcional de dating libertino com:**
+**Criámos uma plateforme funcional de dating libertino com:**
 
-✅ **53 utilizadores prontos** (3 Agentes + 50 Clientes)  
+✅ **53 utilisateurs prontos** (3 Agentes + 50 Clientes)  
 ✅ **6 features principais** testáveis  
 ✅ **40+ test cases** documentados  
 ✅ **100% validações** de segurança  

@@ -3,7 +3,7 @@
 **De:** Equipa de Desenvolvimento  
 **Para:** Lead de Engenheiros  
 **Data:** 09 de Agosto de 2026, 17:00  
-**Duração:** 5 min para ler  
+**Duraction:** 5 min para ler  
 **Status:** 🟢 PRONTO PARA HANDOFF
 
 ---
@@ -12,10 +12,10 @@
 
 ### O Que Recebeste
 - Site live em produção: https://xlibertine.com
-- Sistema de autenticação completo
-- Password recovery com Resend
+- Sistema de autenticaction completo
+- Mot de passe recovery com Resend
 - 36 perfis fake para testing
-- Documentação técnica completa
+- Documentaction técnica completa
 - Equipa pronta para próxima tarefa
 
 ### Código Pronto
@@ -54,7 +54,7 @@ Hosting:    Hostinger (auto-deploy GitHub)
 4. **Middleware para proteção** — Clean routing
 5. **Auto-deploy GitHub** — Zero friction deployment
 
-### Trade-offs Aceitos
+### Trade-offs J'acceptes
 - ✅ Sem testes automatizados (manual OK por now)
 - ✅ Sem rate limiting (low traffic OK)
 - ✅ Sem advanced error logging (basic OK)
@@ -68,11 +68,11 @@ Hosting:    Hostinger (auto-deploy GitHub)
 | Métrica | Número | Status |
 |---------|--------|--------|
 | APIs criadas | 5 | ✅ |
-| Páginas criadas | 6 | ✅ |
+| Pages criadas | 6 | ✅ |
 | Componentes | 7 | ✅ |
 | Documentos | 5 | ✅ |
 | RLS tables | 7 | ✅ |
-| Perfis fake | 36 | ✅ |
+| Profils fake | 36 | ✅ |
 | Build time | 8-12s | ✅ |
 | LOC | ~3000+ | ✅ |
 | Bugs encontrados | 30 | ✅ Resolvidos |
@@ -85,7 +85,7 @@ Hosting:    Hostinger (auto-deploy GitHub)
 
 **Resposta:**
 - ✅ RLS ativo (impossível bypassar)
-- ✅ Passwords hashed bcryptjs(10)
+- ✅ Mot de passes hashed bcryptjs(10)
 - ✅ Tokens únicos + expiráveis
 - ✅ Anti brute force (não revela emails)
 - ✅ httpOnly cookies (CSRF protected)
@@ -105,24 +105,24 @@ Hosting:    Hostinger (auto-deploy GitHub)
 3. Add to Hostinger panel: RESEND_API_KEY=re_xxx
 ```
 
-### 2. **Rotação de Chaves Supabase** (30 min)
+### 2. **Rotaction de Chaves Supabase** (30 min)
 ```
-⚠️ RECOMENDADO - Chaves no GitHub (mesmo que privado)
+⚠️ RECOMENDADO - Chaves no GitHub (mesmo que privé)
 1. Go to Supabase dashboard
 2. Rotate API keys
 3. Update .env files
 4. Redeploy
 ```
 
-### 3. **Teste de Password Recovery em Prod** (10 min)
+### 3. **Teste de Mot de passe Recovery em Prod** (10 min)
 ```
 📋 VALIDAÇÃO - Antes de users testarem
-1. Vai para https://xlibertine.com/forgot-password
+1. Vai para https://xlibertine.com/forgot-mot de passe
 2. Submete email real (teu)
-3. Verifica se email foi recebido
+3. Vérifie se email foi recebido
 4. Clica link
-5. Reseta password
-6. Login com nova password
+5. Reseta mot de passe
+6. Login com nova mot de passe
 ```
 
 ### 4. **Stripe Integration** (2-3h)
@@ -130,7 +130,7 @@ Hosting:    Hostinger (auto-deploy GitHub)
 ❌ P0 - PRÓXIMA TAREFA
 - Assigns a engenheiro sênior
 - Base code já pronta
-- 2-3 horas tempo estimado
+- 2-3 heures tempo estimado
 ```
 
 ---
@@ -139,12 +139,12 @@ Hosting:    Hostinger (auto-deploy GitHub)
 
 ```
 [ ] Lê este documento (5 min)
-[ ] Verifica GitHub repo - commit a56eaba está pronto
+[ ] Vérifie GitHub repo - commit a56eaba está pronto
 [ ] Run npm install + npm run dev localmente (OK test)
-[ ] Testa autenticação (registo → login → logout)
-[ ] Testa password recovery (fluxo completo)
+[ ] Testa autenticaction (registo → login → logout)
+[ ] Testa mot de passe recovery (fluxo completo)
 [ ] Configura Resend API key em Hostinger
-[ ] Testa password recovery em https://xlibertine.com
+[ ] Testa mot de passe recovery em https://xlibertine.com
 [ ] Atribui Stripe a engenheiro (2-3h)
 [ ] Schedule engineering standup
 [ ] Anuncia ao product que site está live
@@ -166,9 +166,9 @@ npm run dev
 
 ### Testes (1h)
 - Registo → Login → Logout → /profil (protegido)
-- Password recovery (fluxo)
-- Páginas que não existem (404)
-- Autenticação revogada (redireciona login)
+- Mot de passe recovery (fluxo)
+- Pages que não existem (404)
+- Autenticaction revogada (redireciona login)
 
 ### Onboarding (1h)
 - Lê ENGINEERING_ONBOARDING.md
@@ -195,8 +195,8 @@ Opção B: Stripe DEPOIS (deixa users registarem free first)
 
 ### 2. **Email Verification?**
 ```
-Opção A: Sim, implementa (valida emails no registo)
-Opção B: Não, deixa para depois
+Opção A: Oui, implementa (valida emails no registo)
+Opção B: Non, deixa para depois
 → Recomendo: Opção B (nice-to-have, não crítico)
 ```
 
@@ -210,7 +210,7 @@ Opção B: Deixa para Phase 2
 ### 4. **Chaves Supabase?**
 ```
 Opção A: Rotar now (security first)
-Opção B: Rotar depois (ainda privado repo)
+Opção B: Rotar depois (ainda privé repo)
 → Recomendo: Opção A (20 min, antes de ir public)
 ```
 
@@ -226,7 +226,7 @@ Opção B: Rotar depois (ainda privado repo)
 
 ### AMANHÃ (Engenheiros começam)
 1. Cada um setup local
-2. Pair programming 1h (password recovery)
+2. Pair programming 1h (mot de passe recovery)
 3. Começam Stripe
 
 ### SEMANA 1
@@ -244,7 +244,7 @@ Opção B: Rotar depois (ainda privado repo)
 - **Resend:** https://app.resend.com
 - **GitHub:** https://github.com/oronlopescv-sudo/libertin
 
-### Documentação
+### Documentaction
 - ENGINEERING_ONBOARDING.md — Equipa lê isto
 - ENGINEERING_HANDOFF.md — Referência técnica
 - PROJECT_STATUS.md — Estado geral
@@ -264,7 +264,7 @@ Opção B: Rotar depois (ainda privado repo)
 |--------|-------|
 | Resend setup | 1 min |
 | Chaves Supabase rotar | 20 min |
-| Teste password recovery | 10 min |
+| Teste mot de passe recovery | 10 min |
 | Engenheiro #1 setup | 30 min |
 | Engenheiro #1 onboarding | 1h |
 | Stripe integration | 2-3h |
@@ -299,19 +299,19 @@ Opção B: Rotar depois (ainda privado repo)
 
 **Status:** 🟢 **GO**
 
-**Razão:**
-- ✅ Autenticação 100% funcional
+**Raison:**
+- ✅ Autenticaction 100% funcional
 - ✅ Segurança está forte
 - ✅ Site está live + fast
-- ✅ Documentação está complete
+- ✅ Documentaction está complete
 - ✅ Equipa pode começar now
 - ✅ Próxima tarefa é clara (Stripe)
 
-**Bloqueadores:** Nenhum
+**Bloquéres:** Nenhum
 
-**Ações antes de equipa começar:**
+**Actions antes de equipa começar:**
 1. Resend key configurada
-2. Password recovery testado em prod
+2. Mot de passe recovery testado em prod
 3. Equipa briefed com ENGINEERING_ONBOARDING.md
 
 ---
@@ -329,22 +329,22 @@ Se precisas de clarificar algo sobre a arquitetura, segurança ou próximas tare
 
 ## 📝 SUMMARY
 
-**Em 8 horas:**
-- ✅ Built authentication system (registo + login + password recovery)
+**Em 8 heures:**
+- ✅ Built authentication system (registo + login + mot de passe recovery)
 - ✅ Secured database (RLS em 7 tabelas)
 - ✅ Integrated email (Resend)
 - ✅ Created 36 test profiles
 - ✅ Documented everything
 - ✅ Deployed to production
 
-**Próximo:**
+**Suivant:**
 - ❌ Stripe payments (2-3h, clear scope)
 - ❌ Email verification (optional, Phase 2)
 - ❌ 2FA/MFA (optional, Phase 2)
 
 **Resultado:**
 - 🟢 Site pronto para users
-- 🟢 Autenticação funcionando
+- 🟢 Autenticaction funcionando
 - 🟢 Segurança forte
 - 🟢 Equipa pronta para Stripe
 

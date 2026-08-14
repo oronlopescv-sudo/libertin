@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe, verifyWebhookSignature } from '@/lib/stripe';
 import { createClient } from '@supabase/supabase-js';
-import { sendSubscriptionConfirmationEmail } from '@/lib/email';
+import { sendAbonnementConfirmationEmail } from '@/lib/email';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || '',
@@ -10,12 +10,12 @@ const supabase = createClient(
 
 /**
  * Stripe Webhook Handler
- * Processes payment events and updates user subscription status
+ * Processes payment events and updates user abonnement status
  * 
  * Events:
- * - checkout.session.completed: User purchased subscription
+ * - checkout.session.completed: User purchased abonnement
  * - charge.succeeded: Payment succeeded
- * - customer.subscription.updated: Subscription changed
+ * - customer.subscription.updated: Abonnement changed
  */
 export async function POST(request: NextRequest) {
   try {
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'customer.subscription.deleted':
-        await handleSubscriptionDeleted(event.data.object);
+        await handleAbonnementDeleted(event.data.object);
         break;
 
       default:
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
 
 /**
  * Handle successful checkout session
- * Update user subscription tier and dates
+ * Update user abonnement tier and dates
  */
 async function handleCheckoutSessionCompleted(session: any) {
   const userId = session.client_reference_id;
@@ -85,7 +85,7 @@ async function handleCheckoutSessionCompleted(session: any) {
     return;
   }
 
-  // Get subscription duration from metadata
+  // Get abonnement duration from metadata
   const planDurations: Record<string, number> = {
     PREMIUM_3M: 3,
     PREMIUM_12M: 12,
@@ -119,7 +119,7 @@ async function handleCheckoutSessionCompleted(session: any) {
   // Send confirmation email
   if (userData?.email) {
     try {
-      await sendSubscriptionConfirmationEmail(
+      await sendAbonnementConfirmationEmail(
         userData.email,
         userData.username,
         planId,
@@ -131,7 +131,7 @@ async function handleCheckoutSessionCompleted(session: any) {
     }
   }
 
-  console.log(`✅ Subscription activated for user ${userId}: ${planId}`);
+  console.log(`✅ Abonnement activated for user ${userId}: ${planId}`);
 }
 
 /**
@@ -195,12 +195,12 @@ async function handleChargeFailed(charge: any) {
 }
 
 /**
- * Handle subscription cancellation
+ * Handle abonnement cancellation
  */
-async function handleSubscriptionDeleted(subscription: any) {
+async function handleAbonnementDeleted(subscription: any) {
   const customerId = subscription.customer;
 
-  // Find user and reset to FREE tier
+  // Find user and réinitialisation to FREE tier
   let users: { id: string; email: string } | null = null;
   try {
     const result = await supabase
@@ -218,7 +218,7 @@ async function handleSubscriptionDeleted(subscription: any) {
     return;
   }
 
-  // Update subscription
+  // Update abonnement
   const { error: updateError } = await supabase
     .from('users')
     .update({
@@ -230,15 +230,15 @@ async function handleSubscriptionDeleted(subscription: any) {
     .eq('id', users.id);
 
   if (updateError) {
-    console.error('Failed to reset user subscription:', updateError);
+    console.error('Failed to réinitialisation user subscription:', updateError);
     return;
   }
 
-  console.log(`✋ Subscription cancelled for user ${users.id}`);
+  console.log(`✋ Abonnement cancelled for user ${users.id}`);
 
   // Notify user
   try {
-    await sendSubscriptionCancelledEmail(users.email);
+    await sendAbonnementCancelledEmail(users.email);
   } catch (err) {
     console.error('Failed to send cancellation email:', err);
   }
@@ -278,9 +278,9 @@ async function sendPaymentFailedEmail(email: string, reason: string) {
 }
 
 /**
- * Send subscription cancelled email
+ * Send abonnement cancelled email
  */
-async function sendSubscriptionCancelledEmail(email: string) {
+async function sendAbonnementCancelledEmail(email: string) {
   try {
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',

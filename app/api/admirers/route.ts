@@ -9,10 +9,10 @@ export async function GET(req: NextRequest) {
     const token = cookieStore.get('auth_token')?.value;
 
     if (!token) {
-      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
-    // Busca user do token
+    // Récupère user do token
     let userId: string;
     try {
       const tokenData = JSON.parse(Buffer.from(token, 'base64').toString());
@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
     }
 
-    // Busca user para verificar subscrição
+    // Récupère l'utilisateur pour vérifier l'abonnement
     const { data: user, error: userError } = await supabase
       .from('users')
       .select('id, subscriptionTier, subscriptionEnd')
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
       .single();
 
     if (userError || !user) {
-      return NextResponse.json({ error: 'Utilizador não encontrado' }, { status: 404 });
+      return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
     }
 
     // ✅ VALIDAÇÃO: Apenas PREMIUM pode ver admiradores
@@ -37,12 +37,12 @@ export async function GET(req: NextRequest) {
 
     if (!userIsPremium) {
       return NextResponse.json(
-        { error: 'Apenas utilizadores Premium podem ver admiradores. Faça upgrade!' },
+        { error: 'Apenas utilisateurs Premium podem ver admiradores. Effectuez upgrade!' },
         { status: 403 }
       );
     }
 
-    // Buscar quem curtiu você
+    // Buscar quem curtiu vous
     const { data: admirers, error } = await supabase
       .from('likes')
       .select(`
@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
 
     if (error) {
       console.error('Admirers error:', error);
-      return NextResponse.json({ error: 'Erro ao buscar admiradores' }, { status: 500 });
+      return NextResponse.json({ error: 'Erreur lors de la récupération des admirateurs' }, { status: 500 });
     }
 
     // Formatar resposta

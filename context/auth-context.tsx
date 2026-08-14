@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { User, SubscriptionTier } from '@/lib/types';
+import { User, AbonnementTier } from '@/lib/types';
 import { isPremium as isPremiumFn } from '@/lib/premium';
 import {
   supabase,
@@ -22,7 +22,7 @@ interface AuthContextType {
   login: (email: string, password?: string) => Promise<boolean>;
   logout: () => void;
   register: (userData: any) => Promise<User>;
-  upgradeSubscription: (tier: SubscriptionTier) => void;
+  upgradeAbonnement: (tier: AbonnementTier) => void;
   refreshUser: () => void;
   canSeeProfile: (targetUserId: string) => boolean;
   canAccessChat: () => boolean;
@@ -143,7 +143,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     throw new Error(sbResult.error || "Échec de l'inscription. Veuillez réessayer.");
   };
 
-  const upgradeSubscription = async (tier: SubscriptionTier) => {
+  const upgradeAbonnement = async (tier: AbonnementTier) => {
     if (!user) return;
 
     const endDate = new Date();
@@ -180,7 +180,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         logout,
         register,
-        upgradeSubscription,
+        upgradeAbonnement,
         refreshUser,
         canSeeProfile,
         canAccessChat,
@@ -201,7 +201,7 @@ const FALLBACK_AUTH: AuthContextType = {
   register: async () => {
     throw new Error('Auth indisponible.');
   },
-  upgradeSubscription: () => {},
+  upgradeAbonnement: () => {},
   refreshUser: () => {},
   canSeeProfile: () => false,
   canAccessChat: () => false,

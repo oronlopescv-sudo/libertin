@@ -2,8 +2,8 @@
  * Email Service using Resend
  * Send transactional emails for:
  * - Welcome emails
- * - Password resets
- * - Subscription confirmations
+ * - Mot de passe réinitialisations
+ * - Abonnement confirmations
  * - Verification approvals
  * - Group invitations
  */
@@ -128,13 +128,13 @@ export async function sendWelcomeEmail(
 }
 
 /**
- * Password reset email
+ * Mot de passe réinitialisation email
  */
 export async function sendPasswordResetEmail(
   email: string,
   resetToken: string
 ): Promise<boolean> {
-  const resetUrl = `${APP_URL}/reset-password?token=${resetToken}`;
+  const réinitialisationUrl = `${APP_URL}/reset-password?token=${resetToken}`;
 
   const html = `
     <!DOCTYPE html>
@@ -159,9 +159,9 @@ export async function sendPasswordResetEmail(
             <strong>⚠️ Important:</strong> Ce lien expire dans 24 heures.
           </div>
           
-          <p>Vous avez demandé la réinitialisation de votre mot de passe xlibertine.</p>
-          <p>Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe:</p>
-          <a href="${resetUrl}" class="button">Réinitialiser mon mot de passe</a>
+          <p>Vous avez demandé la réinitialisation de votre password xlibertine.</p>
+          <p>Cliquez sur le bouton ci-dessous pour créer un nouveau password:</p>
+          <a href="${réinitialisationUrl}" class="button">Réinitialiser mon mot de passe</a>
           
           <p><strong>Si vous n'avez pas demandé cette action:</strong></p>
           <p>Ignorez cet email. Votre compte reste sécurisé. Si vous continuez à avoir des problèmes, contactez le support.</p>
@@ -176,15 +176,15 @@ export async function sendPasswordResetEmail(
 
   return sendEmail({
     to: email,
-    subject: 'Réinitialiser votre mot de passe xlibertine',
+    subject: 'Réinitialiser votre password xlibertine',
     html,
   });
 }
 
 /**
- * Subscription confirmation email
+ * Abonnement confirmation email
  */
-export async function sendSubscriptionConfirmationEmail(
+export async function sendAbonnementConfirmationEmail(
   email: string,
   username: string,
   planId: string,
@@ -230,7 +230,7 @@ export async function sendSubscriptionConfirmationEmail(
           <p>Bonjour ${username},</p>
           
           <div class="plan-details">
-            <h3>Détails de votre abonnement:</h3>
+            <h3>Détails de votre subscription:</h3>
             <p><strong>Plan:</strong> ${planName}</p>
             <p><strong>Valide jusqu'au:</strong> ${endDate}</p>
             <p><strong>Statut:</strong> ✅ Actif</p>

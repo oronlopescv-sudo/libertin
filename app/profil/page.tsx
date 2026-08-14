@@ -51,7 +51,7 @@ export default function ProfilePage() {
       <Navbar />
       <main className="max-w-2xl mx-auto px-4 py-12">
         <div className="bg-[#1C102B] border border-[#2C1B3D] rounded-2xl p-8 space-y-6">
-          <h1 className="text-3xl font-bold text-white">Meu Perfil</h1>
+          <h1 className="text-3xl font-bold text-white">Meu Profil</h1>
 
           <div className="space-y-4">
             <div className="flex items-center gap-4">
@@ -77,7 +77,7 @@ export default function ProfilePage() {
               className="w-full py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 text-red-200 rounded-lg font-semibold flex items-center justify-center gap-2"
             >
               <LogOut className="w-4 h-4" />
-              Sair
+              Se déconnecter
             </button>
           </div>
         </div>

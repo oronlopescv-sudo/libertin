@@ -11,9 +11,9 @@
 
 ```
 Admin Dashboard
-├─ 📈 Estatísticas Principais
-├─ 👥 Gestão de Utilizadores
-├─ 👥 Gestão de Grupos
+├─ 📈 Statistiques Principais
+├─ 👥 Gestion des utilisateurs
+├─ 👥 Gestion des groupes
 ├─ 📋 Logs de Atividade
 └─ 📑 Relatórios
 ```
@@ -27,22 +27,22 @@ Admin Dashboard
 #### **Cards de Métrica**
 ```
 ┌─────────────────────────────────────┐
-│ Total de Utilizadores: 53           │
-│ + 25 este mês                       │
+│ Total de Utilisateurs: 53           │
+│ + 25 este mois                       │
 └─────────────────────────────────────┘
 
 ┌─────────────────────────────────────┐
 │ Online Agora: 12                    │
-│ (Últimos 5 minutos)                 │
+│ (Últimos 5 minutes)                 │
 └─────────────────────────────────────┘
 
 ┌─────────────────────────────────────┐
-│ Grupos Ativos: 8                    │
-│ Comunidades                         │
+│ Groupes Ativos: 8                    │
+│ Communautés                         │
 └─────────────────────────────────────┘
 
 ┌─────────────────────────────────────┐
-│ Interações (Likes): 1,240           │
+│ Interactions (Likes): 1,240           │
 │ Total de curtidas                   │
 └─────────────────────────────────────┘
 ```
@@ -74,14 +74,14 @@ GET /api/admin/dashboard
 
 ### **2️⃣ GESTÃO DE UTILIZADORES**
 
-#### **Listar Utilizadores**
+#### **Listar Utilisateurs**
 ```
 GET /api/admin/users
 Query Params:
   - page: 1 (default)
   - limit: 20 (default)
-  - search: "alice" (opcional - busca username/email)
-  - tier: "PREMIUM_3M" (opcional - filtro por subscrição)
+  - search: "alice" (optionnel - récupère username/email)
+  - tier: "PREMIUM_3M" (optionnel - filtro por abonnement)
 
 Response:
 {
@@ -90,8 +90,8 @@ Response:
       "id": "uuid",
       "username": "alice",
       "email": "alice@test.com",
-      "subscriptionTier": "PREMIUM_3M",
-      "subscriptionEnd": "2026-11-09",
+      "abonnementTier": "PREMIUM_3M",
+      "abonnementEnd": "2026-11-09",
       "isVerified": true,
       "createdAt": "2026-08-01",
       "isBanned": false
@@ -108,41 +108,41 @@ Response:
 
 **Exemplo de Uso (Frontend):**
 ```javascript
-// Página 1
+// Page 1
 fetch('/api/admin/users?page=1&limit=20')
 
-// Procurar user
+// Rechercher user
 fetch('/api/admin/users?search=alice')
 
-// Filtrar por tier
+// Filtrer par tier
 fetch('/api/admin/users?tier=PREMIUM_3M')
 
 // Combinar filtros
 fetch('/api/admin/users?search=alice&tier=PREMIUM_3M&page=1')
 ```
 
-#### **Banir Utilizador**
+#### **Bannir Utilisateur**
 ```
 POST /api/admin/users/ban
 
 Body:
 {
   "userId": "uuid-aqui",
-  "reason": "Violação de termos de serviço"
+  "reason": "Violaction de termos de serviço"
 }
 
 Response:
 {
   "success": true,
-  "message": "User banido com sucesso"
+  "message": "User banni avec succès"
 }
 ```
 
 **Validações:**
 - ✅ Admin deve estar logado
-- ✅ Admin não pode banir a si mesmo
-- ✅ Razão é registada em admin_logs
-- ✅ User banido não consegue fazer login
+- ✅ Admin não pode bannir a si mesmo
+- ✅ Raison é registada em admin_logs
+- ✅ User banni não consegue fazer login
 
 **Exemplo:**
 ```javascript
@@ -156,7 +156,7 @@ const res = await fetch('/api/admin/users/ban', {
 });
 ```
 
-#### **Desbanir Utilizador**
+#### **Desbannir Utilisateur**
 ```
 DELETE /api/admin/users
 
@@ -166,7 +166,7 @@ Query Params:
 Response:
 {
   "success": true,
-  "message": "User desblanido com sucesso"
+  "message": "User desblanido avec succès"
 }
 ```
 
@@ -184,23 +184,23 @@ const res = await fetch('/api/admin/users?userId=abc123', {
 A tabela mostra:
 - **Username** (clicável para ver perfil)
 - **Email**
-- **Subscrição** (badge colorido)
+- **Abonnement** (badge colorido)
   - 🟦 FREE (cinzento)
   - 🟦 PREMIUM_3M (azul)
   - 🟦 PREMIUM_12M (roxo)
   - 🟦 VIP_24M (ouro)
 - **Status** (ATIVO/BANIDO)
-- **Ações** (Banir/Desbanir)
+- **Actions** (Bannir/Desbannir)
 
-**Ordenação:**
+**Ordenaction:**
 - Padrão: Mais recentes primeiro
 
-**Paginação:**
-- 20 utilizadores por página
-- Botões: Anterior/Próximo
-- Counter: "Página X de Y"
+**Paginaction:**
+- 20 utilisateurs por página
+- Botões: Précédent/Suivant
+- Counter: "Page X de Y"
 
-**Busca em Tempo Real:**
+**Récupère em Tempo Real:**
 - Procura em username e email
 - Reseta página para 1 ao pesquisar
 
@@ -213,7 +213,7 @@ A tabela mostra:
 **Funcionalidades:**
 - ✅ Listar todos os grupos
 - ✅ Ver detalhes (membros, mensagens, admin)
-- ✅ Deletar grupo (com confirmação)
+- ✅ Deletar grupo (com confirmaction)
 - ✅ Aprovar/Rejeitar grupos (pendentes)
 - ✅ Desativar grupo (sem deletar)
 
@@ -245,13 +245,13 @@ POST /api/admin/groups/:id/approve    - Aprovar
 **Tabela de Logs:**
 - Timestamp
 - Admin (quem fez)
-- Ação
+- Action
 - Target (quem/o quê foi afetado)
-- Razão (se aplicável)
+- Raison (se aplicável)
 
-**Filtros:**
+**Filtres:**
 - Por data (data início/fim)
-- Por tipo de ação
+- Por tipo de action
 - Por admin
 
 **Exemplo de Log:**
@@ -276,21 +276,21 @@ POST /api/admin/groups/:id/approve    - Aprovar
 **URL:** `/admin/reports`
 
 **Tipos de Relatórios:**
-1. **Utilizadores**
+1. **Utilisateurs**
    - Total por tier
-   - Novos este mês
+   - Novos este mois
    - Taxa de retenção
-   - Utilizadores banidos
+   - Utilisateurs bannis
 
-2. **Grupos**
+2. **Groupes**
    - Total criados
    - Membros por grupo
    - Atividade (mensagens)
-   - Grupos inativos
+   - Groupes inativos
 
 3. **Interações**
    - Total de likes
-   - Média por user
+   - Méjour por user
    - Padrões de horário
 
 4. **Financeiro** (quando Stripe)
@@ -317,15 +317,15 @@ POST /api/admin/groups/:id/approve    - Aprovar
 
 ### **Middleware Proteção:**
 ```typescript
-// Verificação em cada endpoint
+// Verificaction em cada endpoint
 async function isAdmin(userId: string): Promise<boolean> {
   const { data: user } = await supabase
     .from('users')
-    .select('subscriptionTier')
+    .select('abonnementTier')
     .eq('id', userId)
     .single();
 
-  return user && ['VIP_24M'].includes(user.subscriptionTier);
+  return user && ['VIP_24M'].includes(user.abonnementTier);
 }
 ```
 
@@ -333,11 +333,11 @@ async function isAdmin(userId: string): Promise<boolean> {
 ```
 ❌ 403 Forbidden
 {
-  "error": "Sem permissão de admin"
+  "error": "Sans autorisation de admin"
 }
 
 Redirecionamento: /
-Mensagem: "Acesso Negado - Apenas admins"
+Message: "Acesso Negado - Apenas admins"
 ```
 
 ---
@@ -358,12 +358,12 @@ Agent 3: agent.sophie@xlibertine.com / TestPass123
 ☐ Carrega dashboard ✅
 ☐ Vê cards com estatísticas
 ☐ Tabela de users carrega (20 primeiros)
-☐ Busca funciona
-☐ Paginação funciona
-☐ Clica "Banir" em um user
-☐ Confirmação aparece
-☐ User fica banido (status muda a vermelho)
-☐ Clica "Desbanir"
+☐ Récupère funciona
+☐ Paginaction funciona
+☐ Clica "Bannir" em um user
+☐ Confirmaction aparece
+☐ User fica banni (status muda a vermelho)
+☐ Clica "Desbannir"
 ☐ User volta a ativo
 ☐ Console F12 sem erros
 ☐ Responsive em mobile
@@ -373,12 +373,12 @@ Agent 3: agent.sophie@xlibertine.com / TestPass123
 
 ## 📊 API ENDPOINTS SUMMARY
 
-| Método | Endpoint | Descrição | Auth |
+| Método | Endpoint | Description | Auth |
 |--------|----------|-----------|------|
-| GET | `/api/admin/dashboard` | Estatísticas | ✅ Admin |
+| GET | `/api/admin/dashboard` | Statistiques | ✅ Admin |
 | GET | `/api/admin/users` | Listar users | ✅ Admin |
-| POST | `/api/admin/users/ban` | Banir user | ✅ Admin |
-| DELETE | `/api/admin/users` | Desbanir user | ✅ Admin |
+| POST | `/api/admin/users/ban` | Bannir user | ✅ Admin |
+| DELETE | `/api/admin/users` | Desbannir user | ✅ Admin |
 | GET | `/api/admin/groups` | Listar grupos | ⏳ TODO |
 | POST | `/api/admin/groups/:id/delete` | Deletar grupo | ⏳ TODO |
 | GET | `/api/admin/logs` | Ver logs | ⏳ TODO |
@@ -409,7 +409,7 @@ Accent: #D4145A (text-[#D4145A])
 └──────────┴──────────┴──────────┴──────────┘
 
 ┌─────────────────────────────────┐
-│ Subscription Breakdown           │
+│ Abonnement Breakdown           │
 │ [FREE] [PREMIUM_3M] [etc]       │
 └─────────────────────────────────┘
 
@@ -475,12 +475,12 @@ Accent: #D4145A (text-[#D4145A])
 
 ## 🔍 EXEMPLO DE USO
 
-### **Admin quer banir user "alice"**
+### **Admin quer bannir user "alice"**
 
 1. **Login como admin**
    ```
    Email: agent.marie@xlibertine.com
-   Password: TestPass123
+   Mot de passe: TestPass123
    ```
 
 2. **Vai para Admin Dashboard**
@@ -498,20 +498,20 @@ Accent: #D4145A (text-[#D4145A])
    ```
    Username: alice
    Email: alice@test.com
-   Subscrição: PREMIUM_3M
+   Abonnement: PREMIUM_3M
    Status: ATIVO
    ```
 
-5. **Clica "Banir"**
+5. **Clica "Bannir"**
    ```
-   Confirmação popup aparece
-   Clica "Sim"
+   Confirmaction popup aparece
+   Clica "Oui"
    ```
 
-6. **User é banido**
+6. **User é banni**
    ```
    API POST /api/admin/users/ban
-   Motivo: "Violação de termos"
+   Motivo: "Violaction de termos"
    Status muda a: BANIDO (vermelho)
    ```
 
@@ -521,13 +521,13 @@ Accent: #D4145A (text-[#D4145A])
    - adminId: marie-uuid
    - action: "BAN_USER"
    - targetId: alice-uuid
-   - reason: "Violação de termos"
+   - reason: "Violaction de termos"
    - timestamp: 2026-08-09T14:32:00Z
    ```
 
 8. **Alice não consegue fazer login**
    ```
-   Próximo login dela:
+   Suivant login dela:
    ❌ "Sua conta foi banida"
    Redirecionamento para /
    ```
@@ -546,6 +546,6 @@ Tags: [admin, dashboard]
 
 ---
 
-**Última actualização:** 09/08/2026  
+**Última actualizaction:** 09/08/2026  
 **Status:** ✅ PRONTO PARA TESTE COM AGENTES  
 **Commit:** Será adicionado após PR merge

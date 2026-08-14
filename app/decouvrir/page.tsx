@@ -28,7 +28,7 @@ export default function Decouvrir() {
   const [loading, setLoading] = useState(true);
   const [likedUsers, setLikedUsers] = useState<Set<string>>(new Set());
   
-  // Filtros
+  // Filtres
   const [location, setLocation] = useState('');
   const [ageMin, setAgeMin] = useState(18);
   const [ageMax, setAgeMax] = useState(60);
@@ -88,14 +88,14 @@ export default function Decouvrir() {
       <div className="min-h-screen bg-gradient-to-br from-[#12091A] to-[#1C102B]">
         <Navbar />
         <div className="flex items-center justify-center min-h-[80vh] text-white">
-          Carregando...
+          Chargement...
         </div>
       </div>
     );
   }
 
-  // Todos os utilizadores autenticados podem ver perfis.
-  // A regra de Premium aplica-se apenas ao envio de mensagens.
+  // Tous os utilisateurs autenticados podem ver perfis.
+  // La règle Premium s'applique uniquement à l'envoi de messages.
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#12091A] to-[#1C102B]">
@@ -106,9 +106,9 @@ export default function Decouvrir() {
               <Lock className="w-10 h-10 text-[#D4145A]" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white mb-2">Descobrir Perfis</h1>
+              <h1 className="text-3xl font-bold text-white mb-2">Découvrir les profils</h1>
               <p className="text-zinc-400 mb-6">
-                Faça login para explorar os perfis da comunidade.
+                Connectez-vous pour découvrir les profils de la communauté.
               </p>
             </div>
             <div className="space-y-3">
@@ -116,13 +116,13 @@ export default function Decouvrir() {
                 href="/login"
                 className="block py-3 px-6 bg-gradient-to-r from-[#D4145A] to-[#E86B7A] rounded-lg font-semibold text-white hover:opacity-90 transition"
               >
-                Entrar
+                Se connecter
               </Link>
               <Link
                 href="/"
                 className="block py-3 px-6 bg-[#2C1B3D] rounded-lg font-semibold text-white hover:bg-[#3C2B4D] transition"
               >
-                Voltar à Home
+                Retour à l'accueil
               </Link>
             </div>
           </div>
@@ -155,21 +155,21 @@ export default function Decouvrir() {
       <Navbar />
 
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold text-white mb-8">Descobrir Perfis</h1>
+        <h1 className="text-4xl font-bold text-white mb-8">Découvrir les profils</h1>
 
-        {/* Filtros */}
+        {/* Filtres */}
         <div className="bg-[#1C102B] rounded-lg p-6 border border-[#2C1B3D] mb-8">
-          <h2 className="text-lg font-semibold text-white mb-4">Filtros</h2>
+          <h2 className="text-lg font-semibold text-white mb-4">Filtres</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Localização */}
+            {/* Localisation */}
             <div>
-              <label className="text-sm text-zinc-400">Localização</label>
+              <label className="text-sm text-zinc-400">Localisation</label>
               <select
                 value={location}
                 onChange={(e) => { setLocation(e.target.value); setPage(1); }}
                 className="w-full mt-1 px-3 py-2 bg-[#2C1B3D] border border-[#3C2B4D] rounded-lg text-white focus:outline-none focus:border-[#D4145A]"
               >
-                <option value="">Todas</option>
+                <option value="">Toutes</option>
                 <option value="Paris">Paris</option>
                 <option value="Lyon">Lyon</option>
                 <option value="Bordeaux">Bordeaux</option>
@@ -179,9 +179,9 @@ export default function Decouvrir() {
               </select>
             </div>
 
-            {/* Idade Min */}
+            {/* Âge Min */}
             <div>
-              <label className="text-sm text-zinc-400">Idade Min: {ageMin}</label>
+              <label className="text-sm text-zinc-400">Âge Min: {ageMin}</label>
               <input
                 type="range"
                 min="18"
@@ -192,9 +192,9 @@ export default function Decouvrir() {
               />
             </div>
 
-            {/* Idade Max */}
+            {/* Âge Max */}
             <div>
-              <label className="text-sm text-zinc-400">Idade Max: {ageMax}</label>
+              <label className="text-sm text-zinc-400">Âge Max: {ageMax}</label>
               <input
                 type="range"
                 min="18"
@@ -205,29 +205,29 @@ export default function Decouvrir() {
               />
             </div>
 
-            {/* Género */}
+            {/* Genre */}
             <div>
-              <label className="text-sm text-zinc-400">Género</label>
+              <label className="text-sm text-zinc-400">Genre</label>
               <select
                 value={gender}
                 onChange={(e) => { setGender(e.target.value); setPage(1); }}
                 className="w-full mt-1 px-3 py-2 bg-[#2C1B3D] border border-[#3C2B4D] rounded-lg text-white focus:outline-none focus:border-[#D4145A]"
               >
-                <option value="">Todos</option>
-                <option value="femme">Mulher</option>
-                <option value="homme">Homem</option>
+                <option value="">Tous</option>
+                <option value="femme">Femme</option>
+                <option value="homme">Homme</option>
               </select>
             </div>
 
-            {/* Orientação */}
+            {/* Orientaction */}
             <div>
-              <label className="text-sm text-zinc-400">Orientação</label>
+              <label className="text-sm text-zinc-400">Orientaction</label>
               <select
                 value={orientation}
                 onChange={(e) => { setOrientation(e.target.value); setPage(1); }}
                 className="w-full mt-1 px-3 py-2 bg-[#2C1B3D] border border-[#3C2B4D] rounded-lg text-white focus:outline-none focus:border-[#D4145A]"
               >
-                <option value="">Todas</option>
+                <option value="">Toutes</option>
                 <option value="heterosexuelle">Heterossexual</option>
                 <option value="bisexuelle">Bissexual</option>
                 <option value="lesbienne">Lésbica</option>
@@ -236,10 +236,10 @@ export default function Decouvrir() {
           </div>
         </div>
 
-        {/* Perfis */}
+        {/* Profils */}
         {profiles.length === 0 ? (
           <div className="text-center text-zinc-400 py-12">
-            Nenhum perfil encontrado com esses critérios
+            Aucun profil trouvé com esses critérios
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -257,7 +257,7 @@ export default function Decouvrir() {
                   <div className="flex items-start justify-between mb-2">
                     <div>
                       <h3 className="text-lg font-bold text-white">{profile.username}</h3>
-                      <p className="text-sm text-zinc-400">{profile.age} anos • {profile.location}</p>
+                      <p className="text-sm text-zinc-400">{profile.age} ans • {profile.location}</p>
                     </div>
                   </div>
 
@@ -279,7 +279,7 @@ export default function Decouvrir() {
                     }`}
                   >
                     <Heart className={`w-4 h-4 ${likedUsers.has(profile.id) ? 'fill-current' : ''}`} />
-                    {likedUsers.has(profile.id) ? 'Curtido' : 'Curtir'}
+                    {likedUsers.has(profile.id) ? 'Liké' : 'Liker'}
                   </button>
                 </div>
               </div>
@@ -287,7 +287,7 @@ export default function Decouvrir() {
           </div>
         )}
 
-        {/* Paginação */}
+        {/* Paginaction */}
         {profiles.length > 0 && (
           <div className="flex justify-center gap-2 mt-8">
             <button
@@ -295,14 +295,14 @@ export default function Decouvrir() {
               disabled={page === 1}
               className="px-4 py-2 bg-[#2C1B3D] rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Anterior
+              Précédent
             </button>
-            <span className="px-4 py-2 text-white">Página {page}</span>
+            <span className="px-4 py-2 text-white">Page {page}</span>
             <button
               onClick={() => setPage(page + 1)}
               className="px-4 py-2 bg-[#2C1B3D] rounded-lg text-white hover:bg-[#3C2B4D]"
             >
-              Próximo
+              Suivant
             </button>
           </div>
         )}

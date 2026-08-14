@@ -20,7 +20,7 @@ export function LoginForm() {
 
     try {
       if (!formData.email || !formData.password) {
-        throw new Error('Email e senha obrigatórios');
+        throw new Error('Email e senha obligatoires');
       }
 
       const res = await fetch('/api/auth/login', {
@@ -32,10 +32,10 @@ export function LoginForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Erro ao fazer login');
+        throw new Error(data.error || 'Erreur lors de la connexion');
       }
 
-      // Guardar token em localStorage
+      // Enregistrer token em localStorage
       localStorage.setItem('auth_token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
 
@@ -85,14 +85,14 @@ export function LoginForm() {
               </div>
             </div>
 
-            {/* Password */}
+            {/* Mot de passe */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-[#F5F0F8]">Mot de passe</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 w-5 h-5 text-[#D4145A]/50" />
                 <input
                   type="password"
-                  name="password"
+                  name="mot de passe"
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Votre mot de passe"
@@ -115,7 +115,7 @@ export function LoginForm() {
                 Pas de compte? <a href="/register" className="text-[#D4145A] hover:underline">S'inscrire</a>
               </div>
               <div>
-                <a href="/forgot-password" className="text-[#D4145A] hover:underline">Mot de passe oublié?</a>
+                <a href="/forgot-mot de passe" className="text-[#D4145A] hover:underline">Mot de passe oublié?</a>
               </div>
             </div>
           </form>

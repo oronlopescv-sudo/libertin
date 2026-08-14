@@ -6,57 +6,57 @@
 ## 🎯 O QUE FOI CORRIGIDO
 
 ### 1️⃣ SEGURANÇA (RLS + Supabase)
-- ✅ RLS ligado em 7 tabelas (`users`, `password_resets`, `pricing_plans`, `group_memberships`, `likes`, `blocked_users`)
+- ✅ RLS ligado em 7 tabelas (`users`, `mot de passe_réinitialisations`, `pricing_plans`, `group_memberships`, `likes`, `blocked_users`)
 - ✅ Políticas de segurança criadas:
   - `users` - leitura pública, edição própria
-  - `password_resets` - bloqueado para anon, só autenticado
+  - `mot de passe_réinitialisations` - bloqueado para ann, só autenticado
   - `pricing_plans` - leitura pública
   - Resto com acesso restrito ao próprio user
 
 ### 2️⃣ AUTENTICAÇÃO (APIs + JWT)
 - ✅ **`POST /api/auth/register`** - Registo completo
-  - Validação de email, senha (8+ chars), idade (18+)
-  - Hash de password com bcryptjs
+  - Validaction de email, senha (8+ chars), idade (18+)
+  - Hash de mot de passe com bcryptjs
   - Insere em Supabase `users` table
-  - Retorna user object + JWT token
+  - Renvoie user object + JWT token
 
 - ✅ **`POST /api/auth/login`** - Login
-  - Valida email + password contra Supabase
-  - Retorna JWT token
+  - Valida email + mot de passe contra Supabase
+  - Renvoie JWT token
   - Seta cookie `auth_token` (httpOnly, secure)
 
 - ✅ **`POST /api/auth/logout`** - Logout
-  - Limpa cookie de autenticação
+  - Limpa cookie de autenticaction
 
 ### 3️⃣ COMPONENTES & FORMULÁRIOS
 - ✅ **`<RegisterForm />`** - Formulário de registo
-  - Validação client-side completa
+  - Validaction client-side completa
   - Error handling com mensagens
   - Success state com redireção
   - Chama `/api/auth/register`
 
 - ✅ **`<LoginForm />`** - Formulário de login
-  - Email + password fields
-  - Validação básica
+  - Email + mot de passe fields
+  - Validaction básica
   - Chama `/api/auth/login`
   - Guarda JWT em localStorage
 
 ### 4️⃣ PÁGINAS
-- ✅ **`/register`** - Página de registo
+- ✅ **`/register`** - Page de registo
   - Renderiza RegisterForm
   - Link para login
 
-- ✅ **`/login`** - Página de login
+- ✅ **`/login`** - Page de login
   - Renderiza LoginForm
   - Link para registo
 
-- ✅ **`/profil`** - Página de perfil (protegida)
+- ✅ **`/profil`** - Page de perfil (protegida)
   - Mostra dados do user (email, username)
   - Botão de logout
   - Redireciona para `/login` se sem JWT
 
 ### 5️⃣ MIDDLEWARE
-- ✅ **Middleware de Autenticação**
+- ✅ **Middleware de Autenticaction**
   - Protege rotas: `/profil`, `/admin`, `/chat`
   - Redireciona para `/login` se sem JWT cookie
 
@@ -75,11 +75,11 @@
    ↓
 2. Vai para /register
    ↓
-3. Preenche: email, password, username, birthdate, gender, orientation, location
+3. Preenche: email, mot de passe, username, birthdate, gender, orientation, location
    ↓
 4. Clica "Finalizar Inscrição"
    ↓
-5. POST /api/auth/register (validação + hash + Supabase insert)
+5. POST /api/auth/register (validaction + hash + Supabase insert)
    ↓
 6. Resposta: { user, token }
    ↓
@@ -95,11 +95,11 @@
    ↓
 2. Vai para /login
    ↓
-3. Preenche: email, password
+3. Preenche: email, mot de passe
    ↓
 4. Clica "Se Connecter"
    ↓
-5. POST /api/auth/login (validação password + JWT)
+5. POST /api/auth/login (validaction mot de passe + JWT)
    ↓
 6. Resposta: { user, token }
    ↓
@@ -115,7 +115,7 @@
 ```
 1. User em /profil
    ↓
-2. Clica "Sair"
+2. Clica "Se déconnecter"
    ↓
 3. POST /api/auth/logout
    ↓
@@ -152,22 +152,22 @@
 
 # Login
 [ ] Clica "Se Connecter" → vai para /login
-[ ] Preenche email + password válidos
+[ ] Preenche email + mot de passe válidos
 [ ] Clica "Se Connecter" → POST /api/auth/login
 [ ] Recebe token + user data
 [ ] localStorage tem auth_token + user
 [ ] Cookie setado: auth_token
 [ ] Redireciona para /profil
 
-# Perfil Protegido
+# Profil Protegido
 [ ] Acede /profil com JWT → mostra dados
 [ ] Acede /profil sem JWT → redireciona /login
 [ ] Logout limpa localStorage + cookie
 
 # Validações
-[ ] Email inválido → erro
-[ ] Password < 8 chars → erro
-[ ] Idade < 18 → erro
+[ ] Email invalide → erro
+[ ] Mot de passe < 8 chars → erro
+[ ] Âge < 18 → erro
 [ ] Email já existe → erro
 [ ] Credenciais inválidas → erro
 ```
@@ -226,10 +226,10 @@ c6eb907 - docs: comprehensive audit report - 30 critical findings identified
 ## 🎯 RESULTADO FINAL
 
 **Antes:** ❌ Site com página branca, sem login, sem registo, RLS desligado  
-**Depois:** ✅ Sistema de autenticação completo, seguro, pronto para produção (exceto Stripe)
+**Depois:** ✅ Sistema de autenticaction completo, seguro, pronto para produção (exceto Stripe)
 
 **Status:** 🟢 PRONTO PARA DEPLOY
 
 *Equipa: 6 Engenheiros + 4 Técnicos*  
-*Tempo Total: ~2 horas*  
+*Tempo Total: ~2 heures*  
 *Problemas Resolvidos: 9 P0s + 8 P1s*

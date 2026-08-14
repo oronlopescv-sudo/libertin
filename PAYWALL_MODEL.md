@@ -10,15 +10,15 @@
 
 Podem fazer:
 ```
-✅ Registar (criar conta)
+✅ S'inscrire (criar conta)
 ✅ Login
 ✅ Ver homepage
 ✅ Logout
-✅ Recuperar password via email
-✅ Editar perfil básico
+✅ Réinitialiser le mot de passe via email
+✅ Modifier perfil básico
 ```
 
-Bloqueado:
+Bloqué:
 ```
 ❌ VER PERFIS (/decouvrir)
 ❌ ENVIAR MENSAGENS (/chat/[groupId])
@@ -28,11 +28,11 @@ Bloqueado:
 ❌ CRIAR/PARTICIPAR EVENTOS (/eventos)
 ```
 
-**Mensagem padrão para FREE:**
+**Message padrão para FREE:**
 ```
-🔒 Apenas utilizadores Premium podem [ação]
-→ Faça upgrade para Premium
-→ Planos a partir de €2.08/mês
+🔒 Apenas utilisateurs Premium podem [action]
+→ Effectuez upgrade para Premium
+→ À partir de 2,08 €/mois
 ```
 
 ---
@@ -40,15 +40,15 @@ Bloqueado:
 ## 🔴 PREMIUM USERS
 
 **Tiers:**
-- `PREMIUM_3M` — €5.33/mês (€16 total)
-- `PREMIUM_12M` — €2.08/mês (€25 total)
-- `VIP_24M` — €2.91/mês (€70 total)
+- `PREMIUM_3M` — €5.33/mois (€16 total)
+- `PREMIUM_12M` — €2.08/mois (€25 total)
+- `VIP_24M` — €2.91/mois (€70 total)
 
 **Acesso:**
 ```
 ✅ Tudo desbloqueado
 ✅ Ver perfis completos
-✅ Enviar/receber mensagens
+✅ Envoyer/receber mensagens
 ✅ Criar grupos
 ✅ Participar em grupos
 ✅ Upload de fotos
@@ -57,32 +57,32 @@ Bloqueado:
 ✅ Tudo!
 ```
 
-**Validação:**
+**Validaction:**
 ```typescript
 const isPremium = 
-  ['PREMIUM_3M', 'PREMIUM_12M', 'VIP_24M'].includes(user.subscriptionTier) &&
-  user.subscriptionEnd &&
-  new Date(user.subscriptionEnd) > new Date();
+  ['PREMIUM_3M', 'PREMIUM_12M', 'VIP_24M'].includes(user.abonnementTier) &&
+  user.abonnementEnd &&
+  new Date(user.abonnementEnd) > new Date();
 ```
 
 ---
 
 ## 📋 IMPLEMENTAÇÃO (CONCLUÍDA)
 
-### ✅ Páginas Bloqueadas
+### ✅ Pages Bloqueadas
 
-| Página | Rota | Método | Status |
+| Page | Rota | Método | Status |
 |--------|------|--------|--------|
-| Descobrir Perfis | `/decouvrir` | GET | ✅ |
+| Découvrir les profils | `/decouvrir` | GET | ✅ |
 | Chat | `/chat/[groupId]` | GET | ✅ |
-| Eventos | `/eventos` | GET | ✅ |
+| Événements | `/eventos` | GET | ✅ |
 
 ### ✅ APIs Bloqueadas
 
 | API | Rota | Método | Status |
 |-----|------|--------|--------|
-| Criar Grupo | `/api/groups` | POST | ✅ |
-| Juntar Grupo | `/api/groups` | PATCH | ✅ |
+| Criar Groupe | `/api/groups` | POST | ✅ |
+| Juntar Groupe | `/api/groups` | PATCH | ✅ |
 | Upload Foto | `/api/photos/upload` | POST | ✅ |
 
 ### ✅ Componentes
@@ -96,53 +96,53 @@ const isPremium =
 
 ## 🔐 FLUXO DE VALIDAÇÃO
 
-### Exemplo: Tentar Ver Perfis (FREE)
+### Exemplo: Tentar Ver Profils (FREE)
 
 ```
 1. FREE user clica em /decouvrir
    ↓
 2. Frontend carrega /decouvrir/page.tsx
    ↓
-3. useEffect busca localStorage token
+3. useEffect récupère localStorage token
    ↓
-4. Parse token → extrai subscriptionTier
+4. Parse token → extrai abonnementTier
    ↓
-5. Validação:
+5. Validaction:
    if (!isPremium) → Mostra lock screen
    ↓
 6. Lock Screen renderiza:
    - 🔒 Ícone
    - "Apenas Premium podem ver perfis"
    - Botão "Fazer Upgrade"
-   - Link "Voltar à Home"
+   - Link "Retour à l'accueil"
 ```
 
-### Exemplo: Criar Grupo (FREE)
+### Exemplo: Criar Groupe (FREE)
 
 ```
 1. FREE user tenta criar grupo
    ↓
-2. Clica botão "Criar Grupo"
+2. Clica botão "Criar Groupe"
    ↓
 3. Modal abre (CreateGroupModal)
    ↓
-4. Validação isPremium = false
+4. Validaction isPremium = false
    ↓
 5. Modal renderiza lock screen:
    - 🔒 Ícone
    - "Apenas Premium criam grupos"
    - Botão "Fazer Upgrade"
-   - Link "Cancelar"
+   - Link "Annuler"
 ```
 
-### Exemplo: Enviar Mensagem (FREE)
+### Exemplo: Envoyer Message (FREE)
 
 ```
 1. FREE user tenta /chat/grupo-123
    ↓
 2. Frontend carrega page.tsx
    ↓
-3. Validação isPremium = false
+3. Validaction isPremium = false
    ↓
 4. Lock Screen renderiza
    ↓
@@ -156,10 +156,10 @@ const isPremium =
 
 ## 💾 CÓDIGO (Padrão)
 
-### Validação em Página
+### Validaction em Page
 
 ```typescript
-const isPremium = user && ['PREMIUM_3M', 'PREMIUM_12M', 'VIP_24M'].includes(user.subscriptionTier);
+const isPremium = user && ['PREMIUM_3M', 'PREMIUM_12M', 'VIP_24M'].includes(user.abonnementTier);
 
 if (!user || !isPremium) {
   return (
@@ -173,15 +173,15 @@ if (!user || !isPremium) {
           <div>
             <h1 className="text-3xl font-bold text-white mb-2">[Título]</h1>
             <p className="text-zinc-400 mb-6">
-              Apenas utilizadores Premium podem [ação].
+              Apenas utilisateurs Premium podem [action].
             </p>
           </div>
           <div className="space-y-3">
             <Link href="/abonnements" className="block py-3 px-6 bg-gradient-to-r from-[#D4145A] to-[#E86B7A]...">
-              Fazer Upgrade para Premium
+              Passer à Premium
             </Link>
             <Link href="/" className="block py-3 px-6 bg-[#2C1B3D]...">
-              Voltar
+              Retour
             </Link>
           </div>
         </div>
@@ -193,16 +193,16 @@ if (!user || !isPremium) {
 // Premium content aqui
 ```
 
-### Validação em API
+### Validaction em API
 
 ```typescript
-const isPremium = premiumTiers.includes(user.subscriptionTier) && 
-                  user.subscriptionEnd &&
-                  new Date(user.subscriptionEnd) > new Date();
+const isPremium = premiumTiers.includes(user.abonnementTier) && 
+                  user.abonnementEnd &&
+                  new Date(user.abonnementEnd) > new Date();
 
 if (!isPremium) {
   return NextResponse.json(
-    { error: 'Apenas utilizadores Premium podem [ação]. Faça upgrade!' },
+    { error: 'Apenas utilisateurs Premium podem [action]. Effectuez upgrade!' },
     { status: 403 }
   );
 }
@@ -216,17 +216,17 @@ if (!isPremium) {
 ```
 Qualquer um pode:
 - Ver tudo
-- Enviar mensagens
+- Envoyer mensagens
 - Criar grupos
 - Sem incentivo para upgrade
 ```
 
 ### Depois (com paywall)
 ```
-✅ FREE: Registar + Login (lead gerado)
-❌ FREE: Bloqueado em 6 features principais
+✅ FREE: S'inscrire + Login (lead gerado)
+❌ FREE: Bloqué em 6 features principais
 ✅ INCENTIVO: Upgrade button em cada feature
-✅ CONVERSÃO: Free → Premium (€2.08+/mês)
+✅ CONVERSÃO: Free → Premium (€2.08+/mois)
 ```
 
 ---
@@ -235,12 +235,12 @@ Qualquer um pode:
 
 ```
 Possível adicionar depois:
-- [ ] Perfil limitado (2 fotos vs ilimitadas)
-- [ ] Mensagens limitadas (5/dia vs ilimitadas)
-- [ ] Grupos limitados (1 grupo vs unlimited)
-- [ ] Busca básica vs avançada
+- [ ] Profil limitado (2 fotos vs ilimitadas)
+- [ ] Messages limitadas (5/jour vs ilimitadas)
+- [ ] Groupes limitados (1 grupo vs unlimited)
+- [ ] Récupère básica vs avançada
 - [ ] Ver quem visitou (PREMIUM only)
-- [ ] Filtros de busca avançados (PREMIUM only)
+- [ ] Filtres de récupère avançados (PREMIUM only)
 ```
 
 ---
@@ -254,11 +254,11 @@ Possível adicionar depois:
 [✅] POST /api/groups bloqueado para FREE
 [✅] PATCH /api/groups/join bloqueado para FREE
 [✅] POST /api/photos/upload bloqueado para FREE
-[✅] Botão "Criar Grupo" desabilitado para FREE
+[✅] Botão "Criar Groupe" desabilitado para FREE
 [✅] Modal lock screens iguais em todas páginas
 [✅] Link "Fazer Upgrade" → /abonnements
 [✅] Build passa sem erros
-[✅] Documentação completa
+[✅] Documentaction completa
 ```
 
 ---
@@ -266,8 +266,8 @@ Possível adicionar depois:
 ## 🚀 PRÓXIMOS PASSOS
 
 1. **Stripe Integration** — Processar pagamentos
-2. **Webhook Stripe** — Atualizar subscription automaticamente
-3. **Email notificação** — Aviso de upgrade bem-sucedido
+2. **Webhook Stripe** — Atualizar abonnement automaticamente
+3. **Email notificaction** — Aviso de upgrade bem-sucedido
 4. **Analytics** — Rastrear conversão Free → Premium
 
 ---
@@ -275,10 +275,10 @@ Possível adicionar depois:
 ## 📞 DÚVIDAS
 
 **P: Posso dar FREE trial?**  
-R: Sim, criar campo `subscriptionTrialEnds` e ajustar validação
+R: Oui, criar campo `abonnementTrialEnds` e ajustar validaction
 
-**P: Posso bloquear mais features?**  
-R: Sim, adicionar validação isPremium em qualquer página/API
+**P: Posso bloquer mais features?**  
+R: Oui, adicionar validaction isPremium em qualquer página/API
 
 **P: Como refund?**  
 R: Deixar para Stripe webhook + payment API

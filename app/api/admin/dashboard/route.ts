@@ -13,14 +13,14 @@ async function isAdmin(userId: string): Promise<boolean> {
   return user && ['VIP_24M'].includes(user.subscriptionTier);
 }
 
-// GET /api/admin/dashboard - Estatísticas gerais
+// GET /api/admin/dashboard - Statistiques gerais
 export async function GET(req: NextRequest) {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get('auth_token')?.value;
 
     if (!token) {
-      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
     let userId: string;
@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
     // Verificar se é admin
     const admin = await isAdmin(userId);
     if (!admin) {
-      return NextResponse.json({ error: 'Sem permissão de admin' }, { status: 403 });
+      return NextResponse.json({ error: 'Sans autorisation de admin' }, { status: 403 });
     }
 
     // Dashboard Stats
@@ -73,13 +73,13 @@ export async function GET(req: NextRequest) {
     });
     stats.tierBreakdown = tierBreakdown;
 
-    // Total de grupos
+    // Total de groupes
     const { count: totalGroups } = await supabase
       .from('groups')
       .select('*', { count: 'exact', head: true });
     stats.totalGroups = totalGroups || 0;
 
-    // Total de mensagens
+    // Total de messages
     const { count: totalMessages } = await supabase
       .from('messages')
       .select('*', { count: 'exact', head: true });

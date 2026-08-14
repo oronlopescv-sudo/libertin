@@ -1,17 +1,17 @@
 /**
- * Verificação central de acesso Premium.
+ * Verificaction central de acesso Premium.
  *
  * Toda a lógica de "isPremium?" passa por aqui. Assim, adicionar contas com
- * acesso vitalício ou mudar os planos que contam como Premium é uma alteração
+ * acesso vitalício ou mudar os plans que contam como Premium é uma alteraction
  * em UM sítio, não em quinze.
  */
 
-/** Emails com acesso Premium vitalício, independentemente do plano na BD. */
+/** Emails com acesso Premium vitalício, independentemente do plan na BD. */
 const LIFETIME_PREMIUM_EMAILS = new Set([
   'orsonricardo@hotmail.fr',
 ])
 
-/** Planos que dão acesso Premium (excluindo VIP_24M que também é Premium). */
+/** Plans que dão acesso Premium (excluindo VIP_24M que também é Premium). */
 const PREMIUM_TIERS: readonly string[] = [
   'PREMIUM_3M',
   'PREMIUM_12M',
@@ -29,12 +29,12 @@ type UserLike = {
 } | null | undefined
 
 /**
- * Devolve true se o utilizador deve ter acesso Premium neste momento.
+ * Renvoie true se o utilisateur deve ter acesso Premium neste momento.
  *
  * As regras, por ordem:
  *   1. Se o email está na lista de Premium vitalício → sempre true.
  *   2. Se é admin → sempre true.
- *   3. Se o plano é Premium E ainda não expirou → true.
+ *   3. Se o plan é Premium E ainda não expirou → true.
  *   4. Caso contrário → false.
  */
 export function isPremium(user: UserLike): boolean {
@@ -48,7 +48,7 @@ export function isPremium(user: UserLike): boolean {
   if (!user.subscriptionTier) return false
   if (!PREMIUM_TIERS.includes(user.subscriptionTier)) return false
 
-  // Verifica se a subscrição não expirou (quando o campo existe)
+  // Vérifie se a abonnement não expirou (quando o campo existe)
   if (user.subscriptionEnd) {
     const fim = new Date(user.subscriptionEnd)
     if (Number.isFinite(fim.getTime()) && fim < new Date()) return false

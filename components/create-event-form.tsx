@@ -63,7 +63,7 @@ export function CreateEventForm({ userId, onSuccess }: CreateEventFormProps) {
       });
 
       if (!result.success) {
-        setError(result.error || 'Falha ao criar anúncio');
+        setError(result.error || 'Échec de criar anúncio');
         setIsLoading(false);
         return;
       }
@@ -81,14 +81,14 @@ export function CreateEventForm({ userId, onSuccess }: CreateEventFormProps) {
       });
 
       if (!response.ok) {
-        setError('Falha ao processar pagamento');
+        setError('Échec de processar pagamento');
         return;
       }
 
       const { checkoutUrl } = await response.json();
       router.push(checkoutUrl);
     } catch (err) {
-      setError('Erro ao criar anúncio');
+      setError('Erreur lors de criar anúncio');
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -98,15 +98,15 @@ export function CreateEventForm({ userId, onSuccess }: CreateEventFormProps) {
   const eventTypes = [
     { value: 'festa', label: '🎉 Festa Privada' },
     { value: 'gang_bang', label: '🔥 Gang Bang' },
-    { value: 'troca', label: '💑 Troca de Casais' },
-    { value: 'other', label: '⭐ Outro Evento' },
+    { value: 'troca', label: '💑 Troca de Couples' },
+    { value: 'other', label: '⭐ Outro Événement' },
   ];
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
       {/* Event Type */}
       <div>
-        <label className="block text-sm font-bold text-white mb-2">Tipo de Evento</label>
+        <label className="block text-sm font-bold text-white mb-2">Tipo de Événement</label>
         <select
           name="type"
           value={formData.type}
@@ -139,7 +139,7 @@ export function CreateEventForm({ userId, onSuccess }: CreateEventFormProps) {
 
       {/* Description */}
       <div>
-        <label className="block text-sm font-bold text-white mb-2">Descrição</label>
+        <label className="block text-sm font-bold text-white mb-2">Description</label>
         <textarea
           name="description"
           value={formData.description}
@@ -168,7 +168,7 @@ export function CreateEventForm({ userId, onSuccess }: CreateEventFormProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-bold text-white mb-2">Cidade</label>
+          <label className="block text-sm font-bold text-white mb-2">Ville</label>
           <input
             type="text"
             name="city"
@@ -182,7 +182,7 @@ export function CreateEventForm({ userId, onSuccess }: CreateEventFormProps) {
 
       {/* Date */}
       <div>
-        <label className="block text-sm font-bold text-white mb-2">Data (Opcional)</label>
+        <label className="block text-sm font-bold text-white mb-2">Data (Optionnel)</label>
         <div className="flex gap-4 items-end">
           <div className="flex-1">
             <input
@@ -209,7 +209,7 @@ export function CreateEventForm({ userId, onSuccess }: CreateEventFormProps) {
       {/* Participants */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-bold text-white mb-2">Mínimo de Participantes</label>
+          <label className="block text-sm font-bold text-white mb-2">Minimum de Participantes</label>
           <input
             type="number"
             name="min_participants"
@@ -221,7 +221,7 @@ export function CreateEventForm({ userId, onSuccess }: CreateEventFormProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-bold text-white mb-2">Máximo de Participantes</label>
+          <label className="block text-sm font-bold text-white mb-2">Maximum de Participantes</label>
           <input
             type="number"
             name="max_participants"
@@ -241,7 +241,7 @@ export function CreateEventForm({ userId, onSuccess }: CreateEventFormProps) {
           name="looking_for"
           value={formData.looking_for}
           onChange={handleChange}
-          placeholder="Ex: 8 homens ativos, 18-50 anos"
+          placeholder="Ex: 8 homens ativos, 18-50 ans"
           className="w-full bg-[#1C102B] border border-[#3D2654] rounded-lg px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-[#D4145A] transition-colors"
         />
       </div>
@@ -270,7 +270,7 @@ export function CreateEventForm({ userId, onSuccess }: CreateEventFormProps) {
                 />
                 <div className="font-bold text-white text-sm">{plan.name}</div>
                 <div className="text-lg font-bold text-[#D4145A]">€{plan.price}</div>
-                <div className="text-xs text-zinc-400">{plan.duration} dias</div>
+                <div className="text-xs text-zinc-400">{plan.duration} jours</div>
               </label>
             )
           )}

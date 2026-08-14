@@ -4,19 +4,19 @@
 
 ## 🎯 OBJETIVO
 
-Testa a plataforma xlibertine.com com 50 clientes + 3 agentes e valida:
-- ✅ Autenticação
+Testa a plateforme xlibertine.com com 50 clientes + 3 agentes e valida:
+- ✅ Autenticaction
 - ✅ Paywall (FREE vs PREMIUM)
-- ✅ Discovery de Perfis
+- ✅ Discovery de Profils
 - ✅ Likes e Admiradores
-- ✅ Grupos e Chat
+- ✅ Groupes e Chat
 - ✅ Segurança
 
 ---
 
 ## 📍 PASSO 1: INSERIR UTILIZADORES (1 min)
 
-### 1.1 Abrir Supabase
+### 1.1 Ouvrir Supabase
 ```
 🔗 https://app.supabase.com
 🔑 Projeto: mfchfnsekoluicxnguoh
@@ -27,7 +27,7 @@ Testa a plataforma xlibertine.com com 50 clientes + 3 agentes e valida:
 SQL Editor → New Query
 Copia conteúdo de: TESTE_USUARIOS.sql
 Clica RUN (botão azul)
-✅ 53 utilizadores criados!
+✅ 53 utilisateurs criados!
 ```
 
 ---
@@ -38,7 +38,7 @@ Clica RUN (botão azul)
 ```
 URL: https://xlibertine.com/login
 Email: client.alice@xlibertine.com
-Password: TestPass123
+Mot de passe: TestPass123
 Clica "Se Connecter"
 ✅ Entra em /profil
 ```
@@ -60,10 +60,10 @@ URL: https://xlibertine.com/decouvrir
 ✅ Paywall funcionando
 ```
 
-### 3.2 Tenta Criar Grupo (FREE - BLOQUEADO)
+### 3.2 Tenta Criar Groupe (FREE - BLOQUEADO)
 ```
 URL: https://xlibertine.com/groupes
-🔒 Botão "Criar Grupo" desabilitado
+🔒 Botão "Criar Groupe" desabilitado
 ✅ Protegido
 ```
 
@@ -74,67 +74,67 @@ URL: https://xlibertine.com/groupes
 ### 4.1 Login Premium
 ```
 Email: premium.maya@xlibertine.com
-Password: TestPass123
+Mot de passe: TestPass123
 Clica "Se Connecter"
 ✅ Entra em /profil
 ```
 
-### 4.2 Ver Perfis (DESBLOQUEADO)
+### 4.2 Ver Profils (DESBLOQUEADO)
 ```
 URL: https://xlibertine.com/decouvrir
 ✅ Vê grid de 20 perfis
 ```
 
-### 4.3 Testar Filtros
+### 4.3 Testar Filtres
 ```
-Localização: Seleciona "Paris"
+Localisation: Seleciona "Paris"
 ✅ Mostra só 6 perfis de Paris
 
-Idade: Min 25, Max 40
+Âge: Min 25, Max 40
 ✅ Filtra por idade
 
-Género: "femme"
+Genre: "femme"
 ✅ Mostra só mulheres
 ```
 
-### 4.4 Curtir Perfil
+### 4.4 Liker Profil
 ```
-Clica ❤️ "Curtir" em um perfil
-✅ Botão fica vermelho "Curtido"
+Clica ❤️ "Liker" em um perfil
+✅ Botão fica vermelho "Liké"
 ❤️ (preenchido)
 
 Clica novamente (Unlike)
-✅ Volta a "Curtir" (oco)
+✅ Volta a "Liker" (oco)
 ```
 
-### 4.5 Criar Grupo
+### 4.5 Criar Groupe
 ```
 URL: https://xlibertine.com/groupes
-Clica "Criar Grupo"
+Clica "Criar Groupe"
 ✅ Modal abre
 
 Preenche:
-- Nome: "Grupo Teste"
-- Descrição: "Test"
+- Nome: "Groupe Teste"
+- Description: "Test"
 
 Clica "Criar"
 ✅ Novo grupo na lista!
 ```
 
-### 4.6 Participar em Grupo
+### 4.6 Participar em Groupe
 ```
 Clica "Juntar-se"
-✅ Botão muda para "Sair"
+✅ Botão muda para "Se déconnecter"
 
 Clica no grupo
 ✅ Vai para /chat/grupo-id
 ```
 
-### 4.7 Enviar Mensagem
+### 4.7 Envoyer Message
 ```
 Escreve: "Olá teste! 🎉"
-Clica "Enviar"
-✅ Mensagem aparece com seu username
+Clica "Envoyer"
+✅ Message aparece com seu username
 ```
 
 ---
@@ -142,15 +142,15 @@ Clica "Enviar"
 ## 🎯 RESULTADO ESPERADO
 
 ```
-✅ FREE User → Bloqueado em 5 features
+✅ FREE User → Bloqué em 5 features
 ✅ PREMIUM User → Acesso completo
-✅ Filtros → Funcionam corretamente
+✅ Filtres → Funcionam corretamente
 ✅ Likes → Toggle funciona
-✅ Grupos → Criar e participar OK
-✅ Chat → Mensagens enviam OK
+✅ Groupes → Criar e participar OK
+✅ Chat → Messages enviam OK
 ✅ Segurança → Sem vulnerabilidades
 
-TEMPO TOTAL: 5-10 minutos
+TEMPO TOTAL: 5-10 minutes
 STATUS: PRONTO PARA PRODUÇÃO ✅
 ```
 
@@ -221,11 +221,11 @@ PRONTO ✅
 ## ⚠️ IMPORTANTE
 
 ```
-🔑 Todos têm password: TestPass123
+🔑 Tous têm mot de passe: TestPass123
 📧 Emails são de teste (não reais)
 🛡️ Sem dados sensíveis
 🔒 RLS ativa em todas tabelas
-✅ Seguro para teste público
+✅ Seguro para teste public
 ```
 
 ---
@@ -245,7 +245,7 @@ PRONTO ✅
 ## 📝 CHECKLIST FINAL
 
 ```
-[ ] 1. Inseriu 53 utilizadores no Supabase
+[ ] 1. Inseriu 53 utilisateurs no Supabase
 [ ] 2. Testou login FREE user
 [ ] 3. Testou paywall (bloqueado)
 [ ] 4. Testou login PREMIUM user
@@ -261,10 +261,10 @@ PRONTO ✅
 
 ---
 
-**Tempo estimado: 5-10 minutos**  
+**Tempo estimado: 5-10 minutes**  
 **Dificuldade: ⭐ Muito Fácil**  
 **Status: 🎉 Pronto!**
 
 ---
 
-`Última actualização: 09/08/2026 - Commit c87d1b8`
+`Última actualizaction: 09/08/2026 - Commit c87d1b8`

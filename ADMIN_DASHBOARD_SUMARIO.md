@@ -11,55 +11,55 @@
 
 ### **COMPONENTES IMPLEMENTADOS**
 
-#### **1. Admin Dashboard (Página Principal)**
+#### **1. Admin Dashboard (Page Principal)**
 ```
 URL: /admin
 Arquivo: app/admin/page.tsx (290 linhas)
 
 Componentes:
 ✅ Header com título
-✅ 4 Cards de Estatísticas (Total Users, Online, Grupos, Likes)
-✅ Tabela de Utilizadores (20 por página)
-✅ Busca em tempo real (username/email)
-✅ Gestão: Banir/Desbanir users
-✅ Paginação (Anterior/Próximo)
+✅ 4 Cards de Statistiques (Total Users, Online, Groupes, Likes)
+✅ Tabela de Utilisateurs (20 por página)
+✅ Récupère em tempo real (username/email)
+✅ Gestão: Bannir/Desbannir users
+✅ Paginaction (Précédent/Suivant)
 ✅ Quick actions (links para sub-páginas)
 ```
 
 **Cards Principais:**
 ```
 ┌─────────────────────────────┐
-│ Total de Utilizadores: 53   │ ➤ Novos: +25 este mês
+│ Total de Utilisateurs: 53   │ ➤ Novos: +25 este mois
 ├─────────────────────────────┤
-│ Online Agora: 12            │ ➤ Últimos 5 minutos
+│ Online Agora: 12            │ ➤ Últimos 5 minutes
 ├─────────────────────────────┤
-│ Grupos Ativos: 8            │ ➤ Comunidades
+│ Groupes Ativos: 8            │ ➤ Communautés
 ├─────────────────────────────┤
-│ Interações (Likes): 1,240   │ ➤ Total
+│ Interactions (Likes): 1,240   │ ➤ Total
 └─────────────────────────────┘
 ```
 
-#### **2. Gestão de Utilizadores**
+#### **2. Gestion des utilisateurs**
 ```
 Tabela com:
 ✅ Username
 ✅ Email
-✅ Tipo de Subscrição (badge colorido)
+✅ Tipo de Abonnement (badge colorido)
 ✅ Status (ATIVO/BANIDO)
-✅ Ações (Banir/Desbanir)
+✅ Actions (Bannir/Desbannir)
 
-Filtros:
-✅ Busca por username/email
-✅ Filtro por subscrição tier
-✅ Paginação automática
+Filtres:
+✅ Récupère por username/email
+✅ Filtro por abonnement tier
+✅ Paginaction automática
 
-Ações:
-✅ Banir user (com confirmação)
-✅ Desbanir user (com confirmação)
-✅ Registar em logs
+Actions:
+✅ Bannir user (com confirmaction)
+✅ Desbannir user (com confirmaction)
+✅ S'inscrire em logs
 ```
 
-#### **3. Breakdown de Subscrições**
+#### **3. Breakdown de Abonnements**
 ```
 Grid mostrando:
 ┌──────────────────────┐
@@ -109,8 +109,8 @@ Response:
       "id": "uuid",
       "username": "alice",
       "email": "alice@test.com",
-      "subscriptionTier": "PREMIUM_3M",
-      "subscriptionEnd": "2026-11-09",
+      "abonnementTier": "PREMIUM_3M",
+      "abonnementEnd": "2026-11-09",
       "isVerified": true,
       "createdAt": "2026-08-01",
       "isBanned": false
@@ -140,7 +140,7 @@ DELETE /api/admin/users?userId=uuid
 
 ## 🔐 SEGURANÇA
 
-### **Autenticação**
+### **Autenticaction**
 ```
 ✅ Apenas VIP_24M (3 agentes) podem aceder
 ✅ httpOnly auth token validado
@@ -149,13 +149,13 @@ DELETE /api/admin/users?userId=uuid
 Se não for admin:
 ❌ 403 Forbidden
 ❌ Redirecionamento para /
-❌ Mensagem: "Acesso Negado"
+❌ Message: "Acesso Negado"
 ```
 
-### **Autorização**
+### **Autorizaction**
 ```
-✅ Admin não pode banir a si mesmo
-✅ Todas as ações registadas em logs
+✅ Admin não pode bannir a si mesmo
+✅ Toutes as ações registadas em logs
 ✅ RLS protege dados sensíveis
 ```
 
@@ -167,42 +167,42 @@ Se não for admin:
 ```
 Agent 1:
   Email: agent.marie@xlibertine.com
-  Password: TestPass123
+  Mot de passe: TestPass123
   Role: Admin
   Tier: VIP_24M
 
 Agent 2:
   Email: agent.pierre@xlibertine.com
-  Password: TestPass123
+  Mot de passe: TestPass123
   Role: Admin
   Tier: VIP_24M
 
 Agent 3:
   Email: agent.sophie@xlibertine.com
-  Password: TestPass123
+  Mot de passe: TestPass123
   Role: Admin
   Tier: VIP_24M
 ```
 
 ### **O Que Podem Fazer**
 ```
-✅ Ver estatísticas da plataforma
+✅ Ver estatísticas da plateforme
 ✅ Listar todos os users
-✅ Procurar users (username/email)
-✅ Filtrar por subscrição
-✅ Banir users (com razão)
-✅ Desbanir users
-✅ Ver breakdown de subscrições
+✅ Rechercher users (username/email)
+✅ Filtrer par abonnement
+✅ Bannir users (com raison)
+✅ Desbannir users
+✅ Ver breakdown de abonnements
 ✅ Acessar sub-páginas (quando prontas)
 ```
 
-### **O Que Não Podem Fazer (Por Enquanto)**
+### **O Que Non Podem Fazer (Por Enquanto)**
 ```
-⏳ Editar dados de users
+⏳ Modifier dados de users
 ⏳ Deletar grupos
 ⏳ Ver logs detalhados
 ⏳ Gerar relatórios
-⏳ 2FA (autenticação dupla)
+⏳ 2FA (autenticaction dupla)
 ```
 
 ---
@@ -213,7 +213,7 @@ Agent 3:
 ```
 URL: https://xlibertine.com/login
 Email: agent.marie@xlibertine.com
-Password: TestPass123
+Mot de passe: TestPass123
 Clica "Se Connecter"
 ```
 
@@ -223,35 +223,35 @@ URL: https://xlibertine.com/admin
 OU Clica link no menu (quando implementado)
 ```
 
-### **Passo 3: Ver Estatísticas**
+### **Passo 3: Ver Statistiques**
 ```
 ✅ 4 Cards no topo (Total Users, Online, Groups, Likes)
-✅ Grid de Subscrições
+✅ Grid de Abonnements
 ✅ Cada card atualiza em tempo real
 ```
 
-### **Passo 4: Procurar User**
+### **Passo 4: Rechercher User**
 ```
-Input "Procurar por username..."
+Input "Rechercher por username..."
 Digita: "alice"
 Clica Enter
 Vê apenas users com "alice"
 ```
 
-### **Passo 5: Banir User**
+### **Passo 5: Bannir User**
 ```
 Encontra user na tabela
-Clica botão "Banir"
-Popup confirmação: "Tem a certeza?"
-Clica "Sim"
+Clica botão "Bannir"
+Popup confirmaction: "Tem a certeza?"
+Clica "Oui"
 Status muda a: BANIDO (vermelho)
 ```
 
-### **Passo 6: Desbanir User**
+### **Passo 6: Desbannir User**
 ```
-User agora tem botão "Desbanir"
-Clica "Desbanir"
-Popup confirmação
+User agora tem botão "Desbannir"
+Clica "Desbannir"
+Popup confirmaction
 Status volta a: ATIVO (verde)
 ```
 
@@ -259,7 +259,7 @@ Status volta a: ATIVO (verde)
 ```
 Clica "Logs de Atividade"
 URL: /admin/logs (em desenvolvimento)
-Vê histórico de bans/unbans
+Vê historique de bans/unbans
 ```
 
 ---
@@ -274,8 +274,8 @@ Campos existentes:
 - id (UUID)
 - username
 - email
-- subscriptionTier
-- subscriptionEnd
+- abonnementTier
+- abonnementEnd
 - isVerified
 - createdAt
 - updatedAt
@@ -342,9 +342,9 @@ Input: Dark theme, focus border accent
 ```
 ✅ Total de Users (a cada novo registro)
 ✅ Online Users (a cada login/logout)
-✅ Novo Users este mês (contagem diária)
-✅ Total de Grupos (a cada novo grupo)
-✅ Total de Mensagens (a cada msg enviada)
+✅ Novo Users este mois (contagem diária)
+✅ Total de Groupes (a cada novo grupo)
+✅ Total de Messages (a cada msg enviada)
 ✅ Total de Likes (a cada like)
 ```
 
@@ -362,7 +362,7 @@ Manual: Refresh página (F5)
 ### **Curto Prazo**
 ```
 ☐ /admin/groups - Gestão de grupos
-☐ /admin/logs - Ver histórico de ações
+☐ /admin/logs - Voir l'historique des actions
 ☐ Refresh automático de stats (30s)
 ☐ Gráficos (Chart.js)
 ```
@@ -388,10 +388,10 @@ Manual: Refresh página (F5)
 ## 📝 FICHEIROS CRIADOS
 
 ```
-app/admin/page.tsx                    (290 linhas - Página)
+app/admin/page.tsx                    (290 linhas - Page)
 app/api/admin/dashboard/route.ts      (100 linhas - Stats API)
 app/api/admin/users/route.ts          (150 linhas - Users API)
-ADMIN_DASHBOARD_DOCS.md               (Documentação completa)
+ADMIN_DASHBOARD_DOCS.md               (Documentaction completa)
 ```
 
 ---
@@ -404,7 +404,7 @@ ADMIN_DASHBOARD_DOCS.md               (Documentação completa)
 2️⃣ Vai para /admin
    ↓
 3️⃣ Dashboard carrega com:
-   - 53 utilizadores totais
+   - 53 utilisateurs totais
    - 12 online agora
    - 8 grupos ativos
    - 1,240 likes
@@ -413,11 +413,11 @@ ADMIN_DASHBOARD_DOCS.md               (Documentação completa)
    ↓
 5️⃣ Vê: alice | alice@test.com | PREMIUM_3M | ATIVO
    ↓
-6️⃣ Clica "Banir"
+6️⃣ Clica "Bannir"
    ↓
-7️⃣ Confirmação: "Tem a certeza que quer banir alice?"
+7️⃣ Confirmaction: "Tem a certeza que quer bannir alice?"
    ↓
-8️⃣ Clica "Sim"
+8️⃣ Clica "Oui"
    ↓
 9️⃣ API POST /api/admin/users/ban executada
    ↓
@@ -438,14 +438,14 @@ Após os 3 agentes testarem o Admin Dashboard:
 
 ```
 ✅ Dashboard carrega em <1s
-✅ Estatísticas corretas (50+ users, 8 grupos, etc)
+✅ Statistiques corretas (50+ users, 8 grupos, etc)
 ✅ Tabela renderiza 20 users por página
-✅ Busca funciona (procura "alice" → encontra alice)
-✅ Banir funciona (status muda a BANIDO)
-✅ Desbanir funciona (status volta a ATIVO)
+✅ Récupère funciona (procura "alice" → encontra alice)
+✅ Bannir funciona (status muda a BANIDO)
+✅ Desbannir funciona (status volta a ATIVO)
 ✅ Logs são registados
 ✅ UI responsive (mobile-friendly)
-✅ Cores/design consistentes com plataforma
+✅ Cores/design consistentes com plateforme
 ✅ Sem erros de console
 
 TAXA DE SUCESSO: 100% (3/3 agentes)
@@ -467,4 +467,4 @@ Live: https://xlibertine.com/admin
 
 **Admin Dashboard - ✅ PRONTO PARA TESTE COM 3 AGENTES!** 🎉
 
-Os 3 agentes (Marie, Pierre, Sophie) já podem fazer login e aceder ao painel de admin para gerir utilizadores, ver estatísticas e banir/desbanir users conforme necessário.
+Os 3 agentes (Marie, Pierre, Sophie) já podem fazer login e aceder ao painel de admin para gerir utilisateurs, ver estatísticas e bannir/desbannir users conforme necessário.

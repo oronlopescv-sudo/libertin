@@ -70,7 +70,7 @@ export default function AdminDashboard() {
   }, [page, search]);
 
   const banUser = async (userId: string, reason: string) => {
-    if (!confirm('Tem a certeza que quer banir este utilizador?')) return;
+    if (!confirm('Êtes-vous sûr de vouloir bannir cet utilisateur ?')) return;
 
     const res = await fetch('/api/admin/users/ban', {
       method: 'POST',
@@ -87,7 +87,7 @@ export default function AdminDashboard() {
   };
 
   const unbanUser = async (userId: string) => {
-    if (!confirm('Desbanir este utilizador?')) return;
+    if (!confirm('Débannir cet utilisateur ?')) return;
 
     const res = await fetch(`/api/admin/users?userId=${userId}`, {
       method: 'DELETE',
@@ -106,7 +106,7 @@ export default function AdminDashboard() {
       <div className="min-h-screen bg-gradient-to-br from-[#12091A] to-[#1C102B]">
         <Navbar />
         <div className="flex items-center justify-center min-h-[80vh] text-white">
-          Carregando...
+          Chargement...
         </div>
       </div>
     );
@@ -122,7 +122,7 @@ export default function AdminDashboard() {
             <h1 className="text-3xl font-bold text-white">Acesso Negado</h1>
             <p className="text-zinc-400">Apenas admins podem aceder a este painel</p>
             <Link href="/" className="inline-block mt-4 px-6 py-3 bg-[#D4145A] text-white rounded-lg">
-              Voltar à Home
+              Retour à l'accueil
             </Link>
           </div>
         </div>
@@ -138,7 +138,7 @@ export default function AdminDashboard() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">Painel de Admin</h1>
-          <p className="text-zinc-400">Gerencie utilizadores, grupos e monitorize a plataforma</p>
+          <p className="text-zinc-400">Gérez les utilisateurs, les groupes et surveillez la plateforme</p>
         </div>
 
         {/* Stats Cards */}
@@ -148,12 +148,12 @@ export default function AdminDashboard() {
             <div className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-zinc-400 text-sm">Total de Utilizadores</p>
+                  <p className="text-zinc-400 text-sm">Total de Utilisateurs</p>
                   <p className="text-3xl font-bold text-white">{stats.totalUsers}</p>
                 </div>
                 <Users className="w-12 h-12 text-[#D4145A] opacity-50" />
               </div>
-              <p className="text-green-400 text-sm mt-2">+{stats.newUsersThisMonth} este mês</p>
+              <p className="text-green-400 text-sm mt-2">+{stats.newUsersThisMonth} este mois</p>
             </div>
 
             {/* Online Users */}
@@ -165,26 +165,26 @@ export default function AdminDashboard() {
                 </div>
                 <Zap className="w-12 h-12 text-green-400 opacity-50" />
               </div>
-              <p className="text-green-400 text-sm mt-2">Últimos 5 minutos</p>
+              <p className="text-green-400 text-sm mt-2">Últimos 5 minutes</p>
             </div>
 
             {/* Total Groups */}
             <div className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-zinc-400 text-sm">Grupos Ativos</p>
+                  <p className="text-zinc-400 text-sm">Groupes Ativos</p>
                   <p className="text-3xl font-bold text-white">{stats.totalGroups}</p>
                 </div>
                 <TrendingUp className="w-12 h-12 text-blue-400 opacity-50" />
               </div>
-              <p className="text-blue-400 text-sm mt-2">Comunidades</p>
+              <p className="text-blue-400 text-sm mt-2">Communautés</p>
             </div>
 
             {/* Total Likes */}
             <div className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-zinc-400 text-sm">Interações (Likes)</p>
+                  <p className="text-zinc-400 text-sm">Interactions (Likes)</p>
                   <p className="text-3xl font-bold text-white">{stats.totalLikes}</p>
                 </div>
                 <Heart className="w-12 h-12 text-red-400 opacity-50" />
@@ -194,10 +194,10 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Subscription Breakdown */}
+        {/* Abonnement Breakdown */}
         {stats && (
           <div className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6 mb-8">
-            <h2 className="text-xl font-bold text-white mb-4">Utilizadores por Subscrição</h2>
+            <h2 className="text-xl font-bold text-white mb-4">Utilisateurs par abonnement</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {Object.entries(stats.tierBreakdown).map(([tier, count]) => (
                 <div key={tier} className="bg-[#2C1B3D] rounded-lg p-4">
@@ -214,12 +214,12 @@ export default function AdminDashboard() {
 
         {/* Users Management */}
         <div className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6 mb-8">
-          <h2 className="text-xl font-bold text-white mb-4">Gestão de Utilizadores</h2>
+          <h2 className="text-xl font-bold text-white mb-4">Gestion des utilisateurs</h2>
 
           {/* Search */}
           <input
             type="text"
-            placeholder="Procurar por username ou email..."
+            placeholder="Rechercher por username ou email..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             className="w-full mb-4 px-4 py-2 bg-[#2C1B3D] border border-[#3C2B4D] rounded-lg text-white focus:outline-none focus:border-[#D4145A]"
@@ -232,9 +232,9 @@ export default function AdminDashboard() {
                 <tr className="border-b border-[#2C1B3D]">
                   <th className="text-left py-3 px-4 text-zinc-400">Username</th>
                   <th className="text-left py-3 px-4 text-zinc-400">Email</th>
-                  <th className="text-left py-3 px-4 text-zinc-400">Subscrição</th>
+                  <th className="text-left py-3 px-4 text-zinc-400">Abonnement</th>
                   <th className="text-left py-3 px-4 text-zinc-400">Status</th>
-                  <th className="text-left py-3 px-4 text-zinc-400">Ações</th>
+                  <th className="text-left py-3 px-4 text-zinc-400">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -269,14 +269,14 @@ export default function AdminDashboard() {
                           onClick={() => unbanUser(u.id)}
                           className="text-green-400 hover:text-green-300 text-xs font-semibold"
                         >
-                          Desbanir
+                          Desbannir
                         </button>
                       ) : (
                         <button
-                          onClick={() => banUser(u.id, 'Violação de términos')}
+                          onClick={() => banUser(u.id, 'Violation des conditions')}
                           className="text-red-400 hover:text-red-300 text-xs font-semibold flex items-center gap-1"
                         >
-                          <Ban className="w-4 h-4" /> Banir
+                          <Ban className="w-4 h-4" /> Bannir
                         </button>
                       )}
                     </td>
@@ -286,22 +286,22 @@ export default function AdminDashboard() {
             </table>
           </div>
 
-          {/* Paginação */}
+          {/* Paginaction */}
           <div className="flex justify-center gap-2 mt-6">
             <button
               onClick={() => setPage(Math.max(1, page - 1))}
               disabled={page === 1}
               className="px-4 py-2 bg-[#2C1B3D] rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Anterior
+              Précédent
             </button>
-            <span className="px-4 py-2 text-white">Página {page} de {totalPages}</span>
+            <span className="px-4 py-2 text-white">Page {page} de {totalPages}</span>
             <button
               onClick={() => setPage(Math.min(totalPages, page + 1))}
               disabled={page === totalPages}
               className="px-4 py-2 bg-[#2C1B3D] rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Próximo
+              Suivant
             </button>
           </div>
         </div>
@@ -312,7 +312,7 @@ export default function AdminDashboard() {
             href="/admin/groups"
             className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6 hover:border-[#D4145A] transition text-white"
           >
-            <h3 className="text-lg font-bold mb-2">Gestão de Grupos</h3>
+            <h3 className="text-lg font-bold mb-2">Gestion des groupes</h3>
             <p className="text-zinc-400 text-sm">Ver e gerir todos os grupos</p>
           </Link>
           <Link
@@ -320,7 +320,7 @@ export default function AdminDashboard() {
             className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6 hover:border-[#D4145A] transition text-white"
           >
             <h3 className="text-lg font-bold mb-2">Logs de Atividade</h3>
-            <p className="text-zinc-400 text-sm">Ver histórico de ações</p>
+            <p className="text-zinc-400 text-sm">Voir l'historique des actions</p>
           </Link>
           <Link
             href="/admin/reports"

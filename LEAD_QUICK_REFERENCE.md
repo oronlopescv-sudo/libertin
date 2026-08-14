@@ -8,7 +8,7 @@
 
 ```
 ✅ Site LIVE:           https://xlibertine.com
-✅ Auth COMPLETE:       Registo + Login + Password Recovery
+✅ Auth COMPLETE:       Registo + Login + Mot de passe Recovery
 ✅ Security:            RLS + JWT + bcryptjs
 ✅ Tests:               Manuais - TÜV (testes) PASSOU
 ✅ Deploy:              Auto via GitHub
@@ -22,8 +22,8 @@
 
 ```
 [ ] 1min   - Resend API key → Hostinger .env.production
-[ ] 10min  - Password recovery test: /forgot-password
-[ ] 5min   - Verifica GitHub commit a56eaba está live
+[ ] 10min  - Mot de passe recovery test: /forgot-mot de passe
+[ ] 5min   - Vérifie GitHub commit a56eaba está live
 [ ] 15min  - Brief equipa: ENGINEERING_ONBOARDING.md
 ```
 
@@ -32,9 +32,9 @@
 ## 👨‍💻 PARA OS ENGENHEIROS DIZER
 
 ```
-"Clonem o repo, façam npm install, e testem a autenticação.
+"Clonem o repo, façam npm install, e testem a autenticaction.
 Depois leiam ENGINEERING_ONBOARDING.md.
-Próxima tarefa: Stripe (2-3 horas).
+Próxima tarefa: Stripe (2-3 heures).
 Questions? Ver ENGINEERING_HANDOFF.md"
 ```
 
@@ -61,23 +61,23 @@ Security:           RLS + Hash + JWT ✅
 
 ### 1. Resend Key (1 min)
 ```
-Sem isto: password recovery não envia emails
+Sem isto: mot de passe recovery não envoie emails
 https://resend.com → Gera key → Hostinger panel
 ```
 
 ### 2. Teste em Prod (10 min)
 ```
-1. https://xlibertine.com/forgot-password
+1. https://xlibertine.com/forgot-mot de passe
 2. Submete email teu
-3. Verifica inbox
+3. Vérifie inbox
 4. Clica link
-5. Reseta password
-6. Login com nova password ✅
+5. Reseta mot de passe
+6. Login com nova mot de passe ✅
 ```
 
 ### 3. Chaves Supabase (20 min - RECOMENDADO)
 ```
-⚠️ Estão no GitHub (mesmo que privado repo)
+⚠️ Estão no GitHub (mesmo que privé repo)
 → Supabase dashboard → Rotate keys → Update .env
 ```
 
@@ -119,7 +119,7 @@ TOTAL TODAY:            ~5h
 ```
 MORNING:
 [ ] Check Hostinger build status
-[ ] Verify password recovery em prod
+[ ] Verify mot de passe recovery em prod
 [ ] Read any GitHub notifications
 
 MIDDAY:
@@ -138,7 +138,7 @@ END OF DAY:
 
 ```
 Tarefa:     Stripe payments integration
-Tempo:      2-3 horas
+Tempo:      2-3 heures
 APIs:       2 (checkout + webhook)
 Scope:      Clear (já tem base)
 Assign To:  Engenheiro sênior
@@ -184,10 +184,10 @@ Deployment:        Check Hostinger panel + GitHub Actions
 Pronto para:
 ✅ Users registarem
 ✅ Users fazerem login
-✅ Users resetarem password
+✅ Users réinitialiserem mot de passe
 ✅ Equipa começar Stripe
 
-Bloqueadores: NENHUM
+Bloquéres: NENHUM
 ```
 
 ---
@@ -211,10 +211,10 @@ Week 2:
 ## 💬 QUICK TALKING POINTS
 
 ```
-"Autenticação é 100% segura com RLS"
+"Autenticaction é 100% segura com RLS"
 "Email recovery é production-ready"
-"Stripe é próxima tarefa, 2-3 horas"
-"Documentação está completa"
+"Stripe é próxima tarefa, 2-3 heures"
+"Documentaction está completa"
 "Equipa pode começar now"
 ```
 

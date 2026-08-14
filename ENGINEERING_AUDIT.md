@@ -16,7 +16,7 @@
 **Fix:**
 - [ ] Add `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` & `STRIPE_SECRET_KEY` to `.env.local`
 - [ ] Implement Stripe webhook handler (`app/api/webhooks/stripe`)
-- [ ] Connect subscription plan IDs to Stripe products
+- [ ] Connect abonnement plan IDs to Stripe products
 - [ ] Remove "Stripe not configured" warning when live
 - [ ] Add real payment checkout flow (Stripe Checkout or Elements)
 
@@ -27,15 +27,15 @@
 ### 2. **Email Notifications Missing**
 **Problem:** No email system for:
 - Welcome emails (account created)
-- Subscription confirmations
-- Password resets
+- Abonnement confirmations
+- Mot de passe réinitialisations
 - Verification approvals
 - Group invitations
 
 **Fix:**
 - [ ] Add Resend or SendGrid API keys
 - [ ] Create email templates (`/app/api/emails/templates/`)
-- [ ] Wire emails in auth flow & subscription upgrades
+- [ ] Wire emails in auth flow & abonnement upgrades
 - [ ] Test email delivery before launch
 
 **Impact:** Poor user retention, lost recovery paths
@@ -83,7 +83,7 @@
 - No analytics dashboard
 
 **Fix:**
-- [ ] Add user management (ban, suspend, reset password)
+- [ ] Add user management (ban, suspend, réinitialisation mot de passe)
 - [ ] Group moderation (flag, archive, delete)
 - [ ] Revenue analytics (MRR, churn, LTV)
 - [ ] Payment disputes & refunds
@@ -176,7 +176,7 @@
 
 **Fix:**
 - [ ] Add Plausible or PostHog
-- [ ] Track: signup, first message, first subscription
+- [ ] Track: signup, first message, first abonnement
 - [ ] Funnel: Landing → Register → Verify → Subscribe
 - [ ] Cohort analysis (retention by week)
 
@@ -192,7 +192,7 @@
   - Users (UUID PK, indexed on email/username)
   - Groups (belongs_to user, has_many members)
   - Messages (group_id FK, full-text search on content)
-  - Subscriptions (track start/end dates)
+  - Abonnements (track start/end dates)
   - Verification queue
   - Activity logs
 - [ ] Add proper indexes on lat/lng for geo queries
@@ -263,7 +263,7 @@
 
 Once live, track:
 - Daily active users (DAU)
-- Subscription conversion rate (target: 5-10%)
+- Abonnement conversion rate (target: 5-10%)
 - Monthly recurring revenue (MRR)
 - Churn rate (target: <5%/month)
 - Message volume (health indicator)

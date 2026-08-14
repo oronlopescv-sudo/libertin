@@ -2,13 +2,13 @@
 
 **Data:** 10 de Agosto de 2026  
 **Domínio:** https://xlibertine.com  
-**Status:** Precisa de verificação manual
+**Status:** Precisa de verificaction manual
 
 ---
 
 ## ⚠️ NOTA IMPORTANTE
 
-Não consigo fazer requests diretos de produção do ambiente atual (rede bloqueada). Mas aqui está um **CHECKLIST COMPLETO** para testar manualmente o site em produção:
+Non consigo fazer requests diretos de produção do ambiente atual (rede bloqueada). Mas aqui está um **CHECKLIST COMPLETO** para testar manualmente o site em produção:
 
 ---
 
@@ -20,7 +20,7 @@ Não consigo fazer requests diretos de produção do ambiente atual (rede bloque
 
 ```
 ☐ Site carrega (sem erro 500)
-☐ Página branca/cinzenta aparece
+☐ Page branca/cinzenta aparece
 ☐ CSS carrega (cores visíveis)
 ☐ Logo/header visível
 ☐ Navbar mostra links
@@ -46,13 +46,13 @@ Não consigo fazer requests diretos de produção do ambiente atual (rede bloque
 URL: https://xlibertine.com/login
 
 ☐ Email input visível
-☐ Password input visível
+☐ Mot de passe input visível
 ☐ Botão "Se Connecter" visível
 ☐ Link "Mot de passe oublié?" visível
 
 Preenche:
 ☐ Email: client.alice@xlibertine.com
-☐ Password: TestPass123
+☐ Mot de passe: TestPass123
 ☐ Clica "Se Connecter"
 
 Resultado Esperado:
@@ -62,18 +62,18 @@ Resultado Esperado:
 ✅ Sem erros no console
 ```
 
-#### **2.2 Ver Perfil**
+#### **2.2 Ver Profil**
 ```
 Já está em: /profil
 
 ☐ Username: Alice_Free
 ☐ Email: client.alice@xlibertine.com
-☐ Subscrição: FREE
-☐ Localização: (visível)
+☐ Abonnement: FREE
+☐ Localisation: (visível)
 ☐ Botão "Logout" visível
 
 Resultado:
-✅ Perfil carrega em <2s
+✅ Profil carrega em <2s
 ✅ Dados estão corretos
 ```
 
@@ -87,24 +87,24 @@ URL: https://xlibertine.com/decouvrir
 
 Resultado Esperado:
 ☐ Vê: Lock Screen 🔒
-☐ Título: "Descobrir Perfis"
+☐ Título: "Découvrir les profils"
 ☐ Ícone: Lock vermelho
-☐ Mensagem: "Apenas Premium"
-☐ Descrição paywall visível
-☐ Botão: "Fazer Upgrade para Premium" (clicável)
+☐ Message: "Apenas Premium"
+☐ Description paywall visível
+☐ Botão: "Passer à Premium" (clicável)
 ☐ Clica upgrade → vai para /abonnements (ou modal)
 
 Status:
 ✅ PAYWALL FUNCIONANDO
 ```
 
-#### **3.2 Tenta Criar Grupo (BLOQUEADO)**
+#### **3.2 Tenta Criar Groupe (BLOQUEADO)**
 ```
 URL: https://xlibertine.com/groupes
 
-☐ Página carrega
+☐ Page carrega
 ☐ Lista de grupos vazia (ou com existentes)
-☐ Botão "Criar Grupo" está DISABLED
+☐ Botão "Criar Groupe" está DISABLED
 ☐ Hover mostra "Premium only" (tooltip)
 ☐ Cor do botão diferente (cinzento/desabilitado)
 
@@ -124,48 +124,48 @@ Logout:
 
 Login:
 ☐ Email: premium.maya@xlibertine.com
-☐ Password: TestPass123
+☐ Mot de passe: TestPass123
 ☐ Clica "Se Connecter"
 
 Resultado:
 ✅ Redireciona para /profil
 ✅ Navbar mostra "Maya"
-✅ Subscrição: PREMIUM_12M (visível no perfil)
+✅ Abonnement: PREMIUM_12M (visível no perfil)
 ```
 
 #### **4.2 Discovery - /decouvrir (DESBLOQUEADO)**
 ```
 URL: https://xlibertine.com/decouvrir
 
-Página Carrega:
+Page Carrega:
 ☐ Grid de perfis visível (20 perfis)
 ☐ Cada perfil mostra:
    ├─ Avatar/Placeholder
    ├─ Username
-   ├─ Idade
-   ├─ Localização
-   ├─ Género/Orientação
-   └─ Botão "Curtir"
+   ├─ Âge
+   ├─ Localisation
+   ├─ Genre/Orientaction
+   └─ Botão "Liker"
 
-Secção de Filtros:
-☐ Dropdown Localização
-☐ Sliders Idade (Min/Max)
-☐ Dropdown Género
-☐ Dropdown Orientação
+Secção de Filtres:
+☐ Dropdown Localisation
+☐ Sliders Âge (Min/Max)
+☐ Dropdown Genre
+☐ Dropdown Orientaction
 
 Resultado Esperado:
 ✅ Sem lock screen
-✅ Perfis carregam em <1s
+✅ Profils carregam em <1s
 ✅ Grid renderiza corretamente
-✅ Filtros presentes e clicáveis
+✅ Filtres presentes e clicáveis
 ```
 
-#### **4.3 Testar Filtro Localização**
+#### **4.3 Testar Filtro Localisation**
 ```
-Dropdown "Localização":
+Dropdown "Localisation":
 ☐ Abre dropdown
 ☐ Opções visíveis:
-   - Todas
+   - Toutes
    - Paris
    - Lyon
    - Bordeaux
@@ -175,66 +175,66 @@ Dropdown "Localização":
 
 Seleciona "Paris":
 ☐ Grid recarrega em <1s
-☐ Perfis mostram só de Paris
-☐ Label atualiza: "Localização: Paris"
-☐ Página reseta para 1
+☐ Profils mostram só de Paris
+☐ Label atualiza: "Localisation: Paris"
+☐ Page réinitialisationa para 1
 
 Seleciona "Lyon":
 ☐ Grid recarrega
 ☐ Só perfis de Lyon
 
-Seleciona "Todas":
+Seleciona "Toutes":
 ☐ Grid volta ao mix
 
 Status:
 ✅ FILTRO FUNCIONANDO
 ```
 
-#### **4.4 Testar Like/Curtir**
+#### **4.4 Testar Like/Liker**
 ```
 Em: /decouvrir
 
 Seleciona um perfil:
-☐ Vê botão "Curtir" (oco, branco)
-☐ Clica "Curtir"
+☐ Vê botão "Liker" (oco, branco)
+☐ Clica "Liker"
 
 Esperado:
 ☐ Botão fica vermelho ❤️
-☐ Texto muda: "Curtido"
+☐ Texto muda: "Liké"
 ☐ API POST /api/likes executada
 
 Clica Novamente:
 ☐ Botão volta branco
-☐ Texto muda: "Curtir"
+☐ Texto muda: "Liker"
 ☐ Like removido
 
 Status:
 ✅ LIKE/UNLIKE FUNCIONANDO
 ```
 
-#### **4.5 Testar Grupos**
+#### **4.5 Testar Groupes**
 ```
 URL: https://xlibertine.com/groupes
 
-Página Carrega:
+Page Carrega:
 ☐ Lista de grupos (vazia ou com existentes)
-☐ Botão "Criar Grupo" está ENABLED
+☐ Botão "Criar Groupe" está ENABLED
 ☐ Botão tem cor (não desabilitado)
 
-Clica "Criar Grupo":
+Clica "Criar Groupe":
 ☐ Modal abre
 ☐ Formulário visible:
-   ├─ Input "Nome do Grupo"
-   ├─ Textarea "Descrição"
-   ├─ Dropdown "Categoria"
+   ├─ Input "Nome do Groupe"
+   ├─ Textarea "Description"
+   ├─ Dropdown "Catégorie"
    ├─ Input "Max Membros"
-   ├─ Toggle "Privado?"
-   └─ Botões: Cancelar, Criar
+   ├─ Toggle "Privé?"
+   └─ Botões: Annuler, Criar
 
 Preenche:
 ☐ Nome: "Teste 001"
-☐ Descrição: "Grupo de teste"
-☐ Categoria: "Diversão"
+☐ Description: "Groupe de teste"
+☐ Catégorie: "Diversão"
 ☐ Max Membros: 20
 
 Clica "Criar":
@@ -257,27 +257,27 @@ Logout de Maya:
 
 Login como Agent:
 ☐ Email: agent.marie@xlibertine.com
-☐ Password: TestPass123
+☐ Mot de passe: TestPass123
 ☐ Clica "Se Connecter"
 
 Resultado:
 ✅ Redireciona para /profil
 ✅ Username: Marie_Agent
-✅ Subscrição: VIP_24M
+✅ Abonnement: VIP_24M
 ```
 
 #### **5.2 Aceder /admin**
 ```
 URL: https://xlibertine.com/admin
 
-Página Carrega:
+Page Carrega:
 ☐ Header: "Painel de Admin"
-☐ 4 Cards de Estatísticas:
-   ├─ Total de Utilizadores: 53+
+☐ 4 Cards de Statistiques:
+   ├─ Total de Utilisateurs: 53+
    ├─ Online Agora: X (número)
-   ├─ Grupos Ativos: 8+
-   └─ Interações (Likes): 1000+
-☐ Breakdown de Subscrições:
+   ├─ Groupes Ativos: 8+
+   └─ Interactions (Likes): 1000+
+☐ Breakdown de Abonnements:
    ├─ FREE: 25
    ├─ PREMIUM_3M: 12
    ├─ PREMIUM_12M: 10
@@ -288,29 +288,29 @@ Status:
 ✅ ESTATÍSTICAS VISÍVEIS
 ```
 
-#### **5.3 Gestão de Utilizadores**
+#### **5.3 Gestion des utilisateurs**
 ```
 Em: /admin
 
 Input de Busca:
-☐ "Procurar por username..." visível
+☐ "Rechercher por username..." visível
 ☐ Digita: "alice"
 ☐ Pressiona Enter
 
-Tabela de Utilizadores:
+Tabela de Utilisateurs:
 ☐ Aparece: alice | alice@test.com | FREE | ATIVO
-☐ Botão "Banir" visível (vermelho)
+☐ Botão "Bannir" visível (vermelho)
 
-Clica "Banir":
-☐ Popup: "Tem a certeza que quer banir alice?"
-☐ Botões: Sim, Não
+Clica "Bannir":
+☐ Popup: "Tem a certeza que quer bannir alice?"
+☐ Botões: Oui, Non
 
-Clica "Sim":
+Clica "Oui":
 ☐ API executa
 ☐ Tabela atualiza
 ☐ Status muda: BANIDO (vermelho)
 
-Clica "Desbanir":
+Clica "Desbannir":
 ☐ Status volta: ATIVO (verde)
 
 Status:
@@ -330,7 +330,7 @@ Status:
 ☐ /groupes responsive (lista compacta)
 ☐ /admin responsive (tabela horizontal scroll)
 
-Orientação:
+Orientaction:
 ☐ Portrait: Layout reajusta
 ☐ Landscape: Layout reajusta
 
@@ -377,7 +377,7 @@ Erros:
 ☐ Só info/debug (aceitável)
 
 Network Requests:
-☐ Todas 200 OK (ou 304 Cached)
+☐ Toutes 200 OK (ou 304 Cached)
 ☐ Nenhum 404 Not Found
 ☐ Nenhum 500 Error
 
@@ -419,9 +419,9 @@ Status:
 ║  ✅ Site Online                                ║
 ║  ✅ Login/Logout OK                            ║
 ║  ✅ Paywall Funcionando                        ║
-║  ✅ Discovery + Filtros OK                     ║
+║  ✅ Discovery + Filtres OK                     ║
 ║  ✅ Likes OK                                   ║
-║  ✅ Grupos OK                                  ║
+║  ✅ Groupes OK                                  ║
 ║  ✅ Admin Dashboard OK                        ║
 ║  ✅ Mobile Responsive                          ║
 ║  ✅ Performance OK (<2s)                       ║
@@ -440,14 +440,14 @@ Status:
 ## 🐛 SE ENCONTRAR BUGS
 
 Anota:
-1. **Página:** Qual página estava
-2. **Ação:** O que fez
+1. **Page:** Qual página estava
+2. **Action:** O que fez
 3. **Esperado:** O que deveria aparecer
 4. **Obtido:** O que apareceu
 5. **Console:** Copia erros (F12)
 6. **Screenshot:** Tira print
 
-Envia para: testing@xlibertine.com
+Envoie para: testing@xlibertine.com
 
 ---
 
@@ -462,13 +462,13 @@ Envia para: testing@xlibertine.com
 ☐ Login PREMIUM funciona
 ☐ /decouvrir desbloqueado ✅
 ☐ Discovery mostra 20 perfis
-☐ Filtro localização funciona
+☐ Filtro localizaction funciona
 ☐ Like funciona
 ☐ Criar grupo funciona
 ☐ Login AGENT funciona
 ☐ /admin carrega
 ☐ Admin dashboard mostra stats
-☐ Banir user funciona
+☐ Bannir user funciona
 ☐ Mobile responsive
 ☐ Console sem erros
 

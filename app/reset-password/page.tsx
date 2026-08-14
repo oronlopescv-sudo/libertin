@@ -12,7 +12,7 @@ export default function ResetPasswordPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#12091A] to-[#1C102B]">
       <Navbar />
-      <Suspense fallback={<div className="flex items-center justify-center min-h-[80vh] text-white">Carregando...</div>}>
+      <Suspense fallback={<div className="flex items-center justify-center min-h-[80vh] text-white">Chargement...</div>}>
         <ResetPasswordContent />
       </Suspense>
     </div>

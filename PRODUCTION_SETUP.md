@@ -23,7 +23,7 @@ CREATE TABLE users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email TEXT UNIQUE NOT NULL,
   username TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,
+  mot de passe_hash TEXT NOT NULL,
   date_of_birth DATE NOT NULL,
   age INT GENERATED ALWAYS AS (EXTRACT(YEAR FROM AGE(NOW(), date_of_birth))::INT) STORED,
   gender TEXT NOT NULL CHECK (gender IN ('couple', 'homme', 'femme')),
@@ -32,9 +32,9 @@ CREATE TABLE users (
   lat FLOAT,
   lng FLOAT,
   bio TEXT,
-  subscription_tier TEXT DEFAULT 'FREE',
-  subscription_start TIMESTAMP,
-  subscription_end TIMESTAMP,
+  abonnement_tier TEXT DEFAULT 'FREE',
+  abonnement_start TIMESTAMP,
+  abonnement_end TIMESTAMP,
   stripe_customer_id TEXT,
   is_verified BOOLEAN DEFAULT FALSE,
   is_active BOOLEAN DEFAULT TRUE,
@@ -50,7 +50,7 @@ CREATE TABLE messages (
   group_id UUID NOT NULL,
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   content TEXT NOT NULL,
-  media_url TEXT,
+  mejour_url TEXT,
   created_at TIMESTAMP DEFAULT NOW(),
   FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
 );
@@ -115,7 +115,7 @@ For each product, create a price:
 - 12M: €25 (one-time payment)
 - 24M: €70 (one-time payment)
 
-**Note:** These are one-time payments, not recurring subscriptions.
+**Note:** These are one-time payments, not recurring abonnements.
 
 #### Get API Keys
 - [ ] Copy **Publishable Key** (`pk_live_xxx`) to `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
@@ -128,7 +128,7 @@ For each product, create a price:
 - [ ] Subscribe to events:
   - `checkout.session.completed`
   - `charge.succeeded`
-  - `customer.subscription.deleted`
+  - `customer.abonnement.deleted`
 
 ---
 
@@ -140,8 +140,8 @@ For each product, create a price:
 - [ ] Verify sender email: `noreply@xlibertine.com`
 - [ ] Create email templates:
   - Welcome email
-  - Subscription confirmation
-  - Password reset
+  - Abonnement confirmation
+  - Mot de passe réinitialisation
   - Verification approval/rejection
 
 #### Install Email Library
@@ -229,8 +229,8 @@ git push origin main
 ### 2. Email Testing
 - [ ] Receive welcome email on signup
 - [ ] Receive verification email
-- [ ] Password reset email works
-- [ ] Subscription confirmation email
+- [ ] Mot de passe réinitialisation email works
+- [ ] Abonnement confirmation email
 
 ### 3. Mobile Testing
 - [ ] Navbar hamburger menu on mobile
@@ -274,11 +274,11 @@ git push origin main
 ### Before Going Live
 - [ ] Enable HTTPS everywhere
 - [ ] Configure CORS headers properly
-- [ ] Rotate all secrets (API keys, database passwords)
+- [ ] Rotate all secrets (API keys, database mot de passes)
 - [ ] Set up error tracking (Sentry)
 - [ ] Enable audit logs in Supabase
 - [ ] Configure firewalls/DDoS protection
-- [ ] Test password reset flow
+- [ ] Test mot de passe réinitialisation flow
 - [ ] Enable 2FA for admin accounts
 
 ---
