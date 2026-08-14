@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { isAdmin as isAdminUser } from '@/lib/premium';
 import { cookies } from 'next/headers';
 
 // Verificar se é admin
 async function isAdmin(userId: string): Promise<boolean> {
   const { data: user } = await supabase
     .from('users')
-    .select('subscriptionTier')
+    .select('email, role, subscriptionTier')
     .eq('id', userId)
     .single();
 
-  return user && ['VIP_24M'].includes(user.subscriptionTier);
+  return isAdminUser(user);
 }
 
 // GET /api/admin/users - Listar todos users

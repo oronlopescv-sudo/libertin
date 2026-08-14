@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { isAdmin as isAdminUser } from '@/lib/premium';
 import { Navbar } from '@/components/navbar';
 import { Users, Zap, MessageSquare, Heart, TrendingUp, Ban, Lock } from 'lucide-react';
 import Link from 'next/link';
@@ -112,15 +113,15 @@ export default function AdminDashboard() {
     );
   }
 
-  if (!user) {
+  if (!isAdminUser(user)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#12091A] to-[#1C102B]">
         <Navbar />
         <div className="flex items-center justify-center min-h-[80vh] px-4">
           <div className="text-center space-y-4">
             <Lock className="w-12 h-12 text-[#D4145A] mx-auto" />
-            <h1 className="text-3xl font-bold text-white">Acesso Negado</h1>
-            <p className="text-zinc-400">Apenas admins podem aceder a este painel</p>
+            <h1 className="text-3xl font-bold text-white">Accès refusé</h1>
+            <p className="text-zinc-400">Seuls les administrateurs peuvent accéder à ce panneau</p>
             <Link href="/" className="inline-block mt-4 px-6 py-3 bg-[#D4145A] text-white rounded-lg">
               Retour à l'accueil
             </Link>
@@ -306,29 +307,24 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Quick Actions */}
+        {/* Sections à venir — pages pas encore créées, affichées comme
+            indisponibles plutôt que comme des liens qui mènent à une 404. */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <Link
-            href="/admin/groups"
-            className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6 hover:border-[#D4145A] transition text-white"
-          >
+          <div className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6 text-white opacity-50 cursor-not-allowed">
             <h3 className="text-lg font-bold mb-2">Gestion des groupes</h3>
-            <p className="text-zinc-400 text-sm">Ver e gerir todos os grupos</p>
-          </Link>
-          <Link
-            href="/admin/logs"
-            className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6 hover:border-[#D4145A] transition text-white"
-          >
-            <h3 className="text-lg font-bold mb-2">Logs de Atividade</h3>
+            <p className="text-zinc-400 text-sm">Voir et gérer tous les groupes</p>
+            <span className="inline-block mt-3 text-xs text-zinc-500 uppercase tracking-wide">Bientôt disponible</span>
+          </div>
+          <div className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6 text-white opacity-50 cursor-not-allowed">
+            <h3 className="text-lg font-bold mb-2">Journal d'activité</h3>
             <p className="text-zinc-400 text-sm">Voir l'historique des actions</p>
-          </Link>
-          <Link
-            href="/admin/reports"
-            className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6 hover:border-[#D4145A] transition text-white"
-          >
-            <h3 className="text-lg font-bold mb-2">Relatórios</h3>
-            <p className="text-zinc-400 text-sm">Gerar relatórios detalhados</p>
-          </Link>
+            <span className="inline-block mt-3 text-xs text-zinc-500 uppercase tracking-wide">Bientôt disponible</span>
+          </div>
+          <div className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6 text-white opacity-50 cursor-not-allowed">
+            <h3 className="text-lg font-bold mb-2">Rapports</h3>
+            <p className="text-zinc-400 text-sm">Générer des rapports détaillés</p>
+            <span className="inline-block mt-3 text-xs text-zinc-500 uppercase tracking-wide">Bientôt disponible</span>
+          </div>
         </div>
       </div>
     </div>

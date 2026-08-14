@@ -1,17 +1,22 @@
 /**
- * Verificaction central de acesso Premium.
+ * Vérification centralisée des accès Premium et administrateur.
  *
- * Toda a lógica de "isPremium?" passa por aqui. Assim, adicionar contas com
- * acesso vitalício ou mudar os plans que contam como Premium é uma alteraction
- * em UM sítio, não em quinze.
+ * Toute la logique « isPremium ? » et « isAdmin ? » passe par ici. Ainsi,
+ * ajouter un compte à vie ou changer les offres qui donnent accès Premium
+ * se fait à UN seul endroit, pas dans quinze fichiers.
  */
 
-/** Emails com acesso Premium vitalício, independentemente do plan na BD. */
+/** Emails avec accès Premium à vie, quel que soit l'abonnement en base. */
 const LIFETIME_PREMIUM_EMAILS = new Set([
   'orsonricardo@hotmail.fr',
 ])
 
-/** Plans que dão acesso Premium (excluindo VIP_24M que também é Premium). */
+/** Emails avec les droits d'administration, quel que soit l'abonnement. */
+const ADMIN_EMAILS = new Set([
+  'orsonricardo@hotmail.fr',
+])
+
+/** Offres qui donnent accès Premium. */
 const PREMIUM_TIERS: readonly string[] = [
   'PREMIUM_3M',
   'PREMIUM_12M',
@@ -29,13 +34,32 @@ type UserLike = {
 } | null | undefined
 
 /**
- * Renvoie true se o utilisateur deve ter acesso Premium neste momento.
+ * Renvoie true si l'utilisateur a les droits d'administration.
  *
- * As regras, por ordem:
- *   1. Se o email está na lista de Premium vitalício → sempre true.
- *   2. Se é admin → sempre true.
- *   3. Se o plan é Premium E ainda não expirou → true.
- *   4. Caso contrário → false.
+ * Trois façons d'être administrateur :
+ *   1. Email présent dans ADMIN_EMAILS.
+ *   2. Colonne `role` égale à 'admin'.
+ *   3. Abonnement VIP_24M (compatibilité avec l'existant).
+ */
+export function isAdmin(user: UserLike): boolean {
+  if (!user) return false
+
+  const email = user.email?.toLowerCase().trim()
+  if (email && ADMIN_EMAILS.has(email)) return true
+
+  if (user.role === 'admin') return true
+
+  return user.subscriptionTier === 'VIP_24M'
+}
+
+/**
+ * Renvoie true si l'utilisateur a accès Premium en ce moment.
+ *
+ * Les règles, dans l'ordre :
+ *   1. Email dans la liste Premium à vie → toujours true.
+ *   2. Administrateur → toujours true.
+ *   3. Abonnement Premium non expiré → true.
+ *   4. Sinon → false.
  */
 export function isPremium(user: UserLike): boolean {
   if (!user) return false
@@ -43,15 +67,15 @@ export function isPremium(user: UserLike): boolean {
   const email = user.email?.toLowerCase().trim()
   if (email && LIFETIME_PREMIUM_EMAILS.has(email)) return true
 
-  if (user.role === 'admin') return true
+  if (isAdmin(user)) return true
 
   if (!user.subscriptionTier) return false
   if (!PREMIUM_TIERS.includes(user.subscriptionTier)) return false
 
-  // Vérifie se a abonnement não expirou (quando o campo existe)
+  // Vérifie que l'abonnement n'a pas expiré (quand le champ existe)
   if (user.subscriptionEnd) {
-    const fim = new Date(user.subscriptionEnd)
-    if (Number.isFinite(fim.getTime()) && fim < new Date()) return false
+    const fin = new Date(user.subscriptionEnd)
+    if (Number.isFinite(fin.getTime()) && fin < new Date()) return false
   }
 
   return true
