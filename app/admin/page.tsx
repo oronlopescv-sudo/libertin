@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { isAdmin as isAdminUser } from '@/lib/premium';
 import { Navbar } from '@/components/navbar';
-import { Users, Zap, MessageSquare, Heart, TrendingUp, Ban, Lock } from 'lucide-react';
+import { Users, Zap, MessageSquare, Heart, TrendingUp, Ban, Lock, Crown } from 'lucide-react';
 import Link from 'next/link';
 
 interface DashboardStats {
@@ -137,9 +137,18 @@ export default function AdminDashboard() {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Painel de Admin</h1>
-          <p className="text-zinc-400">Gérez les utilisateurs, les groupes et surveillez la plateforme</p>
+        <div className="mb-8 flex items-start justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-4xl font-bold text-white mb-2">Panneau Admin</h1>
+            <p className="text-zinc-400">Gérez les utilisateurs, les groupes et surveillez la plateforme</p>
+          </div>
+          <Link
+            href="/admin/proprietaire"
+            className="flex items-center gap-2 px-4 py-3 bg-[#D4145A] text-white rounded-lg font-medium hover:opacity-90 transition"
+          >
+            <Crown className="w-4 h-4" />
+            Tableau de bord propriétaire
+          </Link>
         </div>
 
         {/* Stats Cards */}
