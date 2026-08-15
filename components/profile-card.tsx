@@ -69,7 +69,7 @@ export function ProfileCard({
   );
 
   const primaryPhoto =
-    profile.photos.find((p) => p.isCover)?.url ||
+    (profile.photos ?? []).find((p) => p.isCover)?.url ||
     profile.photos[0]?.url ||
     'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=800&auto=format&fit=crop&q=80';
 
@@ -174,7 +174,7 @@ export function ProfileCard({
 
           {/* Interests Pills */}
           <div className="flex flex-wrap gap-1.5">
-            {profile.interests.slice(0, 3).map((interest, idx) => (
+            {(profile.interests ?? []).slice(0, 3).map((interest, idx) => (
               <span
                 key={idx}
                 className="text-[10px] px-2 py-0.5 rounded-md bg-[#2C1B3D] text-zinc-300 border border-[#3D2654]"
@@ -182,9 +182,9 @@ export function ProfileCard({
                 {interest}
               </span>
             ))}
-            {profile.interests.length > 3 && (
+            {(profile.interests ?? []).length > 3 && (
               <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[#2C1B3D] text-zinc-400">
-                +{profile.interests.length - 3}
+                +{(profile.interests ?? []).length - 3}
               </span>
             )}
           </div>
@@ -280,7 +280,7 @@ export function ProfileCard({
             {/* Photo Gallery */}
             <div>
               <h4 className="text-xs uppercase tracking-wider font-semibold text-zinc-400 mb-2">
-                Album Photos ({profile.photos.length})
+                Album Photos ({(profile.photos ?? []).length})
               </h4>
               {!isPremium ? (
                 <div className="p-4 rounded-xl bg-[#2C1B3D]/80 border border-[#3D2654] text-center space-y-2">
@@ -298,7 +298,7 @@ export function ProfileCard({
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {profile.photos.map((photo) => (
+                  {(profile.photos ?? []).map((photo) => (
                     <img
                       key={photo.id}
                       src={photo.url}
@@ -326,7 +326,7 @@ export function ProfileCard({
                 Envies & Centres d&apos;intérêt
               </h4>
               <div className="flex flex-wrap gap-2">
-                {profile.interests.map((interest, idx) => (
+                {(profile.interests ?? []).map((interest, idx) => (
                   <span
                     key={idx}
                     className="text-xs px-3 py-1 rounded-lg bg-[#2C1B3D] text-[#E86B7A] border border-[#3D2654]"
