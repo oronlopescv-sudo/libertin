@@ -128,7 +128,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = async (userData: any): Promise<User> => {
     const password = userData.password || userData.hashedPassword;
 
-    // 1. Try real Supabase registration
     const sbResult = await signUpWithSupabase({
       email: userData.email,
       password: password || '',
@@ -148,9 +147,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const profile = await getSupabaseUserByEmail(userData.email);
       if (profile) {
         setUser(profile);
-        const list = await getSupabaseUsersList();
-        setUsersList(list);
+        setUsersList(await getSupabaseUsersList());
         return profile;
+      }
+    }
+
+    // Le compte Auth a été créé (mot de passe valide) mais l'insertion du
+    // profil a échoué : sans ceci, l'inscription semble avoir échoué alors
+    // que le compte existe déjà. On répare au lieu d'afficher une erreur
+    // trompeuse.
+    if (sbResult.profileMissing && sbResult.userId) {
+      const reparation = await creerProfilManquant(
+        { id: sbResult.userId, user_metadata: userData },
+        userData.email
+      );
+      if (reparation) {
+        setUser(reparation);
+        setUsersList(await getSupabaseUsersList());
+        return reparation;
       }
     }
 
