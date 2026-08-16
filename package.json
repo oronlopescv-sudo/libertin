@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && npm run copy-static",
+    "build": "rm -rf .next && next build && npm run copy-static",
     "start": "node .next/standalone/server.js",
     "lint": "eslint .",
     "clean": "next clean",
