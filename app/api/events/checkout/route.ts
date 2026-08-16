@@ -1,22 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createCheckoutSession } from '@/lib/stripe';
+import { utilisateurActuel } from '@/lib/auth-serveur';
 
 /**
  * POST /api/events/checkout
- * Create checkout session for event listing
+ * Crée une session de paiement Stripe pour la mise en avant d'un événement.
+ *
+ * Identité et email proviennent de la session authentifiée — jamais du corps
+ * de la requête (sinon n'importe qui pouvait faire payer un autre compte).
  */
 export async function POST(request: NextRequest) {
   try {
-    const { userId, email, planType, eventTitle } = await request.json();
+    const auth = await utilisateurActuel();
+    if (!auth.ok) return auth.reponse;
 
-    if (!userId || !email || !planType) {
+    const { planType, eventTitle } = await request.json();
+    if (!planType) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
-    // Map event plan to Stripe product
     const eventPrices: Record<string, string> = {
       basic: process.env.STRIPE_PRODUCT_EVENT_BASIC || 'price_event_basic',
       featured: process.env.STRIPE_PRODUCT_EVENT_FEATURED || 'price_event_featured',
@@ -31,11 +35,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create checkout session
+    const userId = auth.user.id;
+    const email = auth.user.email ?? undefined;
+
     const session = await fetch('https://api.stripe.com/v1/checkout/sessions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.STRIPE_SECRET_KEY}`,
+        Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`,
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
@@ -45,7 +51,7 @@ export async function POST(request: NextRequest) {
         mode: 'payment',
         success_url: `${process.env.NEXT_PUBLIC_APP_URL}/events/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/events/cancel`,
-        customer_email: email,
+        customer_email: email ?? '',
         client_reference_id: userId,
         'metadata[userId]': userId,
         'metadata[planType]': planType,
@@ -65,7 +71,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Event checkout error:', error);
-
     return NextResponse.json(
       { error: 'Failed to create checkout session' },
       { status: 500 }

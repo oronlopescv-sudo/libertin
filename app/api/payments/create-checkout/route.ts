@@ -37,15 +37,15 @@ export async function POST(req: NextRequest) {
 
     // Récupère ou crée le client Stripe associé au compte, pour que les
     // paiements futurs et le tableau de bord propriétaire puissent
-    // retrouver qui a payé.
+    // retrouver qui a payé. Lu/écrit dans `profiles` (snake_case).
     let customerId = auth.user.email
       ? (
           await supabase
-            .from('users')
-            .select('stripeCustomerId')
+            .from('profiles')
+            .select('stripe_customer_id')
             .eq('id', auth.user.id)
             .single()
-        ).data?.stripeCustomerId
+        ).data?.stripe_customer_id
       : null;
 
     if (!customerId) {
@@ -55,8 +55,8 @@ export async function POST(req: NextRequest) {
       });
       customerId = customer.id;
       await supabase
-        .from('users')
-        .update({ stripeCustomerId: customerId })
+        .from('profiles')
+        .update({ stripe_customer_id: customerId })
         .eq('id', auth.user.id);
     }
 

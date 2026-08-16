@@ -1,116 +1,95 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
-import { isAdmin as isAdminUser } from '@/lib/premium';
-import { cookies } from 'next/headers';
+import { utilisateurAdmin } from '@/lib/auth-serveur';
+import { createServiceRoleClient } from '@/lib/supabase';
 
-// Verificar se é admin
-async function isAdmin(userId: string): Promise<boolean> {
-  const { data: user } = await supabase
-    .from('users')
-    .select('email, role, subscriptionTier')
-    .eq('id', userId)
-    .single();
-
-  return isAdminUser(user);
-}
-
-// GET /api/admin/dashboard - Statistiques gerais
+/**
+ * GET /api/admin/dashboard — statistiques globales.
+ *
+ * Chaque compteur est isolé dans un try/catch : si une table n'existe pas
+ * encore (ex. likes), le reste du tableau de bord continue de fonctionner
+ * au lieu de tomber en erreur 500. Lit `profiles` (snake_case) via la clé de
+ * service, après vérification que l'appelant est administrateur.
+ */
 export async function GET(req: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
+    const auth = await utilisateurAdmin();
+    if (!auth.ok) return auth.reponse;
 
-    if (!token) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
-    }
+    const supabase = createServiceRoleClient();
 
-    let userId: string;
-    try {
-      const tokenData = JSON.parse(Buffer.from(token, 'base64').toString());
-      userId = tokenData.id;
-    } catch {
-      return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
-    }
-
-    // Verificar se é admin
-    const admin = await isAdmin(userId);
-    if (!admin) {
-      return NextResponse.json({ error: 'Sans autorisation de admin' }, { status: 403 });
-    }
-
-    // Dashboard Stats
-    const stats: {
-      totalUsers: number
-      tierBreakdown: Record<string, number>
-      totalGroups: number
-      totalMessages: number
-      totalLikes: number
-      onlineUsers: number
-      newUsersThisMonth: number
-    } = {
+    const stats = {
       totalUsers: 0,
-      tierBreakdown: {},
+      tierBreakdown: {} as Record<string, number>,
       totalGroups: 0,
       totalMessages: 0,
-      totalLikes: 0,
       onlineUsers: 0,
       newUsersThisMonth: 0,
     };
 
-    // Total de users
-    const { count: totalUsers } = await supabase
-      .from('users')
-      .select('*', { count: 'exact', head: true });
-    stats.totalUsers = totalUsers || 0;
+    try {
+      const { count: totalUsers } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+      stats.totalUsers = totalUsers || 0;
+    } catch (e) {
+      console.error('[admin dashboard] totalUsers:', e);
+    }
 
-    // Users por tier
-    const { data: tierStats } = await supabase
-      .from('users')
-      .select('subscriptionTier');
-    const tierBreakdown: Record<string, number> = {};
-    tierStats?.forEach((u: { subscriptionTier: string | null }) => {
-      const tier = u.subscriptionTier ?? 'FREE';
-      tierBreakdown[tier] = (tierBreakdown[tier] || 0) + 1;
-    });
-    stats.tierBreakdown = tierBreakdown;
+    try {
+      const { data: tierStats } = await supabase.from('profiles').select('subscription_tier');
+      (tierStats ?? []).forEach((u: any) => {
+        const tier = u.subscription_tier ?? 'FREE';
+        stats.tierBreakdown[tier] = (stats.tierBreakdown[tier] || 0) + 1;
+      });
+    } catch (e) {
+      console.error('[admin dashboard] tierBreakdown:', e);
+    }
 
-    // Total de groupes
-    const { count: totalGroups } = await supabase
-      .from('groups')
-      .select('*', { count: 'exact', head: true });
-    stats.totalGroups = totalGroups || 0;
+    try {
+      const { count: totalGroups } = await supabase
+        .from('groups')
+        .select('*', { count: 'exact', head: true });
+      stats.totalGroups = totalGroups || 0;
+    } catch (e) {
+      console.error('[admin dashboard] totalGroups:', e);
+    }
 
-    // Total de messages
-    const { count: totalMessages } = await supabase
-      .from('messages')
-      .select('*', { count: 'exact', head: true });
-    stats.totalMessages = totalMessages || 0;
+    try {
+      const { count: totalMessages } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true });
+      stats.totalMessages = totalMessages || 0;
+    } catch (e) {
+      console.error('[admin dashboard] totalMessages:', e);
+    }
 
-    // Total de likes
-    const { count: totalLikes } = await supabase
-      .from('likes')
-      .select('*', { count: 'exact', head: true });
-    stats.totalLikes = totalLikes || 0;
+    // Utilisateurs « en ligne » : profils mis à jour dans les 5 dernières minutes.
+    try {
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      const { count: onlineUsers } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .gte('updated_at', fiveMinutesAgo);
+      stats.onlineUsers = onlineUsers || 0;
+    } catch (e) {
+      console.error('[admin dashboard] onlineUsers:', e);
+    }
 
-    // Usuarios online (últimas 5 min)
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-    const { count: onlineUsers } = await supabase
-      .from('users')
-      .select('*', { count: 'exact', head: true })
-      .gte('updatedAt', fiveMinutesAgo);
-    stats.onlineUsers = onlineUsers || 0;
-
-    // Taxa de crescimento
-    const lastMonthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-    const { count: newUsersThisMonth } = await supabase
-      .from('users')
-      .select('*', { count: 'exact', head: true })
-      .gte('createdAt', lastMonthAgo);
-    stats.newUsersThisMonth = newUsersThisMonth || 0;
+    // Nouveaux comptes sur les 30 derniers jours.
+    try {
+      const lastMonthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      const { count: newUsersThisMonth } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', lastMonthAgo);
+      stats.newUsersThisMonth = newUsersThisMonth || 0;
+    } catch (e) {
+      console.error('[admin dashboard] newUsersThisMonth:', e);
+    }
 
     return NextResponse.json(stats, { status: 200 });
   } catch (error) {
     console.error('Admin dashboard error:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return NextResponse.json({ error: 'Erreur interne' }, { status: 500 });
   }
 }

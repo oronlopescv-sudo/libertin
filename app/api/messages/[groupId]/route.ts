@@ -8,8 +8,11 @@ import { utilisateurActuel, utilisateurPremium } from '@/lib/auth-serveur';
  * Lecture : ouverte à tout membre connecté du groupe.
  * Écriture : réservée aux membres Premium.
  *
- * L'abonnement est lu depuis la session et vérifié en base — jamais depuis
- * le corps de la requête, que le navigateur contrôle entièrement.
+ * La table `messages` est en snake_case (group_id, user_id, user_name,
+ * user_avatar, content, created_at). L'ancien code utilisait des colonnes
+ * camelCase inexistantes (groupId, userId, createdAt, updatedAt) et un join
+ * `users(username)` sur une table qui n'existe pas : toute la conversation 404.
+ * On lit maintenant les bonnes colonnes et on renvoie du camelCase au client.
  */
 
 /** Vérifie que l'utilisateur appartient bien au groupe. */
@@ -17,10 +20,21 @@ async function estMembre(userId: string, groupId: string): Promise<boolean> {
   const { data } = await supabase
     .from('group_memberships')
     .select('id')
-    .eq('userId', userId)
-    .eq('groupId', groupId)
+    .eq('user_id', userId)
+    .eq('group_id', groupId)
     .maybeSingle();
   return Boolean(data);
+}
+
+function mapMessage(row: any) {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    userName: row.user_name ?? row.displayed_username ?? null,
+    userAvatar: row.user_avatar ?? null,
+    content: row.content,
+    createdAt: row.created_at,
+  };
 }
 
 // GET — lire les messages du groupe
@@ -40,10 +54,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ grou
 
     const { data: messages, error } = await supabase
       .from('messages')
-      .select('id, content, createdAt, userId, users(username)')
-      .eq('groupId', groupId)
-      .order('createdAt', { ascending: false })
-      .limit(50);
+      .select('id, user_id, user_name, user_avatar, content, created_at, displayed_username')
+      .eq('group_id', groupId)
+      .order('created_at', { ascending: true })
+      .limit(100);
 
     if (error) {
       console.error('[messages GET]', error);
@@ -55,7 +69,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ grou
 
     return NextResponse.json({
       groupId,
-      messages: (messages ?? []).reverse(),
+      messages: (messages ?? []).map(mapMessage),
     });
   } catch (err) {
     console.error('[messages GET]', err);
@@ -96,16 +110,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gro
       );
     }
 
+    const maintenant = new Date().toISOString();
+
     const { data: message, error } = await supabase
       .from('messages')
       .insert({
-        groupId,
-        userId: auth.user.id,
+        group_id: groupId,
+        user_id: auth.user.id,
+        user_name: auth.user.username,
         content,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        created_at: maintenant,
       })
-      .select('id, content, createdAt, userId')
+      .select('id, user_id, user_name, user_avatar, content, created_at, displayed_username')
       .single();
 
     if (error) {
@@ -116,7 +132,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gro
       );
     }
 
-    return NextResponse.json({ success: true, message });
+    return NextResponse.json({ success: true, message: mapMessage(message) });
   } catch (err) {
     console.error('[messages POST]', err);
     return NextResponse.json({ error: "Erreur lors de l'envoi du message" }, { status: 500 });

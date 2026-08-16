@@ -1,23 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe, verifyWebhookSignature } from '@/lib/stripe';
 import { createClient } from '@supabase/supabase-js';
+import { stripe, verifyWebhookSignature } from '@/lib/stripe';
 import { sendAbonnementConfirmationEmail } from '@/lib/email';
 
+// Client privilégié (clé de service) : le webhook arrive depuis Stripe, sans
+// session utilisateur. Il doit pouvoir écrire dans `profiles` en contournant
+// le RLS. À n'utiliser qu'ici — jamais côté client.
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+  process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+  { auth: { persistSession: false } }
 );
 
+const PLAN_DURATIONS: Record<string, number> = {
+  PREMIUM_3M: 3,
+  PREMIUM_12M: 12,
+  PREMIUM_24M: 24,
+  CREATOR_3M: 3,
+  CREATOR_12M: 12,
+  VIP_24M: 24,
+};
+
 /**
- * Stripe Webhook Handler
- * Processes payment events and updates user abonnement status
- * 
- * Events:
- * - checkout.session.completed: User purchased abonnement
- * - charge.succeeded: Payment succeeded
- * - customer.subscription.updated: Abonnement changed
+ * Gestionnaire du webhook Stripe. À monter sur la route de paiement :
+ *   export const POST = handleStripeWebhook;
+ *
+ * Écrit dans la table `profiles` (snake_case) — la source unique de vérité
+ * lue par lib/auth-serveur.ts et lib/premium.ts. L'ancienne table `users`
+ * n'est plus utilisée : sinon un paiement réussi n'accordait jamais Premium.
  */
-export async function POST(request: NextRequest) {
+export async function handleStripeWebhook(request: NextRequest) {
   try {
     const body = await request.text();
     const signature = request.headers.get('stripe-signature');
@@ -29,10 +41,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify webhook authenticity
     const event = verifyWebhookSignature(body, signature);
 
-    // Handle different event types
     switch (event.type) {
       case 'checkout.session.completed':
         await handleCheckoutSessionCompleted(event.data.object);
@@ -59,22 +69,15 @@ export async function POST(request: NextRequest) {
     console.error('Webhook error:', error);
 
     if (error instanceof Error && error.message.includes('No API Key provided')) {
-      return NextResponse.json(
-        { error: 'Stripe not configured' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 });
     }
 
-    return NextResponse.json(
-      { error: 'Webhook processing failed' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
   }
 }
 
 /**
- * Handle successful checkout session
- * Update user abonnement tier and dates
+ * Paiement réussi : active l'abonnement Premium dans `profiles`.
  */
 async function handleCheckoutSessionCompleted(session: any) {
   const userId = session.client_reference_id;
@@ -85,49 +88,40 @@ async function handleCheckoutSessionCompleted(session: any) {
     return;
   }
 
-  // Get abonnement duration from metadata
-  const planDurations: Record<string, number> = {
-    PREMIUM_3M: 3,
-    PREMIUM_12M: 12,
-    PREMIUM_24M: 24,
-  };
-
-  const durationMonths = planDurations[planId] || 3;
+  const durationMonths = PLAN_DURATIONS[planId] || 3;
   const now = new Date();
   const subscriptionEnd = new Date(now);
   subscriptionEnd.setMonth(subscriptionEnd.getMonth() + durationMonths);
 
-  // Update user in Supabase
-  const { data: userData, error: userError } = await supabase
-    .from('users')
+  // Mise à jour du profil (snake_case) — pas la table `users`.
+  const { data: profileData, error } = await supabase
+    .from('profiles')
     .update({
-      subscriptionTier: planId,
-      subscriptionStart: now.toISOString(),
-      subscriptionEnd: subscriptionEnd.toISOString(),
-      stripeCustomerId: session.customer,
-      updatedAt: now.toISOString(),
+      subscription_tier: planId,
+      subscription_start: now.toISOString(),
+      subscription_end: subscriptionEnd.toISOString(),
+      stripe_customer_id: session.customer,
+      updated_at: now.toISOString(),
     })
     .eq('id', userId)
-    .select()
+    .select('email, username')
     .single();
 
-  if (userError) {
-    console.error('Failed to update user subscription:', userError);
+  if (error) {
+    console.error('Failed to update profile subscription:', error);
     return;
   }
 
-  // Send confirmation email
-  if (userData?.email) {
+  if (profileData?.email) {
     try {
       await sendAbonnementConfirmationEmail(
-        userData.email,
-        userData.username,
+        profileData.email,
+        profileData.username,
         planId,
         subscriptionEnd
       );
     } catch (emailError) {
       console.error('Failed to send confirmation email:', emailError);
-      // Don't fail the webhook if email fails
     }
   }
 
@@ -135,19 +129,14 @@ async function handleCheckoutSessionCompleted(session: any) {
 }
 
 /**
- * Handle successful charge
+ * Paiement réussi : journalisation analytique.
  */
 async function handleChargeSucceeded(charge: any) {
-  const customerId = charge.customer;
-
-  // Log successful charge for analytics
-  console.log(`💰 Charge succeeded: ${charge.id} for customer ${customerId}`);
-
-  // Optional: Update analytics/logging table
+  console.log(`💰 Charge succeeded: ${charge.id} for customer ${charge.customer}`);
   try {
     await supabase.from('payment_logs').insert({
       stripe_charge_id: charge.id,
-      stripe_customer_id: customerId,
+      stripe_customer_id: charge.customer,
       amount: charge.amount,
       currency: charge.currency,
       status: 'succeeded',
@@ -159,106 +148,92 @@ async function handleChargeSucceeded(charge: any) {
 }
 
 /**
- * Handle failed charge
+ * Paiement échoué : notifie l'utilisateur concerné.
  */
 async function handleChargeFailed(charge: any) {
+  console.error(`❌ Charge failed: ${charge.id} — ${charge.failure_message}`);
   const customerId = charge.customer;
+  if (!customerId) return;
 
-  console.error(`❌ Charge failed: ${charge.id} for customer ${customerId}`);
-  console.error(`Reason: ${charge.failure_message}`);
+  let profile: { email: string } | null = null;
+  try {
+    const result = await supabase
+      .from('profiles')
+      .select('email')
+      .eq('stripe_customer_id', customerId)
+      .single();
+    profile = result.data;
+  } catch {
+    profile = null;
+  }
 
-  // Optional: Notify user of failed payment
-  if (customerId) {
-    let users: { email: string } | null = null;
+  if (profile?.email) {
     try {
-      const result = await supabase
-        .from('users')
-        .select('email')
-        .eq('stripeCustomerId', customerId)
-        .single();
-      users = result.data;
-    } catch {
-      users = null;
-    }
-
-    if (users?.email) {
-      try {
-        await sendPaymentFailedEmail(
-          users.email,
-          charge.failure_message
-        );
-      } catch (err) {
-        console.error('Failed to send payment failed email:', err);
-      }
+      await sendPaymentFailedEmail(profile.email, charge.failure_message);
+    } catch (err) {
+      console.error('Failed to send payment failed email:', err);
     }
   }
 }
 
 /**
- * Handle abonnement cancellation
+ * Abonnement annulé : repasse le profil en offre FREE.
  */
 async function handleAbonnementDeleted(subscription: any) {
   const customerId = subscription.customer;
 
-  // Find user and réinitialisation to FREE tier
-  let users: { id: string; email: string } | null = null;
+  let profile: { id: string; email: string } | null = null;
   try {
     const result = await supabase
-      .from('users')
+      .from('profiles')
       .select('id, email')
-      .eq('stripeCustomerId', customerId)
+      .eq('stripe_customer_id', customerId)
       .single();
-    users = result.data;
+    profile = result.data;
   } catch {
-    users = null;
+    profile = null;
   }
 
-  if (!users) {
-    console.error('User not found for customer:', customerId);
+  if (!profile) {
+    console.error('Profile not found for customer:', customerId);
     return;
   }
 
-  // Update abonnement
-  const { error: updateError } = await supabase
-    .from('users')
+  const { error } = await supabase
+    .from('profiles')
     .update({
-      subscriptionTier: 'FREE',
-      subscriptionStart: null,
-      subscriptionEnd: null,
-      updatedAt: new Date().toISOString(),
+      subscription_tier: 'FREE',
+      subscription_start: null,
+      subscription_end: null,
+      updated_at: new Date().toISOString(),
     })
-    .eq('id', users.id);
+    .eq('id', profile.id);
 
-  if (updateError) {
-    console.error('Failed to réinitialisation user subscription:', updateError);
+  if (error) {
+    console.error('Failed to reset profile subscription:', error);
     return;
   }
 
-  console.log(`✋ Abonnement cancelled for user ${users.id}`);
-
-  // Notify user
+  console.log(`✋ Abonnement cancelled for user ${profile.id}`);
   try {
-    await sendAbonnementCancelledEmail(users.email);
+    await sendAbonnementCancelledEmail(profile.email);
   } catch (err) {
     console.error('Failed to send cancellation email:', err);
   }
 }
 
-/**
- * Send payment failed email
- */
 async function sendPaymentFailedEmail(email: string, reason: string) {
   try {
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         from: process.env.RESEND_FROM_EMAIL || 'noreply@xlibertine.com',
         to: email,
-        subject: 'Votre paiement n\'a pas pu être traité',
+        subject: "Votre paiement n'a pas pu être traité",
         html: `
           <h2>Erreur de paiement</h2>
           <p>Nous n'avons pas pu traiter votre paiement pour votre abonnement xlibertine.</p>
@@ -268,24 +243,18 @@ async function sendPaymentFailedEmail(email: string, reason: string) {
         `,
       }),
     });
-
-    if (!response.ok) {
-      throw new Error(`Resend API error: ${response.statusText}`);
-    }
+    if (!response.ok) throw new Error(`Resend API error: ${response.statusText}`);
   } catch (error) {
     console.error('Failed to send payment failed email:', error);
   }
 }
 
-/**
- * Send abonnement cancelled email
- */
 async function sendAbonnementCancelledEmail(email: string) {
   try {
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -301,10 +270,7 @@ async function sendAbonnementCancelledEmail(email: string) {
         `,
       }),
     });
-
-    if (!response.ok) {
-      throw new Error(`Resend API error: ${response.statusText}`);
-    }
+    if (!response.ok) throw new Error(`Resend API error: ${response.statusText}`);
   } catch (error) {
     console.error('Failed to send cancellation email:', error);
   }

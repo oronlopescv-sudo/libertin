@@ -1,56 +1,85 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { isPremium } from '@/lib/premium';
-import { supabase } from '@/lib/supabase';
-import { cookies } from 'next/headers';
+import { utilisateurPremium } from '@/lib/auth-serveur';
+import { createServiceRoleClient } from '@/lib/supabase';
+import { validateFileUpload } from '@/lib/validation';
 
+/**
+ * POST /api/photos/upload
+ * Envoie une photo de profil/album vers Supabase Storage et l'enregistre dans
+ * la table `photos`. Réservé aux membres Premium (vérifié côté serveur via la
+ * session Supabase Auth, jamais via le corps de la requête).
+ *
+ * L'écriture se fait avec la clé de service (contourne le RLS) car
+ * l'utilisateur est déjà authentifié + Premium ; les politiques de storage
+ * ne sont pas configurées pour l'insertion anonyme.
+ */
 export async function POST(req: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
+    const auth = await utilisateurPremium('envoyer des photos');
+    if (!auth.ok) return auth.reponse;
 
-    if (!token) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+    const formData = await req.formData();
+    const file = formData.get('file') as File | null;
+    if (!file) {
+      return NextResponse.json({ error: 'Aucun fichier fourni' }, { status: 400 });
     }
 
-    // Récupère user do token
-    let userId: string;
-    try {
-      const tokenData = JSON.parse(Buffer.from(token, 'base64').toString());
-      userId = tokenData.id;
-    } catch {
-      return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
+    const validation = validateFileUpload(file, 5, [
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+    ]);
+    if (!validation.valid) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
-    // Récupère l'utilisateur pour vérifier l'abonnement
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('id, subscriptionTier, subscriptionEnd')
-      .eq('id', userId)
-      .single();
+    const supabase = createServiceRoleClient();
+    const bucket = process.env.SUPABASE_PHOTOS_BUCKET || 'photos';
+    const ext = file.name.split('.').pop() || 'jpg';
+    const filename = `profiles/${auth.user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
-    if (userError || !user) {
-      return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
-    }
+    const arrayBuffer = await file.arrayBuffer();
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from(bucket)
+      .upload(filename, arrayBuffer, {
+        contentType: file.type,
+        cacheControl: '3600',
+        upsert: false,
+      });
 
-    // ✅ VALIDAÇÃO: Apenas PREMIUM pode fazer upload
-    const userIsPremium = isPremium(user);
-
-    if (!userIsPremium) {
+    if (uploadError || !uploadData) {
+      console.error('Photo upload error:', uploadError);
       return NextResponse.json(
-        { error: 'Apenas utilisateurs Premium podem fazer upload de fotos. Effectuez upgrade!' },
-        { status: 403 }
+        { error: "Échec de l'envoi de la photo" },
+        { status: 500 }
       );
     }
 
-    // Resto da lógica de upload (implementar com Cloudinary, etc)
-    // Por enquanto, retorna sucesso
+    const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(uploadData.path);
+    const url = urlData.publicUrl;
 
-    return NextResponse.json(
-      { success: true, message: 'Upload avec succès' },
-      { status: 200 }
-    );
+    // Première photo = photo de couverture.
+    const { data: existing } = await supabase
+      .from('photos')
+      .select('id')
+      .eq('user_id', auth.user.id);
+    const isFirst = !existing || existing.length === 0;
+
+    const { error: insertError } = await supabase.from('photos').insert({
+      user_id: auth.user.id,
+      url,
+      is_cover: isFirst,
+      display_order: existing?.length ?? 0,
+    });
+
+    if (insertError) {
+      console.error('Photo insert error:', insertError);
+      // Le fichier est stocké même si l'insert échoue ; on renvoie l'URL.
+    }
+
+    return NextResponse.json({ success: true, url });
   } catch (error) {
     console.error('Upload error:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return NextResponse.json({ error: 'Erreur interne' }, { status: 500 });
   }
 }

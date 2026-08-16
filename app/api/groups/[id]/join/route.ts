@@ -18,7 +18,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     // Le groupe existe-t-il ?
     const { data: groupe, error: erreurGroupe } = await supabase
       .from('groups')
-      .select('id, name, maxMembers, isPrivate')
+      .select('id, name, max_members, is_private')
       .eq('id', groupId)
       .single();
 
@@ -30,8 +30,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const { data: dejaMembre } = await supabase
       .from('group_memberships')
       .select('id')
-      .eq('userId', auth.user.id)
-      .eq('groupId', groupId)
+      .eq('user_id', auth.user.id)
+      .eq('group_id', groupId)
       .maybeSingle();
 
     if (dejaMembre) {
@@ -45,20 +45,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const { count } = await supabase
       .from('group_memberships')
       .select('id', { count: 'exact', head: true })
-      .eq('groupId', groupId);
+      .eq('group_id', groupId);
 
     const membres = count ?? 0;
-    const limite = groupe.maxMembers ?? 50;
+    const limite = groupe.max_members ?? 50;
 
     if (membres >= limite) {
       return NextResponse.json({ error: 'Ce groupe est complet' }, { status: 409 });
     }
 
     const { error: erreurInsertion } = await supabase.from('group_memberships').insert({
-      userId: auth.user.id,
-      groupId,
+      user_id: auth.user.id,
+      group_id: groupId,
       role: 'member',
-      joinedAt: new Date().toISOString(),
+      joined_at: new Date().toISOString(),
     });
 
     if (erreurInsertion) {

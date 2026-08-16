@@ -1,11 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { handleStripeWebhook } from '@/lib/stripe-webhook';
 
-export async function POST(req: NextRequest) {
-  return NextResponse.json(
-    {
-      error: 'Webhook de paiement non configuré.',
-      message: "Stripe n'est pas encore activé sur ce projet.",
-    },
-    { status: 501 }
-  );
-}
+/**
+ * Webhook Stripe — point d'entrée principal configuré dans le tableau de bord
+ * Stripe. Délègue à lib/stripe-webhook.ts qui met à jour `profiles` (snake_case)
+ * et accorde réellement l'abonnement Premium après paiement.
+ */
+export const POST = handleStripeWebhook;
