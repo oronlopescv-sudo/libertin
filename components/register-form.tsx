@@ -3,9 +3,12 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, User, Calendar, MapPin, Heart } from 'lucide-react';
+import { useAuth } from '@/context/auth-context';
+import { validateDateOfBirth } from '@/lib/validation';
 
 export function RegisterForm() {
   const router = useRouter();
+  const { register } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -32,29 +35,29 @@ export function RegisterForm() {
       }
 
       if (formData.password.length < 8) {
-        throw new Error('Le password doit contenir au moins 8 caractères');
+        throw new Error('Le mot de passe doit contenir au moins 8 caractères');
       }
 
-      const age = new Date().getFullYear() - new Date(formData.dateOfBirth).getFullYear();
-      if (age < 18) {
+      // Validation 18+ qui tient compte du mois/jour (pas seulement l'année).
+      if (!validateDateOfBirth(formData.dateOfBirth)) {
         throw new Error('Vous devez avoir au moins 18 ans');
       }
 
-      // API call
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+      // Inscription via le contexte d'auth (Supabase Auth + profil `profiles`).
+      // L'ancienne route /api/auth/register écrivait dans la mauvaise table et
+      // ne créait jamais de compte Supabase Auth : la connexion était impossible.
+      await register({
+        email: formData.email,
+        password: formData.password,
+        username: formData.username,
+        dateOfBirth: formData.dateOfBirth,
+        gender: formData.gender,
+        sexualOrientation: formData.sexualOrientation,
+        location: formData.location,
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Erreur lors de l\'inscription');
-      }
-
       setSuccess(true);
-      // Redirecionar para login após sucesso
+      // Redirection vers la connexion après succès
       setTimeout(() => router.push('/login'), 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue');

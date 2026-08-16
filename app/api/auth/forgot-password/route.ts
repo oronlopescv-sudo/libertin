@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { createServiceRoleClient } from '@/lib/supabase';
 import crypto from 'crypto';
 
-// Importar Resend apenas em runtime
+// Resend n'est chargé qu'en runtime si la clé est présente
 let resend: any = null;
 if (process.env.RESEND_API_KEY) {
   const { Resend } = require('resend');
@@ -17,44 +17,42 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Email obligatoire' }, { status: 400 });
     }
 
-    // Récupère user pelo email
-    const { data: user, error: userError } = await supabase
-      .from('users')
+    // Clé de service : lecture du profil + écriture du jeton (pas de session).
+    const supabase = createServiceRoleClient();
+
+    // Récupère le profil par email (table `profiles`, snake_case)
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
       .select('id, email, username')
       .eq('email', email)
       .single();
 
-    if (userError || !user) {
+    if (profileError || !profile) {
       // Ne pas révéler si l'email existe (sécurité)
       return NextResponse.json(
-        { success: true, message: 'Se o email existir, um link de réinitialisation será enviado' },
+        { success: true, message: "Si l'email existe, un lien de réinitialisation sera envoyé" },
         { status: 200 }
       );
     }
 
-    // Gera token de réinitialisation
+    // Génère un jeton de réinitialisation (on stocke son hash SHA-256)
     const resetToken = crypto.randomBytes(32).toString('hex');
     const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 heure
 
-    // Guarda no Supabase
-    const { error: insertError } = await supabase
-      .from('password_resets')
-      .insert([
-        {
-          userId: user.id,
-          token: resetTokenHash,
-          expiresAt: expiresAt.toISOString(),
-          used: false,
-        }
-      ]);
+    const { error: insertError } = await supabase.from('password_resets').insert({
+      user_id: profile.id,
+      token: resetTokenHash,
+      expires_at: expiresAt.toISOString(),
+      used: false,
+    });
 
     if (insertError) {
       console.error('Database error:', insertError);
-      return NextResponse.json({ error: 'Erreur lors de gerar token' }, { status: 500 });
+      return NextResponse.json({ error: 'Erreur lors de la création du jeton' }, { status: 500 });
     }
 
-    // Envoie email com Resend (se configurado)
+    // Envoie l'email via Resend (si configuré)
     if (resend) {
       const resetUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://xlibertine.com'}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
 
@@ -62,7 +60,7 @@ export async function POST(req: NextRequest) {
         await resend.emails.send({
           from: 'noreply@xlibertine.com',
           to: email,
-          subject: 'Réinitialiser sua password - xlibertine',
+          subject: 'Réinitialiser votre mot de passe - xlibertine',
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <div style="background: linear-gradient(135deg, #D4145A 0%, #E86B7A 100%); padding: 30px; border-radius: 10px; text-align: center;">
@@ -71,10 +69,10 @@ export async function POST(req: NextRequest) {
               </div>
 
               <div style="padding: 30px; background: #f8f8f8; border-radius: 10px; margin: 20px 0;">
-                <h2 style="color: #333; margin-top: 0;">Recuperar sua Mot de passe</h2>
-                
+                <h2 style="color: #333; margin-top: 0;">Réinitialiser votre mot de passe</h2>
+
                 <p style="color: #555; line-height: 1.6;">
-                  Olá <strong>${user.username}</strong>,
+                  Bonjour <strong>${profile.username}</strong>,
                 </p>
 
                 <p style="color: #555; line-height: 1.6;">
@@ -82,20 +80,20 @@ export async function POST(req: NextRequest) {
                 </p>
 
                 <div style="text-align: center; margin: 30px 0;">
-                  <a href="${resetUrl}" 
-                     style="background: linear-gradient(135deg, #D4145A 0%, #E86B7A 100%); 
-                            color: white; 
-                            padding: 12px 40px; 
-                            border-radius: 5px; 
-                            text-decoration: none; 
+                  <a href="${resetUrl}"
+                     style="background: linear-gradient(135deg, #D4145A 0%, #E86B7A 100%);
+                            color: white;
+                            padding: 12px 40px;
+                            border-radius: 5px;
+                            text-decoration: none;
                             font-weight: bold;
                             display: inline-block;">
-                    Réinitialiser Mot de passe
+                    Réinitialiser le mot de passe
                   </a>
                 </div>
 
                 <p style="color: #999; font-size: 12px;">
-                  Este link expira em 1 heure por motivos de segurança.
+                  Ce lien expire dans 1 heure pour des raisons de sécurité.
                 </p>
 
                 <p style="color: #999; font-size: 12px;">
@@ -104,28 +102,27 @@ export async function POST(req: NextRequest) {
               </div>
 
               <div style="padding: 20px; text-align: center; color: #999; font-size: 11px; border-top: 1px solid #ddd;">
-                <p>© 2026 xlibertine. Tous os direitos reservados.</p>
-                <p>Reservado para maiores de 18 ans.</p>
+                <p>© 2026 xlibertine. Tous droits réservés.</p>
+                <p>Réservé aux personnes de plus de 18 ans.</p>
               </div>
             </div>
           `,
         });
       } catch (emailError) {
         console.error('Resend error:', emailError);
-        // Non retornar erro, o token foi criado
+        // Ne pas échouer : le jeton a été créé
       }
     } else {
       console.warn("Resend n'est pas configuré. L'email ne sera pas envoyé.");
-      console.log('Token de réinitialisation:', resetToken);
       console.log('Reset URL: /reset-password?token=' + resetToken + '&email=' + email);
     }
 
     return NextResponse.json(
-      { success: true, message: 'Se o email existir, um link de réinitialisation será enviado' },
+      { success: true, message: "Si l'email existe, un lien de réinitialisation sera envoyé" },
       { status: 200 }
     );
   } catch (error) {
     console.error('Request error:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return NextResponse.json({ error: 'Erreur interne' }, { status: 500 });
   }
 }

@@ -1,44 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
-import { isAdmin as isAdminUser } from '@/lib/premium';
-import { cookies } from 'next/headers';
+import { utilisateurAdmin } from '@/lib/auth-serveur';
+import { createServiceRoleClient } from '@/lib/supabase';
 
-// Verificar se é admin
-async function isAdmin(userId: string): Promise<boolean> {
-  const { data: user } = await supabase
-    .from('users')
-    .select('email, role, subscriptionTier')
-    .eq('id', userId)
-    .single();
-
-  return isAdminUser(user);
+/** Map a profiles row (snake_case) to the camelCase shape attendue par l'UI admin. */
+function mapUser(row: any) {
+  return {
+    id: row.id,
+    username: row.username,
+    email: row.email,
+    subscriptionTier: row.subscription_tier,
+    subscriptionEnd: row.subscription_end,
+    isVerified: row.is_verified,
+    createdAt: row.created_at,
+    isBanned: !row.is_active,
+  };
 }
 
-// GET /api/admin/users - Listar todos users
+// GET /api/admin/users — liste tous les profils (admin uniquement)
 export async function GET(req: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
+    const auth = await utilisateurAdmin();
+    if (!auth.ok) return auth.reponse;
 
-    if (!token) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
-    }
+    const supabase = createServiceRoleClient();
 
-    let userId: string;
-    try {
-      const tokenData = JSON.parse(Buffer.from(token, 'base64').toString());
-      userId = tokenData.id;
-    } catch {
-      return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
-    }
-
-    // Verificar se é admin
-    const admin = await isAdmin(userId);
-    if (!admin) {
-      return NextResponse.json({ error: 'Sans autorisation de admin' }, { status: 403 });
-    }
-
-    // Parse query params
     const searchParams = req.nextUrl.searchParams;
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
@@ -47,11 +32,11 @@ export async function GET(req: NextRequest) {
     const offset = (page - 1) * limit;
 
     let query = supabase
-      .from('users')
-      .select('id, username, email, subscriptionTier, subscriptionEnd, isVerified, createdAt, isBanned', {
-        count: 'exact'
+      .from('profiles')
+      .select('id, username, email, subscription_tier, subscription_end, is_verified, is_active, created_at', {
+        count: 'exact',
       })
-      .order('createdAt', { ascending: false })
+      .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
     if (search) {
@@ -59,150 +44,103 @@ export async function GET(req: NextRequest) {
     }
 
     if (tier) {
-      query = query.eq('subscriptionTier', tier);
+      query = query.eq('subscription_tier', tier);
     }
 
-    const { data: users, count } = await query;
+    const { data: profiles, count } = await query;
 
     return NextResponse.json(
       {
-        users: users || [],
+        users: (profiles ?? []).map(mapUser),
         pagination: {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       },
       { status: 200 }
     );
   } catch (error) {
     console.error('List users error:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return NextResponse.json({ error: 'Erreur interne' }, { status: 500 });
   }
 }
 
-// POST /api/admin/users/ban - Bannir user
+// POST /api/admin/users — bannir un utilisateur (is_active = false)
 export async function POST(req: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
-    }
-
-    let adminId: string;
-    try {
-      const tokenData = JSON.parse(Buffer.from(token, 'base64').toString());
-      adminId = tokenData.id;
-    } catch {
-      return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
-    }
-
-    // Verificar se é admin
-    const admin = await isAdmin(adminId);
-    if (!admin) {
-      return NextResponse.json({ error: 'Sans autorisation de admin' }, { status: 403 });
-    }
+    const auth = await utilisateurAdmin();
+    if (!auth.ok) return auth.reponse;
 
     const { userId, reason } = await req.json();
-
     if (!userId) {
       return NextResponse.json({ error: 'userId obligatoire' }, { status: 400 });
     }
-
-    if (userId === adminId) {
-      return NextResponse.json({ error: 'Non podes bannir a ti mesmo' }, { status: 400 });
+    if (userId === auth.user.id) {
+      return NextResponse.json({ error: 'Vous ne pouvez pas vous bannir vous-même' }, { status: 400 });
     }
 
-    // Bannir user
+    const supabase = createServiceRoleClient();
+
     const { error } = await supabase
-      .from('users')
-      .update({ isBanned: true })
+      .from('profiles')
+      .update({ is_active: false, updated_at: new Date().toISOString() })
       .eq('id', userId);
 
     if (error) {
-      return NextResponse.json({ error: 'Erreur lors de bannir user' }, { status: 500 });
+      console.error('Ban error:', error);
+      return NextResponse.json({ error: 'Erreur lors du bannissement' }, { status: 500 });
     }
 
-    // S'inscrire action no log
-    await supabase.from('admin_logs').insert([
-      {
-        adminId,
-        action: 'BAN_USER',
-        targetId: userId,
-        reason: reason || 'Aucune raison précisée',
-        timestamp: new Date().toISOString()
-      }
-    ]);
+    await supabase.from('admin_logs').insert({
+      admin_id: auth.user.id,
+      action: 'BAN_USER',
+      target_id: userId,
+      reason: reason || 'Aucune raison précisée',
+      created_at: new Date().toISOString(),
+    });
 
-    return NextResponse.json(
-      { success: true, message: 'User banni avec succès' },
-      { status: 200 }
-    );
+    return NextResponse.json({ success: true, message: 'Utilisateur banni avec succès' }, { status: 200 });
   } catch (error) {
     console.error('Ban user error:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return NextResponse.json({ error: 'Erreur interne' }, { status: 500 });
   }
 }
 
-// DELETE /api/admin/users/:userId - Unban user
+// DELETE /api/admin/users?userId=... — lever le bannissement (is_active = true)
 export async function DELETE(req: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
-    }
-
-    let adminId: string;
-    try {
-      const tokenData = JSON.parse(Buffer.from(token, 'base64').toString());
-      adminId = tokenData.id;
-    } catch {
-      return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
-    }
-
-    // Verificar se é admin
-    const admin = await isAdmin(adminId);
-    if (!admin) {
-      return NextResponse.json({ error: 'Sans autorisation de admin' }, { status: 403 });
-    }
+    const auth = await utilisateurAdmin();
+    if (!auth.ok) return auth.reponse;
 
     const userId = req.nextUrl.searchParams.get('userId');
-
     if (!userId) {
       return NextResponse.json({ error: 'userId obligatoire' }, { status: 400 });
     }
 
-    // Unban user
+    const supabase = createServiceRoleClient();
+
     const { error } = await supabase
-      .from('users')
-      .update({ isBanned: false })
+      .from('profiles')
+      .update({ is_active: true, updated_at: new Date().toISOString() })
       .eq('id', userId);
 
     if (error) {
-      return NextResponse.json({ error: 'Erreur lors de desbannir user' }, { status: 500 });
+      console.error('Unban error:', error);
+      return NextResponse.json({ error: 'Erreur lors du débannissement' }, { status: 500 });
     }
 
-    // S'inscrire action
-    await supabase.from('admin_logs').insert([
-      {
-        adminId,
-        action: 'UNBAN_USER',
-        targetId: userId,
-        timestamp: new Date().toISOString()
-      }
-    ]);
+    await supabase.from('admin_logs').insert({
+      admin_id: auth.user.id,
+      action: 'UNBAN_USER',
+      target_id: userId,
+      created_at: new Date().toISOString(),
+    });
 
-    return NextResponse.json(
-      { success: true, message: 'User desblanido avec succès' },
-      { status: 200 }
-    );
+    return NextResponse.json({ success: true, message: 'Utilisateur débanni avec succès' }, { status: 200 });
   } catch (error) {
     console.error('Unban user error:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return NextResponse.json({ error: 'Erreur interne' }, { status: 500 });
   }
 }

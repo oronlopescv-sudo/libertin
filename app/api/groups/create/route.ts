@@ -43,13 +43,15 @@ export async function POST(req: NextRequest) {
         name,
         category,
         description,
-        isPrivate,
-        maxMembers,
-        creatorId: auth.user.id,
-        createdAt: maintenant,
-        updatedAt: maintenant,
+        is_private: isPrivate,
+        max_members: maxMembers,
+        creator_id: auth.user.id,
+        creator_name: auth.user.username ?? undefined,
+        member_count: 1,
+        created_at: maintenant,
+        updated_at: maintenant,
       })
-      .select('id, name, category, description, isPrivate, maxMembers, createdAt')
+      .select('id, name, category, description, is_private, max_members, created_at')
       .single();
 
     if (error || !groupe) {
@@ -62,10 +64,10 @@ export async function POST(req: NextRequest) {
 
     // Le créateur devient automatiquement administrateur du groupe
     const { error: erreurMembre } = await supabase.from('group_memberships').insert({
-      userId: auth.user.id,
-      groupId: groupe.id,
+      user_id: auth.user.id,
+      group_id: groupe.id,
       role: 'admin',
-      joinedAt: maintenant,
+      joined_at: maintenant,
     });
 
     if (erreurMembre) {

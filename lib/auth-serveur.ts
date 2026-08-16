@@ -1,15 +1,18 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
 import { isPremium, isAdmin } from '@/lib/premium';
-import { cookies } from 'next/headers';
+import { createServerSupabaseClient } from '@/lib/supabase-server';
 
 /**
  * Authentification côté serveur.
  *
  * Règle de sécurité : l'identité et l'abonnement d'un utilisateur sont
- * TOUJOURS lus depuis le cookie de session puis vérifiés en base. Ils ne
+ * TOUJOURS lus depuis la session Supabase Auth (cookie synchronisé par
+ * @supabase/ssr) puis vérifiés en base dans la table `profiles`. Ils ne
  * doivent jamais provenir du corps de la requête — le navigateur peut
  * envoyer n'importe quelle valeur, y compris un faux niveau d'abonnement.
+ *
+ * Source unique de vérité : `profiles` (snake_case). L'ancienne table `users`
+ * et le cookie `auth_token` hérité ne sont plus utilisés.
  */
 
 export type UtilisateurAuthentifie = {
@@ -27,53 +30,58 @@ type Resultat =
   | { ok: false; reponse: NextResponse };
 
 /**
- * Récupère l'utilisateur connecté à partir du cookie de session.
+ * Récupère l'utilisateur connecté à partir de la session Supabase Auth.
  * Renvoie soit l'utilisateur, soit la réponse d'erreur à retourner tel quel.
  */
 export async function utilisateurActuel(): Promise<Resultat> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('auth_token')?.value;
+  const supabaseServer = await createServerSupabaseClient();
 
-  if (!token) {
+  // 1. Vérifie la session Supabase Auth (depuis les cookies, jamais le corps).
+  const {
+    data: { user },
+    error,
+  } = await supabaseServer.auth.getUser();
+
+  if (error || !user) {
     return {
       ok: false,
       reponse: NextResponse.json({ error: 'Non authentifié' }, { status: 401 }),
     };
   }
 
-  let userId: string;
-  try {
-    const donnees = JSON.parse(Buffer.from(token, 'base64').toString());
-    userId = donnees.id;
-    if (!userId) throw new Error('id absent du jeton');
-  } catch {
-    return {
-      ok: false,
-      reponse: NextResponse.json({ error: 'Jeton invalide' }, { status: 401 }),
-    };
-  }
-
-  const { data: user, error } = await supabase
-    .from('users')
-    .select('id, email, username, role, subscriptionTier, subscriptionEnd, isBanned')
-    .eq('id', userId)
+  // 2. Charge le profil dans `profiles` (snake_case) — source unique.
+  const { data: profile, error: profileError } = await supabaseServer
+    .from('profiles')
+    .select('id, email, username, role, subscription_tier, subscription_end, is_active')
+    .eq('id', user.id)
     .single();
 
-  if (error || !user) {
+  if (profileError || !profile) {
     return {
       ok: false,
-      reponse: NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 }),
+      reponse: NextResponse.json({ error: 'Profil introuvable' }, { status: 404 }),
     };
   }
 
-  if (user.isBanned) {
+  if (!profile.is_active) {
     return {
       ok: false,
       reponse: NextResponse.json({ error: 'Compte suspendu' }, { status: 403 }),
     };
   }
 
-  return { ok: true, user: user as UtilisateurAuthentifie };
+  return {
+    ok: true,
+    user: {
+      id: profile.id,
+      email: profile.email ?? user.email ?? null,
+      username: profile.username ?? null,
+      role: profile.role ?? null,
+      subscriptionTier: profile.subscription_tier ?? null,
+      subscriptionEnd: profile.subscription_end ?? null,
+      isBanned: false,
+    },
+  };
 }
 
 /**

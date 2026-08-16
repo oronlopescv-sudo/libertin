@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
 import { User, GenderType, SexualOrientationType, AbonnementTier, Group, Message } from './types';
+import { validateDateOfBirth } from './validation';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -10,19 +12,37 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
+// Client navigateur (@supabase/ssr) qui synchronise la session Supabase Auth
+// dans des cookies, lisibles côté serveur (middleware + routes API). Fonctionne
+// aussi pour les requêtes `.from()` côté serveur car ce ne sont que des appels
+// HTTP anonymes ; seule la partie « session » s'active dans le navigateur.
 function makeClient() {
   try {
-    return createClient(
+    return createBrowserClient(
       supabaseUrl || 'https://example.supabase.co',
       supabaseAnonKey || 'dummy-key'
     );
   } catch (e) {
-    console.warn('[Supabase] createClient failed', e);
+    console.warn('[Supabase] createBrowserClient failed', e);
     return null as any;
   }
 }
 
 export const supabase = makeClient();
+
+/**
+ * Client privilégié (clé de service) pour les écritures serveur qui doivent
+ * contourner le RLS : bannissement, mise à jour d'abonnement, etc. À n'utiliser
+ * que dans des routes API authentifiées — jamais côté client.
+ */
+export function createServiceRoleClient() {
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  return createClient(
+    supabaseUrl || 'https://example.supabase.co',
+    serviceKey || 'dummy-service-key',
+    { auth: { persistSession: false } }
+  );
+}
 
 /**
  * Register a user in Supabase Auth & insert record into public.profiles
@@ -47,6 +67,15 @@ export async function signUpWithSupabase(userData: {
       return {
         success: false,
         error: 'Mot de passe requis pour la création de compte.',
+      };
+    }
+
+    // Vérification 18+ côté serveur (tient compte du mois/jour, pas seulement
+    // de l'année) : ne jamais créer de compte Auth si l'utilisateur est mineur.
+    if (!validateDateOfBirth(userData.dateOfBirth)) {
+      return {
+        success: false,
+        error: 'Vous devez avoir au moins 18 ans pour vous inscrire.',
       };
     }
 
