@@ -80,7 +80,18 @@ export default function ProfilePage() {
       formData.append('file', file);
 
       const res = await fetch('/api/photos/upload', { method: 'POST', body: formData });
-      const data = await res.json();
+
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch {
+        // Le serveur n'a pas renvoyé de JSON valide (page d'erreur HTML du
+        // proxy Hostinger, 502/504, etc.) — plus utile à dire que "erreur
+        // réseau" générique, qui laisse penser à tort à un problème de
+        // connexion du côté de la personne.
+        setErreur(`Le serveur n'a pas répondu correctement (code ${res.status}). Réessayez dans un instant.`);
+        return;
+      }
 
       if (!res.ok) {
         if (data.premiumRequired) {
@@ -92,8 +103,10 @@ export default function ProfilePage() {
       }
 
       await chargerPhotos();
-    } catch {
-      setErreur('Erreur réseau. Vérifiez votre connexion.');
+    } catch (err) {
+      console.error('[upload photo]', err);
+      const msg = err instanceof Error ? err.message : String(err);
+      setErreur(`Erreur réseau (${msg}). Vérifiez votre connexion et réessayez.`);
     } finally {
       setUploading(false);
     }
@@ -110,8 +123,10 @@ export default function ProfilePage() {
         return;
       }
       await chargerPhotos();
-    } catch {
-      setErreur('Erreur réseau. Vérifiez votre connexion.');
+    } catch (err) {
+      console.error('[delete photo]', err);
+      const msg = err instanceof Error ? err.message : String(err);
+      setErreur(`Erreur réseau (${msg}). Vérifiez votre connexion et réessayez.`);
     } finally {
       setDeletingId(null);
     }
