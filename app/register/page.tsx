@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
@@ -45,6 +45,18 @@ export default function RegisterPage() {
   const [photoUrl, setPhotoUrl] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [photoErro, setPhotoErro] = useState('');
+  const topoRef = useRef<HTMLDivElement>(null);
+
+  const mostrarErro = (msg: string) => {
+    setErrorMsg(msg);
+    // Sans ceci, l'erreur s'affiche en haut de la page pendant que la
+    // personne est en train de remplir le bas d'un long formulaire — elle
+    // ne la voit jamais et croit que le bouton ne fait rien.
+    requestAnimationFrame(() => {
+      topoRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
 
   const INTEREST_OPTIONS = [
     'Clubs libertins',
@@ -69,7 +81,7 @@ export default function RegisterPage() {
   const handleNextStep = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password || !username) {
-      setErrorMsg('Veuillez remplir tous les champs obligatoires.');
+      mostrarErro('Veuillez remplir tous les champs obligatoires.');
       return;
     }
 
@@ -82,7 +94,7 @@ export default function RegisterPage() {
       age -= 1;
     }
     if (age < 18 || isNaN(age)) {
-      setErrorMsg('Accès strictement interdit aux personnes de moins de 18 ans.');
+      mostrarErro('Accès strictement interdit aux personnes de moins de 18 ans.');
       return;
     }
 
@@ -93,7 +105,7 @@ export default function RegisterPage() {
   const handleCompleteRegistration = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!termsAccepted) {
-      setErrorMsg('Vous devez accepter les conditions d\'utilisation et certifier avoir plus de 18 ans.');
+      mostrarErro('Vous devez accepter les conditions d\'utilisation et certifier avoir plus de 18 ans.');
       return;
     }
 
@@ -119,7 +131,7 @@ export default function RegisterPage() {
       });
       router.push('/decouvrir');
     } catch (err: any) {
-      setErrorMsg(err?.message || "Erreur lors de l'inscription. Veuillez réessayer.");
+      mostrarErro(err?.message || "Erreur lors de l'inscription. Veuillez réessayer.");
     }
   };
 
@@ -153,6 +165,8 @@ export default function RegisterPage() {
               />
             </div>
           </div>
+
+          <div ref={topoRef} />
 
           {errorMsg && (
             <div className="p-3 rounded-xl bg-rose-950/80 border border-rose-800/40 text-rose-300 text-xs">
@@ -336,16 +350,35 @@ export default function RegisterPage() {
                       className="hidden"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onloadend = () => {
-                            setPhotoUrl(reader.result as string);
-                          };
-                          reader.readAsDataURL(file);
+                        e.target.value = '';
+                        if (!file) return;
+
+                        // Une photo de téléphone à pleine résolution peut
+                        // faire plusieurs Mo. Une fois encodée en base64,
+                        // elle peut dépasser la taille de requête acceptée
+                        // par Supabase et faire échouer toute l'inscription
+                        // sans message clair. On refuse tôt, avec une raison.
+                        const LIMITE_MO = 3;
+                        if (file.size > LIMITE_MO * 1024 * 1024) {
+                          setPhotoErro(
+                            `Cette photo dépasse ${LIMITE_MO} Mo. Choisissez une photo plus légère, ou passez cette étape — vous pourrez l'ajouter depuis votre profil après inscription.`
+                          );
+                          return;
                         }
+
+                        setPhotoErro('');
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setPhotoUrl(reader.result as string);
+                        };
+                        reader.readAsDataURL(file);
                       }}
                     />
                   </label>
+
+                  {photoErro && (
+                    <p className="text-[11px] text-rose-400">{photoErro}</p>
+                  )}
 
                   <input
                     type="text"

@@ -148,14 +148,23 @@ export async function signUpWithSupabase(userData: {
     }
 
     // 3. Insert photo if provided
+    //
+    // La conservation d'un compte + profil déjà créés est plus importante
+    // qu'une photo optionnelle : ce bloc est isolé dans son propre try/catch
+    // pour qu'une erreur ici (payload trop volumineux, etc.) ne fasse jamais
+    // échouer une inscription par ailleurs réussie.
     if (userData.photoUrl && userId) {
-      const { error: photoError } = await supabase.from('photos').insert({
-        user_id: userId,
-        url: userData.photoUrl,
-        is_cover: true,
-      });
-      if (photoError) {
-        console.warn('Photo insert notice:', photoError.message);
+      try {
+        const { error: photoError } = await supabase.from('photos').insert({
+          user_id: userId,
+          url: userData.photoUrl,
+          is_cover: true,
+        });
+        if (photoError) {
+          console.warn('Photo insert notice:', photoError.message);
+        }
+      } catch (photoErr: any) {
+        console.warn('Photo insert exception (ignorée) :', photoErr?.message);
       }
     }
 
