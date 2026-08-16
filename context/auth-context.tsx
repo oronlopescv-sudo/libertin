@@ -23,7 +23,6 @@ interface AuthContextType {
   login: (email: string, password?: string) => Promise<boolean>;
   logout: () => void;
   register: (userData: any) => Promise<User>;
-  upgradeAbonnement: (tier: AbonnementTier) => void;
   refreshUser: () => void;
   canSeeProfile: (targetUserId: string) => boolean;
   canAccessChat: () => boolean;
@@ -171,20 +170,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     throw new Error(sbResult.error || "Échec de l'inscription. Veuillez réessayer.");
   };
 
-  const upgradeAbonnement = async (tier: AbonnementTier) => {
-    if (!user) return;
-
-    const endDate = new Date();
-    endDate.setMonth(endDate.getMonth() + (tier === 'PREMIUM_24M' ? 24 : tier === 'PREMIUM_12M' ? 12 : 3));
-
-    await updateSupabaseProfile(user.id, {
-      subscriptionTier: tier,
-      subscriptionEnd: endDate.toISOString(),
-    });
-
-    await refreshUser();
-  };
-
   /**
    * Consultation des profils : ouverte à tout membre connecté.
    * La restriction Premium porte sur le contact, pas sur la consultation.
@@ -218,7 +203,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         logout,
         register,
-        upgradeAbonnement,
         refreshUser,
         canSeeProfile,
         canAccessChat,
@@ -240,7 +224,6 @@ const FALLBACK_AUTH: AuthContextType = {
   register: async () => {
     throw new Error('Auth indisponible.');
   },
-  upgradeAbonnement: () => {},
   refreshUser: () => {},
   canSeeProfile: () => false,
   canAccessChat: () => false,

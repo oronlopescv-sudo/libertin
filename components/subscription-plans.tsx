@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 export function AbonnementPlans() {
-  const { user, upgradeAbonnement, isPremium } = useAuth();
+  const { user, isPremium } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState<AbonnementPlan | null>(null);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -33,15 +33,27 @@ export function AbonnementPlans() {
     setIsProcessing(true);
 
     try {
-      await upgradeAbonnement(selectedPlan.id);
-      setSuccessMessage(`Votre abonnement ${selectedPlan.title} est désormais actif.`);
-    } catch (err) {
-      setSuccessMessage(null);
-      alert('Une erreur est survenue lors de l\'activation.');
+      const res = await fetch('/api/payments/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tier: selectedPlan.id }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.url) {
+        alert(data.message || data.error || "Le paiement n'est pas disponible pour le moment.");
+        return;
+      }
+
+      // Redirige vers la page de paiement Stripe. L'abonnement n'est activé
+      // qu'après confirmation réelle du paiement, côté serveur (webhook) —
+      // jamais directement depuis le navigateur.
+      window.location.href = data.url;
+    } catch {
+      alert("Erreur réseau. Vérifiez votre connexion et réessayez.");
     } finally {
       setIsProcessing(false);
       setConfirmModalOpen(false);
-      setSelectedPlan(null);
     }
   };
 

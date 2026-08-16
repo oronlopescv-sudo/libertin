@@ -101,11 +101,11 @@ async function handleCheckoutSessionCompleted(session: any) {
   const { data: userData, error: userError } = await supabase
     .from('users')
     .update({
-      subscription_tier: planId,
-      subscription_start: now.toISOString(),
-      subscription_end: subscriptionEnd.toISOString(),
-      stripe_customer_id: session.customer,
-      updated_at: now.toISOString(),
+      subscriptionTier: planId,
+      subscriptionStart: now.toISOString(),
+      subscriptionEnd: subscriptionEnd.toISOString(),
+      stripeCustomerId: session.customer,
+      updatedAt: now.toISOString(),
     })
     .eq('id', userId)
     .select()
@@ -174,7 +174,7 @@ async function handleChargeFailed(charge: any) {
       const result = await supabase
         .from('users')
         .select('email')
-        .eq('stripe_customer_id', customerId)
+        .eq('stripeCustomerId', customerId)
         .single();
       users = result.data;
     } catch {
@@ -206,7 +206,7 @@ async function handleAbonnementDeleted(subscription: any) {
     const result = await supabase
       .from('users')
       .select('id, email')
-      .eq('stripe_customer_id', customerId)
+      .eq('stripeCustomerId', customerId)
       .single();
     users = result.data;
   } catch {
@@ -222,10 +222,10 @@ async function handleAbonnementDeleted(subscription: any) {
   const { error: updateError } = await supabase
     .from('users')
     .update({
-      subscription_tier: 'FREE',
-      subscription_start: null,
-      subscription_end: null,
-      updated_at: new Date().toISOString(),
+      subscriptionTier: 'FREE',
+      subscriptionStart: null,
+      subscriptionEnd: null,
+      updatedAt: new Date().toISOString(),
     })
     .eq('id', users.id);
 

@@ -73,7 +73,7 @@ export default function ÉvénementsPage() {
               </Link>
             </div>
             <p className="text-sm text-zinc-500">
-              À partir de 2,08 €/mois
+              À partir de 3,71 €/mois
             </p>
           </div>
         </div>
