@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { fetchResilient } from '@/lib/fetch-resilient';
 import { Navbar } from '@/components/navbar';
 import { Users, Zap, MessageSquare, Heart, TrendingUp, Ban, Lock, Crown } from 'lucide-react';
 import Link from 'next/link';
@@ -44,14 +45,14 @@ export default function AdminDashboard() {
     const loadDashboard = async () => {
       try {
         // Carregar stats
-        const statsRes = await fetch('/api/admin/dashboard');
+        const statsRes = await fetchResilient('/api/admin/dashboard');
         if (statsRes.ok) {
           const statsData = await statsRes.json();
           setStats(statsData);
         }
 
         // Carregar users
-        const usersRes = await fetch(`/api/admin/users?page=${page}&search=${search}`);
+        const usersRes = await fetchResilient(`/api/admin/users?page=${page}&search=${search}`);
         if (usersRes.ok) {
           const usersData = await usersRes.json();
           setUsers(usersData.users);
@@ -70,7 +71,7 @@ export default function AdminDashboard() {
   const banUser = async (userId: string, reason: string) => {
     if (!confirm('Êtes-vous sûr de vouloir bannir cet utilisateur ?')) return;
 
-    const res = await fetch('/api/admin/users', {
+    const res = await fetchResilient('/api/admin/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId, reason }),
@@ -78,7 +79,7 @@ export default function AdminDashboard() {
 
     if (res.ok) {
       // Recarregar users
-      const usersRes = await fetch(`/api/admin/users?page=${page}`);
+      const usersRes = await fetchResilient(`/api/admin/users?page=${page}`);
       const usersData = await usersRes.json();
       setUsers(usersData.users);
     }
@@ -87,13 +88,13 @@ export default function AdminDashboard() {
   const unbanUser = async (userId: string) => {
     if (!confirm('Débannir cet utilisateur ?')) return;
 
-    const res = await fetch(`/api/admin/users?userId=${userId}`, {
+    const res = await fetchResilient(`/api/admin/users?userId=${userId}`, {
       method: 'DELETE',
     });
 
     if (res.ok) {
       // Recarregar users
-      const usersRes = await fetch(`/api/admin/users?page=${page}`);
+      const usersRes = await fetchResilient(`/api/admin/users?page=${page}`);
       const usersData = await usersRes.json();
       setUsers(usersData.users);
     }

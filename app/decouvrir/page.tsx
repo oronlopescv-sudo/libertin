@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { fetchResilient } from '@/lib/fetch-resilient';
 import { Navbar } from '@/components/navbar';
 import Link from 'next/link';
 import { Lock, Heart } from 'lucide-react';
@@ -46,14 +47,14 @@ export default function Decouvrir() {
           if (orientation) params.append('sexualOrientation', orientation);
           params.append('page', String(page));
 
-          const res = await fetch(`/api/discovery?${params.toString()}`);
+          const res = await fetchResilient(`/api/discovery?${params.toString()}`);
           const data = await res.json();
           if (res.ok) {
             setProfiles(data.profiles);
           }
 
           // Buscar meus likes
-          const likesRes = await fetch('/api/likes');
+          const likesRes = await fetchResilient('/api/likes');
           const likesData = await likesRes.json();
           if (likesRes.ok) {
             setLikedUsers(new Set(likesData.likes));
@@ -118,7 +119,7 @@ export default function Decouvrir() {
   }
 
   const handleLike = async (profileId: string) => {
-    const res = await fetch('/api/likes', {
+    const res = await fetchResilient('/api/likes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ likedUserId: profileId }),

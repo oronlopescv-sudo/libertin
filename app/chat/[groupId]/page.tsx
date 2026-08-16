@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { fetchResilient } from '@/lib/fetch-resilient';
 import { useParams } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
 import { ChatBox } from '@/components/chat-box';
@@ -25,7 +26,7 @@ export default function ChatPage() {
 
     const charger = async () => {
       try {
-        const res = await fetch(`/api/groups/${groupId}`);
+        const res = await fetchResilient(`/api/groups/${groupId}`);
         if (res.ok) {
           const d = await res.json();
           setGroupe({ name: d.name ?? `Groupe ${groupId}`, memberCount: d.memberCount });

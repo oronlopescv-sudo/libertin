@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { fetchResilient } from '@/lib/fetch-resilient';
 import Link from 'next/link';
 import { Mail, ArrowLeft } from 'lucide-react';
 
@@ -20,7 +21,7 @@ export function ForgotPasswordForm() {
         throw new Error('Email obligatoire');
       }
 
-      const res = await fetch('/api/auth/forgot-password', {
+      const res = await fetchResilient('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),

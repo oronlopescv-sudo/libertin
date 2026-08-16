@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { fetchResilient } from '@/lib/fetch-resilient';
 import { SUBSCRIPTION_PLANS, getPlanDetails } from '@/lib/stripe';
 import { AbonnementPlan } from '@/lib/types';
 import { useAuth } from '@/context/auth-context';
@@ -33,7 +34,7 @@ export function AbonnementPlans() {
     setIsProcessing(true);
 
     try {
-      const res = await fetch('/api/payments/create-checkout', {
+      const res = await fetchResilient('/api/payments/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tier: selectedPlan.id }),
