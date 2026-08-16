@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { fetchResilient } from '@/lib/fetch-resilient';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
 import { LogOut, User, Mail, Camera, Star, Trash2, Loader2 } from 'lucide-react';
@@ -37,7 +38,7 @@ export default function ProfilePage() {
 
   const chargerPhotos = useCallback(async () => {
     try {
-      const res = await fetch('/api/photos');
+      const res = await fetchResilient('/api/photos');
       const data = await res.json();
       if (res.ok) setPhotos(data.photos ?? []);
     } catch {
@@ -79,7 +80,7 @@ export default function ProfilePage() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch('/api/photos/upload', { method: 'POST', body: formData });
+      const res = await fetchResilient('/api/photos/upload', { method: 'POST', body: formData });
 
       let data: any = {};
       try {
@@ -116,7 +117,7 @@ export default function ProfilePage() {
     setErreur('');
     setDeletingId(photoId);
     try {
-      const res = await fetch(`/api/photos?id=${photoId}`, { method: 'DELETE' });
+      const res = await fetchResilient(`/api/photos?id=${photoId}`, { method: 'DELETE' });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         setErreur(data.error ?? 'Erreur lors de la suppression');

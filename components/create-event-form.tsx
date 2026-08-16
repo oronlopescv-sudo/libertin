@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { fetchResilient } from '@/lib/fetch-resilient';
 import { useRouter } from 'next/navigation';
 import { Loader, Heart, Zap, Crown } from 'lucide-react';
 import { createEvent, EVENT_PLANS } from '@/lib/events';
@@ -69,7 +70,7 @@ export function CreateEventForm({ userId, onSuccess }: CreateEventFormProps) {
       }
 
       // Redirect to checkout
-      const response = await fetch('/api/events/checkout', {
+      const response = await fetchResilient('/api/events/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { fetchResilient } from '@/lib/fetch-resilient';
 import { Navbar } from '@/components/navbar';
 import { CreateGroupModal } from '@/components/create-group-modal';
 import { Plus } from 'lucide-react';
@@ -30,7 +31,7 @@ export default function GroupesPage() {
     const loadData = async () => {
       try {
         // Buscar grupos
-        const res = await fetch('/api/groups');
+        const res = await fetchResilient('/api/groups');
         const data = await res.json();
         setGroups(data.groups || []);
       } catch (error) {

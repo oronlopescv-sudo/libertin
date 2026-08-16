@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { fetchResilient } from '@/lib/fetch-resilient';
 import { Navbar } from '@/components/navbar';
 import Link from 'next/link';
 import {
@@ -116,7 +117,7 @@ export default function OwnerDashboardPage() {
   useEffect(() => {
     const charger = async () => {
       try {
-        const res = await fetch('/api/admin/owner-dashboard');
+        const res = await fetchResilient('/api/admin/owner-dashboard');
         if (res.status === 401 || res.status === 403) {
           setAccesRefuse(true);
           return;

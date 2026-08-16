@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { fetchResilient } from '@/lib/fetch-resilient';
 import Link from 'next/link';
 import { X, Lock } from 'lucide-react';
 import { isPremium as isPremiumFn } from '@/lib/premium';
@@ -41,7 +42,7 @@ export function CreateGroupModal({ isOpen, onClose, userAbonnement }: CreateGrou
     setError('');
 
     try {
-      const res = await fetch('/api/groups', {
+      const res = await fetchResilient('/api/groups', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
