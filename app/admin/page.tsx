@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { isAdmin as isAdminUser } from '@/lib/premium';
 import { Navbar } from '@/components/navbar';
 import { Users, Zap, MessageSquare, Heart, TrendingUp, Ban, Lock, Crown } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/context/auth-context';
 
 interface DashboardStats {
   totalUsers: number;
@@ -28,7 +28,11 @@ interface AdminUser {
 }
 
 export default function AdminDashboard() {
-  const [user, setUser] = useState(null);
+  // Utilisateur connecté depuis le contexte d'authentification (Supabase Auth).
+  // L'ancienne version lisait `localStorage.auth_token` (base64 + Buffer) :
+  // jeton mort, jamais écrit, et Buffer indéfini dans le navigateur — un admin
+  // connecté voyait donc « Accès refusé ».
+  const { user, isAdmin, isLoading: authLoading } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,13 +43,6 @@ export default function AdminDashboard() {
   useEffect(() => {
     const loadDashboard = async () => {
       try {
-        // Verificar se é admin
-        const token = localStorage.getItem('auth_token');
-        if (token) {
-          const userData = JSON.parse(Buffer.from(token, 'base64').toString());
-          setUser(userData);
-        }
-
         // Carregar stats
         const statsRes = await fetch('/api/admin/dashboard');
         if (statsRes.ok) {
@@ -102,7 +99,7 @@ export default function AdminDashboard() {
     }
   };
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#12091A] to-[#1C102B]">
         <Navbar />
@@ -113,7 +110,7 @@ export default function AdminDashboard() {
     );
   }
 
-  if (!isAdminUser(user)) {
+  if (!isAdmin) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#12091A] to-[#1C102B]">
         <Navbar />

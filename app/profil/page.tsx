@@ -1,39 +1,43 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
 import { LogOut, User, Mail } from 'lucide-react';
+import { useAuth } from '@/context/auth-context';
 
-interface UserData {
-  id: string;
-  email: string;
-  username: string;
-}
-
+/**
+ * Page de profil.
+ *
+ * Lit l'utilisateur connecté depuis le contexte d'authentification
+ * (useAuth), alimenté par Supabase Auth — la source unique de vérité.
+ * L'ancienne version utilisait `localStorage.getItem('user')` : comme la
+ * connexion Supabase Auth n'écrit jamais dans localStorage, la page ne
+ * trouvait jamais l'utilisateur et renvoyait systématiquement vers /login,
+ * même juste après une connexion réussie.
+ */
 export default function ProfilePage() {
   const router = useRouter();
-  const [user, setUser] = useState<UserData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, isLoading, logout } = useAuth();
 
-  useEffect(() => {
-    const userData = localStorage.getItem('user');
-    if (!userData) {
-      router.push('/login');
-      return;
+  // Pas de session valide : on renvoie vers la connexion. On n'agit que
+  // quand le contexte a fini de charger pour éviter un clignotement.
+  React.useEffect(() => {
+    if (!isLoading && !user) {
+      router.replace('/login');
     }
-    setUser(JSON.parse(userData));
-    setLoading(false);
-  }, [router]);
+  }, [isLoading, user, router]);
 
-  const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user');
-    router.push('/');
+  const handleLogout = () => {
+    // logout() appelle signOutWithSupabase() : invalide la session côté
+    // Supabase Auth et supprime les cookies. L'ancien appel à
+    // /api/auth/logout ne nettoyait que le cookie mort `auth_token` et
+    // laissait la session Supabase active.
+    logout();
+    router.replace('/');
   };
 
-  if (loading) {
+  if (isLoading || !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#12091A] to-[#1C102B]">
         <Navbar />
@@ -43,8 +47,6 @@ export default function ProfilePage() {
       </div>
     );
   }
-
-  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#12091A] to-[#1C102B]">

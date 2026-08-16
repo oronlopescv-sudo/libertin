@@ -1,10 +1,10 @@
 'use client';
 
-import { isPremium as isPremiumFn } from '@/lib/premium';
 import React, { useEffect, useState } from 'react';
 import { Navbar } from '@/components/navbar';
 import { CreateGroupModal } from '@/components/create-group-modal';
 import { Plus } from 'lucide-react';
+import { useAuth } from '@/context/auth-context';
 
 interface Group {
   id: string;
@@ -16,37 +16,19 @@ interface Group {
   createdAt: string;
 }
 
-interface UserData {
-  id: string;
-  username: string;
-  subscriptionTier: string;
-  subscriptionEnd: string | null;
-}
-
 export default function GroupesPage() {
+  // Utilisateur connecté depuis le contexte d'authentification (Supabase Auth),
+  // et non plus depuis `localStorage.auth_token` (jeton mort, jamais écrit par
+  // la nouvelle auth — la page voyait toujours un visiteur).
+  const { user, isPremium } = useAuth();
   const [groups, setGroups] = useState<Group[]>([]);
-  const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [filter, setFilter] = useState<string>('all');
 
-  // Verificar se est premium
-  const isPremium = isPremiumFn(user);
-
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Buscar user
-        const token = localStorage.getItem('auth_token');
-        if (token) {
-          try {
-            const userData = JSON.parse(Buffer.from(token, 'base64').toString());
-            setUser(userData);
-          } catch {
-            // Token inválido
-          }
-        }
-
         // Buscar grupos
         const res = await fetch('/api/groups');
         const data = await res.json();
@@ -186,7 +168,7 @@ export default function GroupesPage() {
           onClose={() => setIsCreateModalOpen(false)}
           userAbonnement={{
             tier: user.subscriptionTier,
-            expiresAt: user.subscriptionEnd,
+            expiresAt: user.subscriptionEnd ?? null,
           }}
         />
       )}
