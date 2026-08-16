@@ -1,36 +1,19 @@
 'use client';
 
-import { isPremium as isPremiumFn } from '@/lib/premium';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Navbar } from '@/components/navbar';
 import Link from 'next/link';
 import { Lock } from 'lucide-react';
-
-interface UserData {
-  id: string;
-  username: string;
-  subscriptionTier: string;
-  subscriptionEnd: string | null;
-}
+import { useAuth } from '@/context/auth-context';
 
 export default function ÉvénementsPage() {
-  const [user, setUser] = useState<UserData | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Lit l'utilisateur connecté depuis le contexte d'authentification (Supabase
+  // Auth). L'ancienne version décodait `localStorage.auth_token` (base64 +
+  // Buffer) : ce jeton n'est jamais écrit par la nouvelle auth, et Buffer
+  // n'existe pas dans le navigateur — la page voyait donc toujours un visiteur.
+  const { user, isPremium, isLoading } = useAuth();
 
-  useEffect(() => {
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      try {
-        const userData = JSON.parse(Buffer.from(token, 'base64').toString());
-        setUser(userData);
-      } catch {
-        setUser(null);
-      }
-    }
-    setLoading(false);
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#12091A] to-[#1C102B]">
         <Navbar />
@@ -40,8 +23,6 @@ export default function ÉvénementsPage() {
       </div>
     );
   }
-
-  const isPremium = isPremiumFn(user);
 
   if (!user || !isPremium) {
     return (

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { User, AbonnementTier } from '@/lib/types';
-import { isPremium as isPremiumFn } from '@/lib/premium';
+import { isPremium as isPremiumFn, isAdmin as isAdminFn } from '@/lib/premium';
 import {
   supabase,
   signUpWithSupabase,
@@ -20,6 +20,7 @@ interface AuthContextType {
   usersList: User[];
   isLoading: boolean;
   isPremium: boolean;
+  isAdmin: boolean;
   login: (email: string, password?: string) => Promise<boolean>;
   logout: () => void;
   register: (userData: any) => Promise<User>;
@@ -89,6 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [refreshUser]);
 
   const isPremium = React.useMemo(() => isPremiumFn(user), [user]);
+  const isAdmin = React.useMemo(() => isAdminFn(user), [user]);
 
   const login = async (email: string, password?: string): Promise<boolean> => {
     const result = await signInWithSupabase(email, password);
@@ -200,6 +202,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         usersList,
         isLoading,
         isPremium,
+        isAdmin,
         login,
         logout,
         register,
@@ -219,6 +222,7 @@ const FALLBACK_AUTH: AuthContextType = {
   usersList: [],
   isLoading: false,
   isPremium: false,
+  isAdmin: false,
   login: async () => false,
   logout: () => {},
   register: async () => {

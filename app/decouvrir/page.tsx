@@ -1,10 +1,10 @@
 'use client';
 
-import { isPremium as isPremiumFn } from '@/lib/premium';
 import React, { useEffect, useState } from 'react';
 import { Navbar } from '@/components/navbar';
 import Link from 'next/link';
 import { Lock, Heart } from 'lucide-react';
+import { useAuth } from '@/context/auth-context';
 
 interface Profile {
   id: string;
@@ -15,15 +15,12 @@ interface Profile {
   location: string;
 }
 
-interface UserData {
-  id: string;
-  username: string;
-  subscriptionTier: string;
-  subscriptionEnd: string | null;
-}
-
 export default function Decouvrir() {
-  const [user, setUser] = useState<UserData | null>(null);
+  // Utilisateur connecté depuis le contexte d'authentification (Supabase Auth).
+  // L'ancienne version décodait `localStorage.auth_token` (base64 + Buffer) :
+  // jeton mort, jamais écrit par la nouvelle auth, et Buffer indéfini dans le
+  // navigateur — la page voyait toujours un visiteur, même connecté.
+  const { user, isPremium, isLoading: authLoading } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [likedUsers, setLikedUsers] = useState<Set<string>>(new Set());
@@ -39,19 +36,8 @@ export default function Decouvrir() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Buscar user
-        const token = localStorage.getItem('auth_token');
-        if (token) {
-          try {
-            const userData = JSON.parse(Buffer.from(token, 'base64').toString());
-            setUser(userData);
-          } catch {
-            setUser(null);
-          }
-        }
-
-        // Buscar perfis
-        if (isPremiumFn(user)) {
+        // Buscar perfis (réservé Premium)
+        if (isPremium) {
           const params = new URLSearchParams();
           if (location) params.append('location', location);
           if (ageMin) params.append('ageMin', String(ageMin));
@@ -81,9 +67,9 @@ export default function Decouvrir() {
     };
 
     loadData();
-  }, [user, location, ageMin, ageMax, gender, orientation, page]);
+  }, [isPremium, location, ageMin, ageMax, gender, orientation, page]);
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#12091A] to-[#1C102B]">
         <Navbar />

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { isPremium } from '@/lib/premium';
-import { supabase } from '@/lib/supabase';
-import { cookies } from 'next/headers';
+import { utilisateurPremium } from '@/lib/auth-serveur';
+import { createServiceRoleClient } from '@/lib/supabase';
 
 interface FilterParams {
   location?: string;
@@ -14,42 +13,14 @@ interface FilterParams {
 
 export async function GET(req: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
+    // Authentification + contrôle Premium côté serveur, depuis la session
+    // Supabase Auth (cookie @supabase/ssr). L'ancienne version décodait le
+    // cookie mort `auth_token` et lisait la table `users` (camelCase) : elle
+    // renvoyait 401 pour tout utilisateur connecté avec la nouvelle auth.
+    const auth = await utilisateurPremium('découvrir les profils');
+    if (!auth.ok) return auth.reponse;
 
-    if (!token) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
-    }
-
-    // Récupère user do token
-    let userId: string;
-    try {
-      const tokenData = JSON.parse(Buffer.from(token, 'base64').toString());
-      userId = tokenData.id;
-    } catch {
-      return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
-    }
-
-    // Récupère l'utilisateur pour vérifier l'abonnement
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('id, subscriptionTier, subscriptionEnd')
-      .eq('id', userId)
-      .single();
-
-    if (userError || !user) {
-      return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
-    }
-
-    // ✅ VALIDAÇÃO: Apenas PREMIUM pode ver perfis
-    const userIsPremium = isPremium(user);
-
-    if (!userIsPremium) {
-      return NextResponse.json(
-        { error: 'Apenas utilisateurs Premium podem descobrir perfis. Effectuez upgrade!' },
-        { status: 403 }
-      );
-    }
+    const supabase = createServiceRoleClient();
 
     // Parse filtros dos query params
     const searchParams = req.nextUrl.searchParams;
@@ -62,15 +33,15 @@ export async function GET(req: NextRequest) {
     const limit = 20;
     const offset = (page - 1) * limit;
 
-    // Construir query com filtros
+    // Construir query com filtros — table `profiles` (snake_case).
     let query = supabase
-      .from('users')
-      .select('id, username, dateOfBirth, gender, sexualOrientation, location, createdAt', {
-        count: 'exact'
+      .from('profiles')
+      .select('id, username, date_of_birth, gender, sexual_orientation, location, created_at', {
+        count: 'exact',
       })
-      .neq('id', userId)  // Non mostrar own profile
-      .eq('isVerified', true)  // Mostrar só verified
-      .order('createdAt', { ascending: false });
+      .neq('id', auth.user.id) // Non mostrar own profile
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
 
     // Aplicar filtros
     if (location) {
@@ -82,7 +53,9 @@ export async function GET(req: NextRequest) {
       const now = new Date();
       const birthYearMax = now.getFullYear() - ageMin;
       const birthYearMin = now.getFullYear() - ageMax;
-      query = query.gte('dateOfBirth', `${birthYearMin}-01-01`).lte('dateOfBirth', `${birthYearMax}-12-31`);
+      query = query
+        .gte('date_of_birth', `${birthYearMin}-01-01`)
+        .lte('date_of_birth', `${birthYearMax}-12-31`);
     }
 
     if (gender) {
@@ -90,7 +63,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (sexualOrientation) {
-      query = query.eq('sexualOrientation', sexualOrientation);
+      query = query.eq('sexual_orientation', sexualOrientation);
     }
 
     // Paginaction
@@ -103,9 +76,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Erreur lors de la récupération des profils' }, { status: 500 });
     }
 
-    // Calcular idade a partir de dateOfBirth
+    // Calcular idade a partir de date_of_birth
     const profilesWithAge = (profiles || []).map((profile: any) => {
-      const birthDate = new Date(profile.dateOfBirth);
+      const birthDate = new Date(profile.date_of_birth);
       const today = new Date();
       let age = today.getFullYear() - birthDate.getFullYear();
       const monthDiff = today.getMonth() - birthDate.getMonth();
@@ -113,9 +86,12 @@ export async function GET(req: NextRequest) {
         age--;
       }
       return {
-        ...profile,
+        id: profile.id,
+        username: profile.username,
+        gender: profile.gender,
+        sexualOrientation: profile.sexual_orientation,
+        location: profile.location,
         age,
-        dateOfBirth: undefined  // Non enviar data exata por privacidade
       };
     });
 
@@ -126,8 +102,8 @@ export async function GET(req: NextRequest) {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       },
       { status: 200 }
     );
