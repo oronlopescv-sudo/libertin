@@ -293,7 +293,7 @@ export function ProfileCard({
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#D4145A] text-white text-xs font-bold shadow-md"
                   >
                     <Crown className="w-4 h-4" />
-                    <span>Passer en Premium (à partir de 3,71€/mois)</span>
+                    <span>Passer en Premium (à partir de 4,58€/mois)</span>
                   </Link>
                 </div>
               ) : (

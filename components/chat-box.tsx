@@ -292,7 +292,7 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
                 className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white text-xs font-bold shadow-lg flex items-center justify-center gap-2"
               >
                 <Crown className="w-4 h-4" />
-                <span>Débloquer les tchats (dès 3,71€/mois)</span>
+                <span>Débloquer les tchats (dès 4,58€/mois)</span>
               </Link>
               <button
                 onClick={() => setUpgradeModalOpen(false)}
