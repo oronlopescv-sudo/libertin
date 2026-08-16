@@ -31,7 +31,7 @@ Hosting:      Hostinger (Shared Hosting + VPS)
 # SUPABASE (CONFIGURADO)
 NEXT_PUBLIC_SUPABASE_URL=https://mfchfnsekoluicxnguoh.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-SUPABASE_SERVICE_ROLE_KEY=sb_secret_cygq9idx0_yFtcXd7_T3FQ_56YbevHn
+SUPABASE_SERVICE_ROLE_KEY=<retirado do repositório — ver painel Supabase>
 
 # RESEND (PRECISA CONFIGURAR)
 RESEND_API_KEY=re_YOUR_KEY_HERE
@@ -284,7 +284,7 @@ cp .env.example .env.local
 # Modifier .env.local com:
 NEXT_PUBLIC_SUPABASE_URL=https://mfchfnsekoluicxnguoh.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-SUPABASE_SERVICE_ROLE_KEY=sb_secret_cygq9idx0_yFtcXd7_T3FQ_56YbevHn
+SUPABASE_SERVICE_ROLE_KEY=<retirado do repositório — ver painel Supabase>
 
 RESEND_API_KEY=re_test_key (optionnel em dev)
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
