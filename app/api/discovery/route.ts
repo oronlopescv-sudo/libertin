@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { utilisateurPremium } from '@/lib/auth-serveur';
+import { utilisateurActuel } from '@/lib/auth-serveur';
 import { createServiceRoleClient } from '@/lib/supabase';
 
 interface FilterParams {
@@ -13,11 +13,9 @@ interface FilterParams {
 
 export async function GET(req: NextRequest) {
   try {
-    // Authentification + contrôle Premium côté serveur, depuis la session
-    // Supabase Auth (cookie @supabase/ssr). L'ancienne version décodait le
-    // cookie mort `auth_token` et lisait la table `users` (camelCase) : elle
-    // renvoyait 401 pour tout utilisateur connecté avec la nouvelle auth.
-    const auth = await utilisateurPremium('découvrir les profils');
+    // Voir les profils est ouvert à tout membre connecté, Premium ou non —
+    // seul l'envoi de messages est réservé au Premium (voir /api/messages).
+    const auth = await utilisateurActuel();
     if (!auth.ok) return auth.reponse;
 
     const supabase = createServiceRoleClient();
