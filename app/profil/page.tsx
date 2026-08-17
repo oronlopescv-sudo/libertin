@@ -99,7 +99,10 @@ export default function ProfilePage() {
           router.push('/abonnements');
           return;
         }
-        setErreur(data.error ?? "Échec de l'envoi de la photo");
+        // `message` porte la cause technique concrète quand le serveur en
+        // connaît une (clé manquante, bucket absent…) — plus utile que le
+        // libellé générique seul.
+        setErreur(data.message ? `${data.error} — ${data.message}` : (data.error ?? "Échec de l'envoi de la photo"));
         return;
       }
 

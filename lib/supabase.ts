@@ -32,16 +32,31 @@ export const supabase = makeClient();
 
 /**
  * Client privilégié (clé de service) pour les écritures serveur qui doivent
- * contourner le RLS : bannissement, mise à jour d'abonnement, etc. À n'utiliser
- * que dans des routes API authentifiées — jamais côté client.
+ * contourner le RLS : bannissement, mise à jour d'abonnement, envoi de photos.
+ * À n'utiliser que dans des routes API authentifiées — jamais côté client.
+ *
+ * Lève une erreur explicite si la clé manque, plutôt que de continuer avec une
+ * fausse clé : sinon chaque appel échoue avec un message générique
+ * (« Échec de l'envoi », « Erreur interne ») sans jamais révéler que la vraie
+ * cause est une variable d'environnement absente sur le serveur.
  */
+export class ServiceRoleKeyManquanteError extends Error {
+  constructor() {
+    super(
+      "La variable d'environnement SUPABASE_SERVICE_ROLE_KEY n'est pas définie sur le serveur."
+    );
+    this.name = 'ServiceRoleKeyManquanteError';
+  }
+}
+
 export function createServiceRoleClient() {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-  return createClient(
-    supabaseUrl || 'https://example.supabase.co',
-    serviceKey || 'dummy-service-key',
-    { auth: { persistSession: false } }
-  );
+  if (!serviceKey) {
+    throw new ServiceRoleKeyManquanteError();
+  }
+  return createClient(supabaseUrl || 'https://example.supabase.co', serviceKey, {
+    auth: { persistSession: false },
+  });
 }
 
 /**
