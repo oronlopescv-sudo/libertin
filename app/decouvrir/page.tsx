@@ -4,8 +4,9 @@ import React, { useEffect, useState } from 'react';
 import { fetchResilient } from '@/lib/fetch-resilient';
 import { Navbar } from '@/components/navbar';
 import Link from 'next/link';
-import { Lock, Heart } from 'lucide-react';
+import { Lock, Heart, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
+import { useRouter } from 'next/navigation';
 
 interface Profile {
   id: string;
@@ -24,7 +25,40 @@ export default function Decouvrir() {
   const { user, isPremium, isLoading: authLoading } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const [mensagemEnviando, setMensagemEnviando] = useState<string | null>(null);
+
+  const handleOpenMessage = async (profileId: string) => {
+    setMensagemEnviando(profileId);
+    try {
+      const res = await fetchResilient('/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetUserId: profileId }),
+      });
+      const data = await res.json();
+
+      if (res.ok && data.groupId) {
+        router.push(`/chat/${data.groupId}`);
+        return;
+      }
+      if (data.premiumRequired) {
+        router.push('/abonnements');
+        return;
+      }
+      if (res.status === 401) {
+        router.push('/login');
+        return;
+      }
+      setError(data.error ?? "Impossible d'ouvrir la conversation");
+    } catch {
+      setError('Erreur réseau. Vérifiez votre connexion et réessayez.');
+    } finally {
+      setMensagemEnviando(null);
+    }
+  };
   const [likedUsers, setLikedUsers] = useState<Set<string>>(new Set());
+  const [error, setError] = useState('');
   
   // Filtres
   const [location, setLocation] = useState('');
@@ -144,6 +178,12 @@ export default function Decouvrir() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         <h1 className="text-4xl font-bold text-white mb-8">Découvrir les profils</h1>
 
+        {error && (
+          <div className="p-3 rounded-xl bg-rose-950/80 border border-rose-800/40 text-rose-300 text-sm mb-6">
+            {error}
+          </div>
+        )}
+
         {/* Filtres */}
         <div className="bg-[#1C102B] rounded-lg p-6 border border-[#2C1B3D] mb-8">
           <h2 className="text-lg font-semibold text-white mb-4">Filtres</h2>
@@ -257,17 +297,27 @@ export default function Decouvrir() {
                     </span>
                   </div>
 
-                  <button
-                    onClick={() => handleLike(profile.id)}
-                    className={`w-full py-2 rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
-                      likedUsers.has(profile.id)
-                        ? 'bg-[#D4145A] text-white'
-                        : 'bg-[#2C1B3D] text-white hover:bg-[#3C2B4D]'
-                    }`}
-                  >
-                    <Heart className={`w-4 h-4 ${likedUsers.has(profile.id) ? 'fill-current' : ''}`} />
-                    {likedUsers.has(profile.id) ? 'Liké' : 'Liker'}
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleLike(profile.id)}
+                      className={`flex-1 py-2 rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
+                        likedUsers.has(profile.id)
+                          ? 'bg-[#D4145A] text-white'
+                          : 'bg-[#2C1B3D] text-white hover:bg-[#3C2B4D]'
+                      }`}
+                    >
+                      <Heart className={`w-4 h-4 ${likedUsers.has(profile.id) ? 'fill-current' : ''}`} />
+                      {likedUsers.has(profile.id) ? 'Liké' : 'Liker'}
+                    </button>
+                    <button
+                      onClick={() => handleOpenMessage(profile.id)}
+                      disabled={mensagemEnviando === profile.id}
+                      className="flex-1 py-2 rounded-lg font-semibold bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white hover:opacity-90 transition flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      {mensagemEnviando === profile.id ? '...' : 'Message'}
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
