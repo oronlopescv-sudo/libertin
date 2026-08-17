@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceRoleClient } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase-server';
 import { utilisateurPremium } from '@/lib/auth-serveur';
 
 /**
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Vous ne pouvez pas vous écrire à vous-même' }, { status: 400 });
     }
 
-    const supabase = createServiceRoleClient();
+    const supabase = await createServerSupabaseClient();
 
     // Le destinataire existe-t-il ?
     const { data: cible, error: cibleError } = await supabase

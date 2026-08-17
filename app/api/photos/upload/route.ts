@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { utilisateurPremium } from '@/lib/auth-serveur';
-import { createServiceRoleClient, ServiceRoleKeyManquanteError } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase-server';
 import { validateFileUpload } from '@/lib/validation';
 
 /**
@@ -9,9 +9,10 @@ import { validateFileUpload } from '@/lib/validation';
  * la table `photos`. Réservé aux membres Premium (vérifié côté serveur via la
  * session Supabase Auth, jamais via le corps de la requête).
  *
- * L'écriture se fait avec la clé de service (contourne le RLS) car
- * l'utilisateur est déjà authentifié + Premium ; les politiques de storage
- * ne sont pas configurées pour l'insertion anonyme.
+ * On utilise le client de session (clé anon + cookie de l'utilisateur) plutôt
+ * que la clé de service : la RLS et la politique du bucket `photos` autorisent
+ * un membre authentifié à écrire dans son propre dossier. Cela évite que
+ * l'envoi ne dépende d'une clé de service absente ou expirée.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -33,22 +34,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
-    let supabase;
-    try {
-      supabase = createServiceRoleClient();
-    } catch (err) {
-      if (err instanceof ServiceRoleKeyManquanteError) {
-        console.error('[photos/upload]', err.message);
-        return NextResponse.json(
-          {
-            error: "L'envoi de photos n'est pas configuré sur le serveur.",
-            message: err.message,
-          },
-          { status: 503 }
-        );
-      }
-      throw err;
-    }
+    const supabase = await createServerSupabaseClient();
 
     const bucket = process.env.SUPABASE_PHOTOS_BUCKET || 'photos';
     const ext = file.name.split('.').pop() || 'jpg';

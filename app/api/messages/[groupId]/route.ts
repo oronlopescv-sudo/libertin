@@ -30,7 +30,7 @@ function mapMessage(row: any) {
   return {
     id: row.id,
     userId: row.user_id,
-    userName: row.user_name ?? row.displayed_username ?? null,
+    userName: row.user_name ?? null,
     userAvatar: row.user_avatar ?? null,
     content: row.content,
     createdAt: row.created_at,
@@ -54,7 +54,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ grou
 
     const { data: messages, error } = await supabase
       .from('messages')
-      .select('id, user_id, user_name, user_avatar, content, created_at, displayed_username')
+      .select('id, user_id, user_name, user_avatar, content, created_at')
       .eq('group_id', groupId)
       .order('created_at', { ascending: true })
       .limit(100);
@@ -121,7 +121,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gro
         content,
         created_at: maintenant,
       })
-      .select('id, user_id, user_name, user_avatar, content, created_at, displayed_username')
+      .select('id, user_id, user_name, user_avatar, content, created_at')
       .single();
 
     if (error) {

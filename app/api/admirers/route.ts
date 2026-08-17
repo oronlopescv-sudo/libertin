@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceRoleClient } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase-server';
 import { utilisateurPremium } from '@/lib/auth-serveur';
 
 /**
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     const auth = await utilisateurPremium('voir leurs admirateurs');
     if (!auth.ok) return auth.reponse;
 
-    const supabase = createServiceRoleClient();
+    const supabase = await createServerSupabaseClient();
     const { data: admirers, error } = await supabase
       .from('likes')
       .select(

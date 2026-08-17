@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceRoleClient } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase-server';
 import { utilisateurPremium, utilisateurActuel } from '@/lib/auth-serveur';
 
 /**
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Vous ne pouvez pas vous liker vous-même' }, { status: 400 });
     }
 
-    const supabase = createServiceRoleClient();
+    const supabase = await createServerSupabaseClient();
 
     const { data: existingLike } = await supabase
       .from('likes')
@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
     const auth = await utilisateurActuel();
     if (!auth.ok) return auth.reponse;
 
-    const supabase = createServiceRoleClient();
+    const supabase = await createServerSupabaseClient();
     const { data: likes, error } = await supabase
       .from('likes')
       .select('liked_user_id')
