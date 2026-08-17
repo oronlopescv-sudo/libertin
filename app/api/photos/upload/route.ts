@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { utilisateurPremium } from '@/lib/auth-serveur';
-import { createServiceRoleClient } from '@/lib/supabase';
+import { createServiceRoleClient, ServiceRoleKeyManquanteError } from '@/lib/supabase';
 import { validateFileUpload } from '@/lib/validation';
 
 /**
@@ -33,7 +33,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
-    const supabase = createServiceRoleClient();
+    let supabase;
+    try {
+      supabase = createServiceRoleClient();
+    } catch (err) {
+      if (err instanceof ServiceRoleKeyManquanteError) {
+        console.error('[photos/upload]', err.message);
+        return NextResponse.json(
+          {
+            error: "L'envoi de photos n'est pas configuré sur le serveur.",
+            message: err.message,
+          },
+          { status: 503 }
+        );
+      }
+      throw err;
+    }
+
     const bucket = process.env.SUPABASE_PHOTOS_BUCKET || 'photos';
     const ext = file.name.split('.').pop() || 'jpg';
     const filename = `profiles/${auth.user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
@@ -49,8 +65,13 @@ export async function POST(req: NextRequest) {
 
     if (uploadError || !uploadData) {
       console.error('Photo upload error:', uploadError);
+      // Remonter le message réel de Supabase Storage : sans lui, une cause
+      // concrète (bucket absent, clé invalide, type refusé) reste invisible.
       return NextResponse.json(
-        { error: "Échec de l'envoi de la photo" },
+        {
+          error: "Échec de l'envoi de la photo",
+          message: uploadError?.message ?? 'Erreur de stockage inconnue',
+        },
         { status: 500 }
       );
     }
