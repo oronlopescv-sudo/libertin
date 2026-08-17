@@ -160,9 +160,9 @@ export default function Decouvrir() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ likedUserId: profileId }),
     });
+    const data = await res.json().catch(() => ({}));
 
     if (res.ok) {
-      const data = await res.json();
       if (data.liked) {
         setLikedUsers(new Set([...likedUsers, profileId]));
       } else {
@@ -170,7 +170,17 @@ export default function Decouvrir() {
         newLiked.delete(profileId);
         setLikedUsers(newLiked);
       }
+      return;
     }
+    if (data.premiumRequired) {
+      router.push('/abonnements');
+      return;
+    }
+    if (res.status === 401) {
+      router.push('/login');
+      return;
+    }
+    setError(data.error ?? 'Erreur lors du like');
   };
 
   return (
@@ -277,17 +287,19 @@ export default function Decouvrir() {
                 key={profile.id}
                 className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] overflow-hidden hover:border-[#D4145A] transition"
               >
-                {/* Placeholder para foto */}
-                <div className="h-48 bg-gradient-to-br from-[#D4145A]/20 to-[#E86B7A]/20 flex items-center justify-center">
-                  <span className="text-zinc-500">Photo</span>
-                </div>
+                <Link href={`/profil/${profile.id}`} className="block">
+                  {/* Placeholder para foto */}
+                  <div className="h-48 bg-gradient-to-br from-[#D4145A]/20 to-[#E86B7A]/20 flex items-center justify-center">
+                    <span className="text-zinc-500">Photo</span>
+                  </div>
+                </Link>
 
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <h3 className="text-lg font-bold text-white">{profile.username}</h3>
+                    <Link href={`/profil/${profile.id}`} className="block">
+                      <h3 className="text-lg font-bold text-white hover:text-[#E86B7A] transition">{profile.username}</h3>
                       <p className="text-sm text-zinc-400">{profile.age} ans • {profile.location}</p>
-                    </div>
+                    </Link>
                   </div>
 
                   <div className="flex gap-2 mb-4">
