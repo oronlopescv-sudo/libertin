@@ -91,7 +91,7 @@ export function Navbar() {
                   className="flex items-center gap-2 p-1.5 pr-3 rounded-full bg-[#2C1B3D] border border-[#3D2654] hover:border-[#D4145A] transition-colors"
                 >
                   <img
-                    src={user.photos[0]?.url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80'}
+                    src={user.photos?.[0]?.url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80'}
                     alt={user.username}
                     className="w-7 h-7 rounded-full object-cover border border-[#D4145A]"
                   />
@@ -147,7 +147,7 @@ export function Navbar() {
             <div className="p-3 rounded-xl bg-[#2C1B3D] flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <img
-                  src={user.photos[0]?.url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80'}
+                  src={user.photos?.[0]?.url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80'}
                   alt={user.username}
                   className="w-10 h-10 rounded-full object-cover border border-[#D4145A]"
                 />
