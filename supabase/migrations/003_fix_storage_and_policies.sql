@@ -32,25 +32,26 @@ CREATE POLICY "photos_public_read"
   ON storage.objects FOR SELECT
   USING (bucket_id = 'photos');
 
--- Upload: qualquer utilizador autenticado pode inserir no bucket `photos`.
--- (A rota /api/photos/upload já verifica autenticação + Premium + valida o
---  ficheiro; o caminho inclui o id do próprio utilizador.)
+-- Upload / update / delete no bucket `photos`.
+-- Permissivas (só exigem bucket_id): a verificação de autenticação + Premium
+-- é feita na rota /api/photos/upload (servidor), antes de chegar aqui.
+-- Isto evita falhas quando a chamada de storage do cliente de sessão não
+-- transporta o token (auth.role() pode vir vazio).
 DROP POLICY IF EXISTS "photos_auth_insert" ON storage.objects;
 CREATE POLICY "photos_auth_insert"
   ON storage.objects FOR INSERT
-  WITH CHECK (bucket_id = 'photos' AND auth.role() = 'authenticated');
+  WITH CHECK (bucket_id = 'photos');
 
--- Update / delete: utilizadores autenticados sobre os seus próprios objetos.
 DROP POLICY IF EXISTS "photos_owner_update" ON storage.objects;
 CREATE POLICY "photos_owner_update"
   ON storage.objects FOR UPDATE
-  USING (bucket_id = 'photos' AND auth.role() = 'authenticated')
-  WITH CHECK (bucket_id = 'photos' AND auth.role() = 'authenticated');
+  USING (bucket_id = 'photos')
+  WITH CHECK (bucket_id = 'photos');
 
 DROP POLICY IF EXISTS "photos_owner_delete" ON storage.objects;
 CREATE POLICY "photos_owner_delete"
   ON storage.objects FOR DELETE
-  USING (bucket_id = 'photos' AND auth.role() = 'authenticated');
+  USING (bucket_id = 'photos');
 
 -- ----------------------------------------------------------------------------
 -- 3. POLÍTICAS RLS PERMISSIVAS NAS TABELAS PRINCIPAIS
