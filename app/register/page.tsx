@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
@@ -23,8 +23,17 @@ import {
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { register } = useAuth();
+  const { register, user, isLoading: authLoading } = useAuth();
   const [step, setStep] = useState<1 | 2>(1);
+
+  // Déjà connecté : proposer de créer un compte n'a aucun sens. Sans cette
+  // redirection, la navbar affiche le compte connecté pendant que la page
+  // demande de s'inscrire — le site paraît incohérent.
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace('/decouvrir');
+    }
+  }, [authLoading, user, router]);
 
   // Form State
   const [email, setEmail] = useState('');
@@ -134,6 +143,16 @@ export default function RegisterPage() {
       mostrarErro(err?.message || "Erreur lors de l'inscription. Veuillez réessayer.");
     }
   };
+
+  // Pendant la vérification de session, ou si une session existe déjà (la
+  // redirection ci-dessus est en cours), on n'affiche pas le formulaire.
+  if (authLoading || user) {
+    return (
+      <div className="min-h-screen flex flex-col bg-[#12091A] text-[#F5F0F8]">
+        <Navbar />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#12091A] text-[#F5F0F8]">
