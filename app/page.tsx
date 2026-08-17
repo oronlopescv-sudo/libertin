@@ -7,6 +7,8 @@ import { Footer } from '@/components/footer';
 import { ProfileCard } from '@/components/profile-card';
 import { AbonnementPlans } from '@/components/subscription-plans';
 import { useAuth } from '@/context/auth-context';
+import { useRouter } from 'next/navigation';
+import { fetchResilient } from '@/lib/fetch-resilient';
 import {
   Flame,
   ShieldCheck,
@@ -23,6 +25,34 @@ import {
 
 export default function HomePage() {
   const { user, usersList, isPremium } = useAuth();
+  const router = useRouter();
+
+  const handleOpenMessage = async (profile: { id: string }) => {
+    try {
+      const res = await fetchResilient('/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetUserId: profile.id }),
+      });
+      const data = await res.json();
+
+      if (res.ok && data.groupId) {
+        router.push(`/chat/${data.groupId}`);
+        return;
+      }
+      if (data.premiumRequired) {
+        router.push('/abonnements');
+        return;
+      }
+      if (res.status === 401) {
+        router.push('/login');
+        return;
+      }
+      alert(data.error ?? "Impossible d'ouvrir la conversation");
+    } catch {
+      alert('Erreur réseau. Vérifiez votre connexion et réessayez.');
+    }
+  };
 
   const features = [
     {
@@ -201,6 +231,7 @@ export default function HomePage() {
                   profile={profile}
                   currentUser={user}
                   isPremium={isPremium}
+                  onOpenMessageModal={handleOpenMessage}
                 />
               ))}
             </div>
