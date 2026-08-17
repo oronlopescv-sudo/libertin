@@ -86,7 +86,7 @@ export function CreateGroupModal({ isOpen, onClose, userAbonnement }: CreateGrou
       <div className="bg-[#1C102B] rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto border border-[#2C1B3D]">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-[#2C1B3D] sticky top-0 bg-[#1C102B]">
-          <h2 className="text-lg font-bold text-white">Criar Groupe</h2>
+          <h2 className="text-lg font-bold text-white">Créer un groupe</h2>
           <button
             onClick={onClose}
             className="text-zinc-400 hover:text-white transition"
@@ -137,9 +137,9 @@ export function CreateGroupModal({ isOpen, onClose, userAbonnement }: CreateGrou
                 </div>
               )}
 
-              {/* Nome */}
+              {/* Nom */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-[#F5F0F8]">Nome *</label>
+                <label className="text-sm font-medium text-[#F5F0F8]">Nom *</label>
                 <input
                   type="text"
                   value={name}
@@ -170,19 +170,19 @@ export function CreateGroupModal({ isOpen, onClose, userAbonnement }: CreateGrou
                   onChange={(e) => setCategory(e.target.value)}
                   className="w-full px-4 py-2 bg-[#2C1B3D] border border-[#3C2B4D] rounded-lg text-white focus:outline-none focus:border-[#D4145A]"
                 >
-                  <option value="general">Geral</option>
+                  <option value="general">Général</option>
                   <option value="couples">Couples</option>
                   <option value="singles">Célibataires</option>
                   <option value="women">Femmes</option>
                   <option value="events">Événements</option>
-                  <option value="other">Outro</option>
+                  <option value="other">Autre</option>
                 </select>
               </div>
 
               {/* Max Members */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-[#F5F0F8]">
-                  Máx Membros ({maxMembers})
+                  Membres max. ({maxMembers})
                 </label>
                 <input
                   type="range"
@@ -204,7 +204,7 @@ export function CreateGroupModal({ isOpen, onClose, userAbonnement }: CreateGrou
                   className="w-4 h-4 accent-[#D4145A]"
                 />
                 <label htmlFor="private-checkbox" className="text-sm text-[#F5F0F8]">
-                  Groupe privé (convite apenas)
+                  Groupe privé (sur invitation)
                 </label>
               </div>
 
@@ -222,7 +222,7 @@ export function CreateGroupModal({ isOpen, onClose, userAbonnement }: CreateGrou
                   disabled={loading}
                   className="flex-1 py-2 bg-gradient-to-r from-[#D4145A] to-[#E86B7A] rounded-lg font-semibold text-white hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? 'Criando...' : 'Criar Groupe'}
+                  {loading ? 'Création...' : 'Créer le groupe'}
                 </button>
               </div>
             </form>

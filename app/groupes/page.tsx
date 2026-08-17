@@ -6,6 +6,7 @@ import { Navbar } from '@/components/navbar';
 import { CreateGroupModal } from '@/components/create-group-modal';
 import { Plus } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
+import { useRouter } from 'next/navigation';
 
 interface Group {
   id: string;
@@ -22,10 +23,46 @@ export default function GroupesPage() {
   // et non plus depuis `localStorage.auth_token` (jeton mort, jamais écrit par
   // la nouvelle auth — la page voyait toujours un visiteur).
   const { user, isPremium } = useAuth();
+  const router = useRouter();
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [filter, setFilter] = useState<string>('all');
+  const [joiningId, setJoiningId] = useState<string | null>(null);
+  const [erreur, setErreur] = useState('');
+
+  // Le bouton « Rejoindre » n'avait aucun gestionnaire : cliquer dessus ne
+  // faisait strictement rien, sans message ni navigation.
+  const handleJoin = async (groupId: string) => {
+    setErreur('');
+    setJoiningId(groupId);
+    try {
+      const res = await fetchResilient('/api/groups', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ groupId }),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        router.push(`/chat/${groupId}`);
+        return;
+      }
+      if (data.premiumRequired) {
+        router.push('/abonnements');
+        return;
+      }
+      if (res.status === 401) {
+        router.push('/login');
+        return;
+      }
+      setErreur(data.error ?? 'Impossible de rejoindre ce groupe');
+    } catch {
+      setErreur('Erreur réseau. Vérifiez votre connexion et réessayez.');
+    } finally {
+      setJoiningId(null);
+    }
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -55,11 +92,17 @@ export default function GroupesPage() {
       <Navbar />
 
       <div className="max-w-6xl mx-auto px-4 py-12">
+        {erreur && (
+          <div className="p-3 rounded-xl bg-rose-950/80 border border-rose-800/40 text-rose-300 text-sm mb-6">
+            {erreur}
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-4xl font-bold text-white mb-2">Groupes</h1>
-            <p className="text-zinc-400">Encontra ou cria grupos de interesse</p>
+            <p className="text-zinc-400">Trouvez ou créez des groupes selon vos envies</p>
           </div>
           {user && (
             <button
@@ -69,10 +112,10 @@ export default function GroupesPage() {
                   ? 'bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white hover:opacity-90'
                   : 'bg-zinc-700 text-zinc-400 cursor-not-allowed opacity-50'
               }`}
-              title={isPremium ? 'Criar novo grupo' : 'Premium apenas'}
+              title={isPremium ? 'Créer un nouveau groupe' : 'Réservé aux membres Premium'}
             >
               <Plus className="w-5 h-5" />
-              Criar Groupe
+              Créer un groupe
             </button>
           )}
         </div>
@@ -113,7 +156,7 @@ export default function GroupesPage() {
 
         {/* Groups Grid */}
         {loading ? (
-          <div className="text-center text-zinc-400">Carregando grupos...</div>
+          <div className="text-center text-zinc-400">Chargement des groupes...</div>
         ) : filteredGroups.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-zinc-400 mb-4">Aucun groupe trouvé</p>
@@ -153,8 +196,12 @@ export default function GroupesPage() {
                   <span className="capitalize">{group.category}</span>
                 </div>
 
-                <button className="w-full py-2 bg-gradient-to-r from-[#D4145A] to-[#E86B7A] rounded-lg font-semibold text-white hover:opacity-90 transition">
-                  Juntar-se
+                <button
+                  onClick={() => handleJoin(group.id)}
+                  disabled={joiningId === group.id}
+                  className="w-full py-2 bg-gradient-to-r from-[#D4145A] to-[#E86B7A] rounded-lg font-semibold text-white hover:opacity-90 transition disabled:opacity-50"
+                >
+                  {joiningId === group.id ? 'Inscription...' : 'Rejoindre'}
                 </button>
               </div>
             ))}
