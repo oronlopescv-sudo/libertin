@@ -70,7 +70,7 @@ export function ProfileCard({
 
   const primaryPhoto =
     (profile.photos ?? []).find((p) => p.isCover)?.url ||
-    profile.photos[0]?.url ||
+    profile.photos?.[0]?.url ||
     'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=800&auto=format&fit=crop&q=80';
 
   const genderLabels = {

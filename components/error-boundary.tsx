@@ -54,18 +54,24 @@ export class ErrorBoundary extends React.Component<Props, State> {
             <div className="text-center space-y-3">
               <h1 className="text-2xl font-bold text-white">Quelque chose s&apos;est mal passé</h1>
               <p className="text-sm text-zinc-400">
-                Nous avons rencontré une erreur. Notre équipe a été notifiée et nous corrigeons
-                le problème.
+                Une erreur est survenue lors de l&apos;affichage de cette page.
+                Vous pouvez réessayer, ou revenir à l&apos;accueil.
               </p>
             </div>
 
-            {/* Error Details (dev only) */}
-            {process.env.NODE_ENV === 'development' && this.state.error && (
-              <div className="p-4 bg-[#1C102B] border border-red-800/30 rounded-lg overflow-auto max-h-32">
-                <p className="text-xs text-red-400 font-mono break-words">
+            {/* Détail technique — replié par défaut, mais disponible aussi en
+                production : sans lui, un utilisateur qui rencontre l'erreur ne
+                peut rien rapporter d'exploitable, et la cause reste invisible. */}
+            {this.state.error && (
+              <details className="p-3 bg-[#1C102B] border border-red-800/30 rounded-lg">
+                <summary className="text-xs text-zinc-400 cursor-pointer hover:text-zinc-300 select-none">
+                  Détail technique
+                </summary>
+                <p className="mt-2 text-xs text-red-400 font-mono break-words whitespace-pre-wrap max-h-48 overflow-auto">
                   {this.state.error.toString()}
+                  {this.state.error.stack ? `\n\n${this.state.error.stack}` : ''}
                 </p>
-              </div>
+              </details>
             )}
 
             {/* Actions */}

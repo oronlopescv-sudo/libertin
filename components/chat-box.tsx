@@ -62,7 +62,7 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
       groupId,
       userId: user.id,
       userName: user.username,
-      userAvatar: user.photos[0]?.url,
+      userAvatar: user.photos?.[0]?.url,
       userGender: user.gender,
       userIsVerified: user.isVerified,
       content: inputContent.trim(),
