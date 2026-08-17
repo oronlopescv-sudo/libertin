@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { utilisateurActuel } from '@/lib/auth-serveur';
-import { createServiceRoleClient } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase-server';
 
 interface FilterParams {
   location?: string;
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     const auth = await utilisateurActuel();
     if (!auth.ok) return auth.reponse;
 
-    const supabase = createServiceRoleClient();
+    const supabase = await createServerSupabaseClient();
 
     // Parse filtros dos query params
     const searchParams = req.nextUrl.searchParams;

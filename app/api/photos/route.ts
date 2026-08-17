@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { utilisateurActuel } from '@/lib/auth-serveur';
-import { createServiceRoleClient } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase-server';
 
 /**
  * GET /api/photos — liste les photos du membre connecté.
@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     const auth = await utilisateurActuel();
     if (!auth.ok) return auth.reponse;
 
-    const supabase = createServiceRoleClient();
+    const supabase = await createServerSupabaseClient();
     const { data: photos, error } = await supabase
       .from('photos')
       .select('id, url, is_cover, display_order, uploaded_at')
@@ -44,7 +44,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "L'identifiant de la photo est requis" }, { status: 400 });
     }
 
-    const supabase = createServiceRoleClient();
+    const supabase = await createServerSupabaseClient();
 
     // Vérifie que la photo appartient bien à la personne qui la supprime.
     const { data: photo, error: fetchError } = await supabase

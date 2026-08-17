@@ -594,16 +594,19 @@ export async function sendSupabaseMessage(payload: {
   mejourUrl?: string;
 }): Promise<boolean> {
   try {
-    const { error } = await supabase.from('messages').insert({
+    // La table `messages` en production ne possède que : group_id, user_id,
+    // user_name, user_avatar, content, created_at (et mediaUrl). Les colonnes
+    // user_gender / user_is_verified / mejour_url n'existent pas : les insérer
+    // faisait échouer silencieusement l'envoi de chaque message.
+    const insertPayload: Record<string, unknown> = {
       group_id: payload.groupId,
       user_id: payload.userId,
       user_name: payload.userName,
-      user_avatar: payload.userAvatar,
-      user_gender: payload.userGender,
-      user_is_verified: payload.userIsVerified,
+      user_avatar: payload.userAvatar ?? null,
       content: payload.content,
-      mejour_url: payload.mejourUrl,
-    });
+    };
+
+    const { error } = await supabase.from('messages').insert(insertPayload);
     return !error;
   } catch (e) {
     return false;

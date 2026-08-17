@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceRoleClient } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase-server';
 import { utilisateurActuel } from '@/lib/auth-serveur';
 
 /**
@@ -16,7 +16,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const auth = await utilisateurActuel();
     if (!auth.ok) return auth.reponse;
 
-    const supabase = createServiceRoleClient();
+    const supabase = await createServerSupabaseClient();
 
     const { data: groupe, error } = await supabase
       .from('groups')

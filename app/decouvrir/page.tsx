@@ -22,7 +22,7 @@ export default function Decouvrir() {
   // L'ancienne version décodait `localStorage.auth_token` (base64 + Buffer) :
   // jeton mort, jamais écrit par la nouvelle auth, et Buffer indéfini dans le
   // navigateur — la page voyait toujours un visiteur, même connecté.
-  const { user, isPremium, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -71,8 +71,10 @@ export default function Decouvrir() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Buscar perfis (réservé Premium)
-        if (isPremium) {
+        // La consultation des profils est ouverte à tout membre connecté.
+        // Seuls le like et l'envoi de messages sont réservés au Premium
+        // (vérifié côté serveur dans les routes /api/likes et /api/conversations).
+        if (user) {
           const params = new URLSearchParams();
           if (location) params.append('location', location);
           if (ageMin) params.append('ageMin', String(ageMin));
@@ -102,7 +104,7 @@ export default function Decouvrir() {
     };
 
     loadData();
-  }, [isPremium, location, ageMin, ageMax, gender, orientation, page]);
+  }, [user, location, ageMin, ageMax, gender, orientation, page]);
 
   if (loading || authLoading) {
     return (
