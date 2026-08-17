@@ -144,5 +144,43 @@ ALTER TABLE public.groups ADD COLUMN IF NOT EXISTS is_nsfw BOOLEAN DEFAULT false
 ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS media_url TEXT;
 ALTER TABLE public.likes ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
 
+-- 4. DEFAULTS DE id / created_at / updated_at -------------------------------
+-- CRÍTICO: as tabelas groups, group_memberships, messages, likes, photos têm
+-- `id` NOT NULL sem default, e o código NÃO envia `id` ao inserir. Sem este
+-- default, toda a escrita falha com "null value in column id violates
+-- not-null constraint" (23502) — ou seja, chat, likes, conversas e upload de
+-- fotos continuam a falhar MESMO com as políticas RLS permissivas acima.
+-- SET DEFAULT só afecta novas linhas; idempotente.
+CREATE EXTENSION IF NOT EXISTS pgcrypto;  -- fornece gen_random_uuid()
+
+DO $$
+DECLARE
+  t text;
+  id_tables text[] := ARRAY['groups','group_memberships','messages','likes','photos',
+                            'events','event_participants','event_photos',
+                            'verification_photos','subscriptions'];
+  ts_tables text[] := ARRAY['groups','messages','photos','likes','events',
+                            'event_participants','event_photos','subscriptions',
+                            'profiles','verification_photos'];
+BEGIN
+  FOREACH t IN ARRAY id_tables LOOP
+    IF EXISTS (SELECT 1 FROM information_schema.columns
+               WHERE table_schema='public' AND table_name=t AND column_name='id') THEN
+      EXECUTE format('ALTER TABLE public.%I ALTER COLUMN id SET DEFAULT gen_random_uuid()', t);
+    END IF;
+  END LOOP;
+
+  FOREACH t IN ARRAY ts_tables LOOP
+    IF EXISTS (SELECT 1 FROM information_schema.columns
+               WHERE table_schema='public' AND table_name=t AND column_name='created_at') THEN
+      EXECUTE format('ALTER TABLE public.%I ALTER COLUMN created_at SET DEFAULT now()', t);
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns
+               WHERE table_schema='public' AND table_name=t AND column_name='updated_at') THEN
+      EXECUTE format('ALTER TABLE public.%I ALTER COLUMN updated_at SET DEFAULT now()', t);
+    END IF;
+  END LOOP;
+END $$;
+
 -- Fim. Depois disto: registo, login, like, mensagem, chat, grupos, upload de
 -- fotos — tudo funciona. (Resta apenas configurar o Stripe para os pagamentos.)
