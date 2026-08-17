@@ -194,6 +194,29 @@ export function Navbar() {
             })}
           </div>
 
+          {/* Le bouton de déconnexion n'existait que dans la barre de bureau :
+              sur mobile, aucun moyen de se déconnecter. */}
+          {user ? (
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                logout();
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-zinc-200 hover:bg-[#2C1B3D] border-t border-[#2C1B3D] mt-3 pt-4"
+            >
+              <LogOut className="w-5 h-5 text-[#E86B7A]" />
+              <span>Se déconnecter</span>
+            </button>
+          ) : (
+            <Link
+              href="/login"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-center px-4 py-2.5 rounded-lg bg-[#D4145A] text-white text-sm font-semibold hover:bg-[#B50E4A] transition-colors mt-3"
+            >
+              Se connecter
+            </Link>
+          )}
+
         </div>
       )}
     </header>

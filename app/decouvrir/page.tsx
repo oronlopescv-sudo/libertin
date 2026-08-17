@@ -266,7 +266,7 @@ export default function Decouvrir() {
         {/* Profils */}
         {profiles.length === 0 ? (
           <div className="text-center text-zinc-400 py-12">
-            Aucun profil trouvé com esses critérios
+            Aucun profil ne correspond à ces critères
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -277,7 +277,7 @@ export default function Decouvrir() {
               >
                 {/* Placeholder para foto */}
                 <div className="h-48 bg-gradient-to-br from-[#D4145A]/20 to-[#E86B7A]/20 flex items-center justify-center">
-                  <span className="text-zinc-500">Foto</span>
+                  <span className="text-zinc-500">Photo</span>
                 </div>
 
                 <div className="p-4">

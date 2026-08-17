@@ -141,7 +141,7 @@ export default function ProfilePage() {
       <div className="min-h-screen bg-gradient-to-br from-[#12091A] to-[#1C102B]">
         <Navbar />
         <div className="flex items-center justify-center h-96">
-          <div className="text-white">Carregando perfil...</div>
+          <div className="text-white">Chargement du profil...</div>
         </div>
       </div>
     );
@@ -152,13 +152,13 @@ export default function ProfilePage() {
       <Navbar />
       <main className="max-w-2xl mx-auto px-4 py-12">
         <div className="bg-[#1C102B] border border-[#2C1B3D] rounded-2xl p-8 space-y-6">
-          <h1 className="text-3xl font-bold text-white">Meu Profil</h1>
+          <h1 className="text-3xl font-bold text-white">Mon profil</h1>
 
           <div className="space-y-4">
             <div className="flex items-center gap-4">
               <User className="w-5 h-5 text-[#D4145A]" />
               <div>
-                <p className="text-zinc-400 text-sm">Usuário</p>
+                <p className="text-zinc-400 text-sm">Nom d'utilisateur</p>
                 <p className="text-white font-semibold">{user.username}</p>
               </div>
             </div>
@@ -179,7 +179,7 @@ export default function ProfilePage() {
             <div className="flex items-center justify-between">
               <h2 className="text-white font-semibold flex items-center gap-2">
                 <Camera className="w-4 h-4 text-[#D4145A]" />
-                Minhas fotos
+                Mes photos
               </h2>
               <button
                 onClick={() => fileInputRef.current?.click()}
