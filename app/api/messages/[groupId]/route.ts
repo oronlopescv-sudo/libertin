@@ -32,7 +32,9 @@ function mapMessage(row: any) {
     userId: row.user_id,
     userName: row.user_name ?? null,
     userAvatar: row.user_avatar ?? null,
+    groupId: row.group_id,
     content: row.content,
+    mediaUrl: row.media_url ?? null,
     createdAt: row.created_at,
   };
 }
@@ -54,7 +56,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ grou
 
     const { data: messages, error } = await supabase
       .from('messages')
-      .select('id, user_id, user_name, user_avatar, content, created_at')
+      .select('id, user_id, group_id, user_name, user_avatar, content, media_url, created_at')
       .eq('group_id', groupId)
       .order('created_at', { ascending: true })
       .limit(100);
@@ -121,7 +123,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gro
         content,
         created_at: maintenant,
       })
-      .select('id, user_id, user_name, user_avatar, content, created_at')
+      .select('id, user_id, group_id, user_name, user_avatar, content, media_url, created_at')
       .single();
 
     if (error) {

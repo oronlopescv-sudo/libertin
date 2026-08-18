@@ -218,6 +218,29 @@ CREATE POLICY "Allow messages insert" ON public.messages FOR INSERT WITH CHECK (
 DROP POLICY IF EXISTS "Allow messages delete" ON public.messages;
 CREATE POLICY "Allow messages delete" ON public.messages FOR DELETE USING (true);
 
+-- 1.8. REALTIME — publier `messages` et `notifications` pour les abonnements
+-- postgres_changes (chat en direct, cloche de notifications). Supabase n'émet
+-- des événements postgres_changes QUE pour les tables de la publication
+-- `supabase_realtime` ; sans cela, le chat n'est jamais rafraîchi en direct.
+-- Idempotent : n'ajoute que les tables pas déjà membres de la publication.
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_publication_tables
+      WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'messages'
+    ) THEN
+      ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
+    END IF;
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_publication_tables
+      WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'notifications'
+    ) THEN
+      ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
+    END IF;
+  END IF;
+END $$;
+
 -- likes
 ALTER TABLE public.likes ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public likes read" ON public.likes;

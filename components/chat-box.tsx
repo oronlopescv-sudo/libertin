@@ -1,21 +1,21 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Message, User } from '@/lib/types';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Message } from '@/lib/types';
 import { Store } from '@/lib/store';
-import { getSupabaseMessages, sendSupabaseMessage } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
+import { fetchResilient } from '@/lib/fetch-resilient';
 import { useAuth } from '@/context/auth-context';
 import {
   Send,
-  ShieldCheck,
   Lock,
   Crown,
-  Paperclip,
   Smile,
   X,
   Volume2,
   VolumeX,
   UserX,
+  AlertCircle,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -25,6 +25,19 @@ interface ChatBoxProps {
   memberCount?: number;
 }
 
+/**
+ * Chat de groupe fonctionnel :
+ *  - Charge les messages via la route serveur /api/messages/[groupId] (qui
+ *    vérifie l'appartenance au groupe).
+ *  - S'abonne à Supabase Realtime (postgres_changes sur `messages`) pour
+ *    afficher les nouveaux messages sans recharger la page.
+ *  - Envoie via la même route (gate Premium + appartenance côté serveur) ;
+ *    l'erreur 403 `premiumRequired` ouvre la modale d'abonnement.
+ *
+ * L'ancienne version insérait directement via le client anon (silencieux en
+ * cas d'échec), n'avait aucun temps réel, et affichait un faux badge « En
+ * direct » + un faux compte de membres (`messages.length + 10`).
+ */
 export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
   const { user, isPremium } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -32,65 +45,161 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [isSending, setIsSending] = useState(false);
+  const [erreur, setErreur] = useState('');
+  const [accesRefuse, setAccesRefuse] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const EMOJIS = ['🥂', '🌶️', '💋', '🍸', '✨', '🔥', '🖤', '🍓', '🔒', '🌹'];
 
-  const loadMessages = React.useCallback(async () => {
-    const msgs = await getSupabaseMessages(groupId);
-    setMessages(msgs);
+  const appendMessage = useCallback((msg: Message) => {
+    setMessages((prev) => (prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]));
+  }, []);
+
+  const loadMessages = useCallback(async () => {
+    setIsLoading(true);
+    setErreur('');
+    try {
+      const res = await fetchResilient(`/api/messages/${groupId}`);
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setAccesRefuse(false);
+        setMessages(data.messages ?? []);
+      } else if (res.status === 403) {
+        // Non-membre du groupe (le gate Premium ne s'applique qu'à l'envoi).
+        setAccesRefuse(true);
+        setMessages([]);
+      } else {
+        setErreur(data.error ?? 'Erreur lors du chargement des messages');
+      }
+    } catch {
+      setErreur('Erreur réseau. Vérifiez votre connexion.');
+    } finally {
+      setIsLoading(false);
+    }
   }, [groupId]);
 
   useEffect(() => {
     loadMessages();
   }, [loadMessages]);
 
+  // Temps réel : nouveaux messages du groupe, dédoublonnés par id.
+  useEffect(() => {
+    if (!groupId) return;
+    const channel = supabase
+      .channel(`chat-${groupId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `group_id=eq.${groupId}`,
+        },
+        (payload) => {
+          const row = payload.new as any;
+          appendMessage({
+            id: row.id,
+            userId: row.user_id,
+            userName: row.user_name ?? 'Anonyme',
+            userAvatar: row.user_avatar ?? undefined,
+            groupId: row.group_id,
+            content: row.content,
+            mediaUrl: row.media_url ?? undefined,
+            createdAt: row.created_at,
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [groupId, appendMessage]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const playSendSound = () => {
+    if (!soundEnabled || typeof Audio === 'undefined') return;
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 587.33;
+      gain.gain.setValueAtTime(0.05, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.15);
+    } catch {
+      // AudioContext peut être restreint par le navigateur.
+    }
+  };
+
   const handleSend = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!inputContent.trim() || !user) return;
+    const content = inputContent.trim();
+    if (!content || !user || isSending) return;
 
-    if (!isPremium && user.role !== 'admin') {
+    // Gate Premium côté client (évite un aller-retour inutile) — le serveur
+    // vérifie aussi. L'admin est Premium à vie via lib/premium.
+    if (!isPremium) {
       setUpgradeModalOpen(true);
       return;
     }
 
-    const ok = await sendSupabaseMessage({
-      groupId,
-      userId: user.id,
-      userName: user.username,
-      userAvatar: user.photos?.[0]?.url,
-      userGender: user.gender,
-      userIsVerified: user.isVerified,
-      content: inputContent.trim(),
-    });
+    setIsSending(true);
+    setErreur('');
+    try {
+      const res = await fetchResilient(`/api/messages/${groupId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content }),
+      });
+      const data = await res.json().catch(() => ({}));
 
-    if (ok) {
-      setInputContent('');
-      await loadMessages();
-
-      if (soundEnabled && typeof Audio !== 'undefined') {
-        try {
-          const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.value = 587.33;
-          gain.gain.setValueAtTime(0.05, ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start();
-          osc.stop(ctx.currentTime + 0.15);
-        } catch (e) {
-          // ignore audio context restrictions
-        }
+      if (res.ok) {
+        setInputContent('');
+        if (data.message) appendMessage(data.message);
+        playSendSound();
+      } else if (res.status === 403 && data.premiumRequired) {
+        setUpgradeModalOpen(true);
+      } else if (res.status === 403) {
+        setAccesRefuse(true);
+      } else {
+        setErreur(data.error ?? "Échec de l'envoi du message");
       }
+    } catch {
+      setErreur('Erreur réseau. Vérifiez votre connexion.');
+    } finally {
+      setIsSending(false);
     }
   };
+
+  // Accès refusé : l'utilisateur n'appartient pas au groupe.
+  if (accesRefuse) {
+    return (
+      <div className="rounded-2xl bg-[#1C102B] border border-[#2C1B3D] p-10 text-center">
+        <Lock className="w-10 h-10 text-[#D4145A] mx-auto mb-4" />
+        <h3 className="text-lg font-bold text-white mb-2">Accès restreint</h3>
+        <p className="text-sm text-zinc-400 max-w-sm mx-auto">
+          Vous ne faites pas partie de ce groupe. Rejoignez-le depuis la page des
+ groupes pour participer à la conversation.
+        </p>
+        <Link
+          href="/groupes"
+          className="inline-block mt-5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white text-xs font-bold"
+        >
+          Voir les groupes
+        </Link>
+      </div>
+    );
+  }
 
   const visibleMessages = messages.filter((msg) => {
     if (!user) return true;
@@ -106,14 +215,11 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
             #
           </div>
           <div>
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <span>{groupName}</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800/40">
-                ● En direct
-              </span>
+            <h3 className="text-base font-bold text-white">
+              {groupName}
             </h3>
             <div className="text-xs text-zinc-400">
-              {memberCount || messages.length + 10} membres actifs
+              {typeof memberCount === 'number' ? `${memberCount} membres` : 'Salon de discussion'}
             </div>
           </div>
         </div>
@@ -129,7 +235,11 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
 
       {/* Messages Scroll Area */}
       <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-[#160B21]/50">
-        {visibleMessages.length === 0 ? (
+        {isLoading ? (
+          <div className="h-full flex items-center justify-center text-zinc-500 text-sm">
+            Chargement des messages…
+          </div>
+        ) : visibleMessages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center p-6 text-zinc-500 space-y-2">
             <Lock className="w-8 h-8 text-[#D4145A]/60" />
             <p className="text-sm font-semibold text-zinc-300">
@@ -161,10 +271,7 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
                 {/* Bubble */}
                 <div className="space-y-1">
                   <div className={`flex items-center gap-2 text-[10px] text-zinc-400 ${isMe ? 'justify-end' : ''}`}>
-                    <span className="font-semibold text-zinc-300 flex items-center gap-1">
-                      {msg.userName}
-                      {msg.userIsVerified && <ShieldCheck className="w-3 h-3 text-emerald-400 inline" />}
-                    </span>
+                    <span className="font-semibold text-zinc-300">{msg.userName}</span>
                     <span>• {new Date(msg.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
                     {!isMe && user && (
                       <button
@@ -196,6 +303,14 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
         )}
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Erreur d'envoi */}
+      {erreur && (
+        <div className="px-4 py-2 bg-red-950/60 border-t border-red-800/40 text-red-300 text-xs flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span>{erreur}</span>
+        </div>
+      )}
 
       {/* Free User Bottom Notice Banner if not Premium */}
       {!isPremium && user?.role !== 'admin' && (
@@ -258,10 +373,11 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
 
           <button
             type="submit"
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white font-bold text-xs hover:opacity-95 shadow-md flex items-center gap-1.5"
+            disabled={isSending}
+            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white font-bold text-xs hover:opacity-95 shadow-md flex items-center gap-1.5 disabled:opacity-60"
           >
             <Send className="w-4 h-4" />
-            <span className="hidden sm:inline">Envoyer</span>
+            <span className="hidden sm:inline">{isSending ? 'Envoi…' : 'Envoyer'}</span>
           </button>
         </div>
       </form>
