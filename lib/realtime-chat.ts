@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { Message, Group } from '@/lib/types';
+import { Message } from './types';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || '',
@@ -10,57 +10,50 @@ const supabase = createClient(
 );
 
 /**
- * Hook for real-time chat messages
- * Subscribes to message changes in a group
+ * Hook pour les messages de chat en temps réel.
+ *
+ * S'abonne aux changements postgres_changes sur `messages` filtrés par
+ * `group_id`. La table `messages` porte le nom d'utilisateur dénormalisé
+ * (`user_name`, `user_avatar`) : on n'a PAS besoin de joindre `profiles` —
+ * l'ancienne version joignait `users!messages_user_id_fkey` (table inexistante,
+ * la FK pointe vers `profiles`) et lisait des colonnes inexistantes
+ * (`user_gender`, `user_is_verified`, `mejour_url`), ce qui faisait échouer
+ * silencieusement chaque requête.
+ *
+ * NB : `messages` doit être membre de la publication `supabase_realtime` pour
+ * que les événements postgres_changes soient émis (voir fix_everything.sql).
  */
 export function useRealtimeMessages(groupId: string) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Load initial messages
-  useEffect(() => {
-    loadInitialMessages();
-  }, [groupId]);
-
   const loadInitialMessages = async () => {
     try {
       setIsLoading(true);
       const { data, error } = await supabase
         .from('messages')
-        .select(`
-          id,
-          content,
-          mejour_url,
-          created_at,
-          user_id,
-          group_id,
-          users!messages_user_id_fkey (
-            id,
-            username,
-            gender,
-            is_verified
-          )
-        `)
+        .select(
+          'id, content, media_url, created_at, user_id, group_id, user_name, user_avatar'
+        )
         .eq('group_id', groupId)
         .order('created_at', { ascending: true })
-        .limit(50);
+        .limit(100);
 
       if (error) throw error;
 
-      const formattedMessages = data?.map((msg: any) => ({
+      const formatted: Message[] = (data ?? []).map((msg: any) => ({
         id: msg.id,
         userId: msg.user_id,
-        userName: msg.users?.username || 'Anonyme',
-        userGender: msg.users?.gender,
-        userIsVerified: msg.users?.is_verified,
+        userName: msg.user_name ?? 'Anonyme',
+        userAvatar: msg.user_avatar ?? undefined,
         groupId: msg.group_id,
         content: msg.content,
-        mejourUrl: msg.mejour_url,
+        mediaUrl: msg.media_url ?? undefined,
         createdAt: msg.created_at,
-      })) || [];
+      }));
 
-      setMessages(formattedMessages);
+      setMessages(formatted);
       setError(null);
     } catch (err) {
       console.error('Failed to load messages:', err);
@@ -70,7 +63,13 @@ export function useRealtimeMessages(groupId: string) {
     }
   };
 
-  // Subscribe to real-time updates
+  // Chargement initial
+  useEffect(() => {
+    loadInitialMessages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupId]);
+
+  // Abonnement temps réel : on ajoute les nouveaux messages insérés, dédoublonnés par id.
   useEffect(() => {
     const channel = supabase
       .channel(`messages-${groupId}`)
@@ -83,18 +82,20 @@ export function useRealtimeMessages(groupId: string) {
           filter: `group_id=eq.${groupId}`,
         },
         (payload) => {
-          const newMessage = {
-            id: payload.new.id,
-            userId: payload.new.user_id,
-            userName: payload.new.user_name || 'Anonyme',
-            userGender: payload.new.user_gender,
-            userIsVerified: payload.new.user_is_verified,
-            groupId: payload.new.group_id,
-            content: payload.new.content,
-            mejourUrl: payload.new.mejour_url,
-            createdAt: payload.new.created_at,
+          const row = payload.new as any;
+          const newMessage: Message = {
+            id: row.id,
+            userId: row.user_id,
+            userName: row.user_name ?? 'Anonyme',
+            userAvatar: row.user_avatar ?? undefined,
+            groupId: row.group_id,
+            content: row.content,
+            mediaUrl: row.media_url ?? undefined,
+            createdAt: row.created_at,
           };
-          setMessages((prev) => [...prev, newMessage]);
+          setMessages((prev) =>
+            prev.some((m) => m.id === newMessage.id) ? prev : [...prev, newMessage]
+          );
         }
       )
       .subscribe();
@@ -108,83 +109,18 @@ export function useRealtimeMessages(groupId: string) {
 }
 
 /**
- * Hook for online user presence
- * Shows which users are currently in a group
- */
-export function usePresence(groupId: string) {
-  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    // Create presence channel
-    const channel = supabase.channel(`presence-${groupId}`);
-
-    channel
-      .on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState();
-        const userIds = new Set<string>();
-
-        Object.values(state).forEach((users) => {
-          if (Array.isArray(users)) {
-            users.forEach((user: any) => {
-              if (user.user_id) {
-                userIds.add(user.user_id);
-              }
-            });
-          }
-        });
-
-        setOnlineUsers(userIds);
-      })
-      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-        newPresences.forEach((presence: any) => {
-          if (presence.user_id) {
-            setOnlineUsers((prev) => new Set([...prev, presence.user_id]));
-          }
-        });
-      })
-      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-        leftPresences.forEach((presence: any) => {
-          if (presence.user_id) {
-            setOnlineUsers((prev) => {
-              const next = new Set(prev);
-              next.delete(presence.user_id);
-              return next;
-            });
-          }
-        });
-      })
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          // Get current user ID and announce presence
-          const { data: authData } = await supabase.auth.getUser();
-          if (authData.user?.id) {
-            await channel.track({
-              user_id: authData.user.id,
-              online_at: new Date().toISOString(),
-            });
-          }
-        }
-      });
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [groupId]);
-
-  return { onlineUsers };
-}
-
-/**
- * Send a message to a group
+ * Envoie un message dans un groupe (client direct, clé anon + RLS).
+ * Préférez la route /api/messages/[groupId] qui applique le gate Premium +
+ * l'appartenance au groupe côté serveur. Cette fonction reste pour les
+ * usages hors ligne principale.
  */
 export async function sendMessage(
   groupId: string,
   userId: string,
   content: string,
-  mejourUrl?: string
+  mediaUrl?: string
 ): Promise<Message | null> {
   try {
-    // Validate content
     if (!content.trim()) {
       throw new Error('Le message ne peut pas être vide');
     }
@@ -199,18 +135,9 @@ export async function sendMessage(
         group_id: groupId,
         user_id: userId,
         content: content.trim(),
-        mejour_url: mejourUrl,
+        media_url: mediaUrl ?? null,
       })
-      .select(
-        `
-        id,
-        content,
-        mejour_url,
-        created_at,
-        user_id,
-        group_id
-      `
-      )
+      .select('id, content, media_url, created_at, user_id, group_id, user_name, user_avatar')
       .single();
 
     if (error) throw error;
@@ -218,10 +145,11 @@ export async function sendMessage(
     return {
       id: data.id,
       userId: data.user_id,
-      userName: '', // Will be filled by realtime
+      userName: data.user_name ?? '',
+      userAvatar: data.user_avatar ?? undefined,
       groupId: data.group_id,
       content: data.content,
-      mejourUrl: data.mejour_url,
+      mediaUrl: data.media_url ?? undefined,
       createdAt: data.created_at,
     };
   } catch (error) {
@@ -230,12 +158,9 @@ export async function sendMessage(
   }
 }
 
-/**
- * Delete a message (owner only)
- */
+/** Supprime un message (propriétaire uniquement). */
 export async function deleteMessage(messageId: string, userId: string): Promise<boolean> {
   try {
-    // First check if user owns the message
     const { data: message, error: fetchError } = await supabase
       .from('messages')
       .select('user_id')
@@ -246,7 +171,6 @@ export async function deleteMessage(messageId: string, userId: string): Promise<
       throw new Error('Unauthorized or message not found');
     }
 
-    // Delete the message
     const { error: deleteError } = await supabase
       .from('messages')
       .delete()
@@ -261,16 +185,13 @@ export async function deleteMessage(messageId: string, userId: string): Promise<
   }
 }
 
-/**
- * Edit a message (owner only)
- */
+/** Modifie un message (propriétaire uniquement). */
 export async function editMessage(
   messageId: string,
   userId: string,
   newContent: string
 ): Promise<boolean> {
   try {
-    // Validate new content
     if (!newContent.trim()) {
       throw new Error('Le message ne peut pas être vide');
     }
@@ -279,7 +200,6 @@ export async function editMessage(
       throw new Error('Le message est trop long');
     }
 
-    // Check ownership and update
     const { error } = await supabase
       .from('messages')
       .update({ content: newContent.trim(), updated_at: new Date().toISOString() })
@@ -295,9 +215,7 @@ export async function editMessage(
   }
 }
 
-/**
- * Search messages in a group
- */
+/** Recherche les messages d'un groupe par contenu. */
 export async function searchMessages(
   groupId: string,
   query: string
@@ -305,18 +223,9 @@ export async function searchMessages(
   try {
     const { data, error } = await supabase
       .from('messages')
-      .select(`
-        id,
-        content,
-        mejour_url,
-        created_at,
-        user_id,
-        group_id,
-        users!messages_user_id_fkey (
-          id,
-          username
-        )
-      `)
+      .select(
+        'id, content, media_url, created_at, user_id, group_id, user_name, user_avatar'
+      )
       .eq('group_id', groupId)
       .ilike('content', `%${query}%`)
       .order('created_at', { ascending: false })
@@ -324,13 +233,14 @@ export async function searchMessages(
 
     if (error) throw error;
 
-    return (data || []).map((msg: any) => ({
+    return (data ?? []).map((msg: any) => ({
       id: msg.id,
       userId: msg.user_id,
-      userName: msg.users?.username || 'Anonyme',
+      userName: msg.user_name ?? 'Anonyme',
+      userAvatar: msg.user_avatar ?? undefined,
       groupId: msg.group_id,
       content: msg.content,
-      mejourUrl: msg.mejour_url,
+      mediaUrl: msg.media_url ?? undefined,
       createdAt: msg.created_at,
     }));
   } catch (error) {
@@ -339,9 +249,7 @@ export async function searchMessages(
   }
 }
 
-/**
- * Get message statistics for a group
- */
+/** Statistiques de messages pour un groupe. */
 export async function getMessageStats(groupId: string) {
   try {
     const { data, error } = await supabase

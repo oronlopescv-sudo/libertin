@@ -82,7 +82,7 @@ export interface Message {
   userIsVerified?: boolean;
   groupId: string;
   content: string;
-  mejourUrl?: string;
+  mediaUrl?: string;
   createdAt: string;
 }
 

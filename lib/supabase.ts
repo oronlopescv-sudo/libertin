@@ -571,11 +571,9 @@ export async function getSupabaseMessages(groupId: string): Promise<Message[]> {
       userId: row.user_id,
       userName: row.user_name,
       userAvatar: row.user_avatar,
-      userGender: row.user_gender,
-      userIsVerified: row.user_is_verified,
       groupId: row.group_id,
       content: row.content,
-      mejourUrl: row.mejour_url,
+      mediaUrl: row.media_url,
       createdAt: row.created_at,
     }));
   } catch (e) {
@@ -588,22 +586,21 @@ export async function sendSupabaseMessage(payload: {
   userId: string;
   userName: string;
   userAvatar?: string;
-  userGender?: GenderType;
-  userIsVerified?: boolean;
   content: string;
-  mejourUrl?: string;
+  mediaUrl?: string;
 }): Promise<boolean> {
   try {
-    // La table `messages` en production ne possède que : group_id, user_id,
-    // user_name, user_avatar, content, created_at (et mediaUrl). Les colonnes
-    // user_gender / user_is_verified / mejour_url n'existent pas : les insérer
-    // faisait échouer silencieusement l'envoi de chaque message.
+    // La table `messages` en production possède : group_id, user_id, user_name,
+    // user_avatar, content, created_at et media_url. Les colonnes user_gender /
+    // user_is_verified n'existent pas sur `messages` : les insérer faisait
+    // échouer silencieusement l'envoi de chaque message.
     const insertPayload: Record<string, unknown> = {
       group_id: payload.groupId,
       user_id: payload.userId,
       user_name: payload.userName,
       user_avatar: payload.userAvatar ?? null,
       content: payload.content,
+      media_url: payload.mediaUrl ?? null,
     };
 
     const { error } = await supabase.from('messages').insert(insertPayload);
@@ -717,8 +714,8 @@ CREATE TABLE IF NOT EXISTS public.messages (
   user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
   user_name TEXT,
   user_avatar TEXT,
+  media_url TEXT,
   content TEXT NOT NULL,
-  mejour_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
