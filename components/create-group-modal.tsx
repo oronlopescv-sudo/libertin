@@ -42,7 +42,7 @@ export function CreateGroupModal({ isOpen, onClose, userAbonnement }: CreateGrou
     setError('');
 
     try {
-      const res = await fetchResilient('/api/groups', {
+      const res = await fetchResilient('/api/groups/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

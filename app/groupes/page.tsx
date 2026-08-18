@@ -37,10 +37,9 @@ export default function GroupesPage() {
     setErreur('');
     setJoiningId(groupId);
     try {
-      const res = await fetchResilient('/api/groups', {
-        method: 'PATCH',
+      const res = await fetchResilient(`/api/groups/${groupId}/join`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ groupId }),
       });
       const data = await res.json();
 
