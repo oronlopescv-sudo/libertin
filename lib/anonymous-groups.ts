@@ -4,6 +4,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { isPremium } from '@/lib/premium';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || '',
@@ -19,21 +20,31 @@ export async function joinGroupAnonymous(
   isAnonymous: boolean
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    // Check if user is PREMIUM (required for annymity)
+    // Check if user is PREMIUM (required for annymity).
+    // On lit le profil dans `profiles` (snake_case) et on passe par la
+    // vérification centralisée isPremium() : l'admin et les comptes à vie
+    // gardent l'accès, même avec subscription_tier = FREE en base.
     if (isAnonymous) {
-      const { data: user, error: userError } = await supabase
-        .from('users')
-        .select('subscription_tier')
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, email, username, role, subscription_tier, subscription_end')
         .eq('id', userId)
         .single();
 
-      if (userError || !user) {
+      if (profileError || !profile) {
         return { success: false, error: 'Utilisateur introuvable' };
       }
 
-      // FREE users can't be annymous
-      if (user.subscription_tier === 'FREE') {
-        return { success: false, error: 'Upgrade para PREMIUM para entrar anônimo' };
+      if (
+        !isPremium({
+          email: profile.email,
+          username: profile.username,
+          role: profile.role,
+          subscriptionTier: profile.subscription_tier,
+          subscriptionEnd: profile.subscription_end,
+        })
+      ) {
+        return { success: false, error: 'Passez à PREMIUM pour entrer en mode anonyme' };
       }
     }
 
