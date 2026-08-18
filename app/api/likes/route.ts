@@ -57,6 +57,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Erreur lors du like' }, { status: 500 });
     }
 
+    // Notifier le membre liké (best-effort : ne jamais bloquer le like).
+    try {
+      await supabase.from('notifications').insert({
+        user_id: likedUserId,
+        type: 'like',
+        title: 'Nouveau like',
+        body: `${auth.user.username} vous a liké`,
+        link: `/profil/${auth.user.id}`,
+        is_read: false,
+        created_at: new Date().toISOString(),
+      });
+    } catch (notifErr) {
+      console.warn('[likes POST notif]', notifErr);
+    }
+
     return NextResponse.json({ success: true, message: 'Profil liké', liked: true }, { status: 201 });
   } catch (error) {
     console.error('[likes POST]', error);
