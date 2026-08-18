@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { fetchResilient } from '@/lib/fetch-resilient';
 import { SUBSCRIPTION_PLANS, getPlanDetails } from '@/lib/stripe';
 import { AbonnementPlan } from '@/lib/types';
@@ -14,14 +14,76 @@ import {
   ArrowRight,
   X,
   AlertCircle,
+  Receipt,
+  Loader2,
 } from 'lucide-react';
 
+interface StatutFacturation {
+  stripeCustomerId: string | null;
+  subscriptionEnd: string | null;
+  planTitle: string;
+}
+
 export function AbonnementPlans() {
-  const { user, isPremium } = useAuth();
+  const { user, isPremium, refreshUser } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState<AbonnementPlan | null>(null);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [statutFacturation, setStatutFacturation] = useState<StatutFacturation | null>(null);
+  const [portalLoading, setPortalLoading] = useState(false);
+
+  // 1. Lit le retour Stripe (`?paiement=succes|annule`) après redirection depuis
+  //    la page de paiement. Sur succès, on rafraîchit le profil : le webhook a
+  //    normalement déjà mis à jour `subscription_tier` / `subscription_end` en base.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const paiement = params.get('paiement');
+
+    if (paiement === 'succes') {
+      setSuccessMessage(
+        'Paiement confirmé ! Votre Pass Premium est désormais actif. Bienvenue parmi les membres privilégiés.'
+      );
+      refreshUser();
+    } else if (paiement === 'annule') {
+      setErrorMessage(
+        'Le paiement a été annulé. Aucun montant n’a été débité. Vous pouvez réessayer quand vous le souhaitez.'
+      );
+    }
+
+    if (paiement) {
+      // Nettoie l’URL pour ne pas réafficher le message au prochain rendu.
+      const url = new URL(window.location.href);
+      url.searchParams.delete('paiement');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [refreshUser]);
+
+  // 2. Charge l’état de facturation (présence d’un stripe_customer_id) pour
+  //    décider d’afficher le bouton « Gérer ma facturation ».
+  useEffect(() => {
+    let actif = true;
+    (async () => {
+      try {
+        const res = await fetchResilient('/api/payments/status');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!actif) return;
+        setStatutFacturation({
+          stripeCustomerId: data.stripeCustomerId ?? null,
+          subscriptionEnd: data.subscriptionEnd ?? null,
+          planTitle: data.planTitle ?? 'Compte Découverte',
+        });
+      } catch {
+        /* silencieux : la section facturation reste masquée */
+      }
+    })();
+    return () => {
+      actif = false;
+    };
+  }, [successMessage]);
 
   const handleOpenConfirm = (plan: AbonnementPlan) => {
     if (plan.id === 'FREE') return;
@@ -55,6 +117,27 @@ export function AbonnementPlans() {
     } finally {
       setIsProcessing(false);
       setConfirmModalOpen(false);
+    }
+  };
+
+  const handleOuvrirPortail = async () => {
+    setPortalLoading(true);
+    try {
+      const res = await fetchResilient('/api/payments/portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ returnUrl: '/abonnements' }),
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(data.error || data.message || "Impossible d'ouvrir le portail de facturation.");
+      }
+    } catch {
+      alert("Erreur réseau. Vérifiez votre connexion et réessayez.");
+    } finally {
+      setPortalLoading(false);
     }
   };
 
@@ -108,14 +191,64 @@ export function AbonnementPlans() {
         </div>
       )}
 
-      {/* Payment Notice */}
-      <div className="p-4 rounded-xl bg-amber-950/40 border border-amber-800/40 text-amber-200 text-xs flex items-start gap-3">
-        <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+      {/* Cancellation / Error Notification */}
+      {errorMessage && (
+        <div className="p-4 rounded-xl bg-amber-950/60 border border-amber-700/50 text-amber-200 text-sm flex items-center justify-between animate-fade-in">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 text-amber-400" />
+            <span>{errorMessage}</span>
+          </div>
+          <button
+            onClick={() => setErrorMessage(null)}
+            className="p-1 hover:text-white"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Gestion de la facturation (uniquement si un client Stripe existe) */}
+      {statutFacturation?.stripeCustomerId && (
+        <div className="p-4 rounded-2xl bg-[#1C102B] border border-[#2C1B3D] flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center">
+              <Receipt className="w-5 h-5 text-emerald-400" />
+            </div>
+            <div className="text-xs text-zinc-300">
+              <strong className="block text-white">Gérer ma facturation</strong>
+              <span>Consultez vos factures et mettez à jour votre moyen de paiement via le portail Stripe sécurisé.</span>
+            </div>
+          </div>
+          <button
+            onClick={handleOuvrirPortail}
+            disabled={portalLoading}
+            className="shrink-0 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-2 disabled:opacity-60"
+          >
+            {portalLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Ouverture…</span>
+              </>
+            ) : (
+              <>
+                <ArrowRight className="w-4 h-4" />
+                <span>Portail de facturation</span>
+              </>
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* Note de transparence sur le paiement */}
+      <div className="p-4 rounded-xl bg-[#1C102B] border border-[#2C1B3D] text-zinc-300 text-xs flex items-start gap-3">
+        <ShieldCheck className="w-5 h-5 text-[#E86B7A] shrink-0 mt-0.5" />
         <div>
-          <strong className="text-white block mb-1">Passerelle de paiement non configurée</strong>
+          <strong className="text-white block mb-1">Paiement sécurisé par Stripe</strong>
           <span>
-            Le module de paiement en ligne (Stripe) n&apos;est pas encore activé.
-            L&apos;activation ci-dessous met à jour votre statut localement à des fins de test.
+            Le règlement s&apos;effectue sur la page sécurisée de Stripe. Votre abonnement est
+            activé automatiquement après confirmation du paiement. Intitulé bancaire discret
+            « RP-SERVICES », sans mention libertine. Les Pass sont des forfaits à durée
+            déterminée : ils expirent à la date de fin sans renouvellement automatique.
           </span>
         </div>
       </div>
@@ -242,8 +375,9 @@ export function AbonnementPlans() {
               </div>
               <h3 className="text-xl font-bold">Confirmer l&apos;activation</h3>
               <p className="text-xs text-zinc-400">
-                Le module de paiement n&apos;est pas encore activé.
-                Cette action mettra à jour votre formule sans débiter votre compte.
+                Vous allez être redirigé vers la page de paiement sécurisée de Stripe
+                pour régler votre abonnement. Aucun montant n&apos;est débité tant que
+                vous n&apos;avez pas validé le paiement sur Stripe.
               </p>
             </div>
 
@@ -257,7 +391,7 @@ export function AbonnementPlans() {
                 <span className="font-bold text-white">{selectedPlan.durationMonths} Mois</span>
               </div>
               <div className="pt-2 border-t border-[#3D2654] flex justify-between text-sm">
-                <span className="font-bold text-white">Montant indicatif :</span>
+                <span className="font-bold text-white">Montant à régler :</span>
                 <span className="font-extrabold text-[#E86B7A]">{selectedPlan.totalPrice} €</span>
               </div>
             </div>
@@ -269,13 +403,13 @@ export function AbonnementPlans() {
             >
               {isProcessing ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Activation en cours...</span>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Redirection vers Stripe…</span>
                 </>
               ) : (
                 <>
                   <ArrowRight className="w-4 h-4" />
-                  <span>Confirmer l&apos;activation</span>
+                  <span>Régler {selectedPlan.totalPrice} € sur Stripe</span>
                 </>
               )}
             </button>
