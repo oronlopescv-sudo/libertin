@@ -196,15 +196,17 @@ export async function getPendingVerifications(
   offset: number = 0
 ): Promise<any[] | null> {
   try {
+    // La FK verification_photos.user_id → profiles(id) (Supabase Auth), et NON
+    // vers l'ancienne table `users`. L'ancienne jointure `users!...` échouait
+    // à l'exécution sur le schéma live → la file d'attente admin était vide.
     const { data, error } = await supabase
       .from('verification_photos')
       .select(`
         *,
-        users!verification_photos_user_id_fkey (
-          id,
-          email,
+        profiles!verification_photos_user_id_fkey (
           username,
-          age,
+          email,
+          date_of_birth,
           gender,
           location
         )
@@ -250,9 +252,13 @@ export async function approveVerification(
 
     if (updateError) throw updateError;
 
-    // Update user verification status
+    // Update verification status dans `profiles` (Supabase Auth) — et NON dans
+    // l'ancienne table `users`. C'est profiles.is_verified que lit tout le
+    // reste de l'app (badge vérifié, /api/profiles/[id], /api/admin/users).
+    // Avant, l'admin approuvait → users.is_verified=true, mais le badge
+    // (profiles.is_verified) restait false à jamais.
     const { error: userError } = await supabase
-      .from('users')
+      .from('profiles')
       .update({
         is_verified: true,
         updated_at: new Date().toISOString(),
@@ -263,7 +269,7 @@ export async function approveVerification(
 
     // Send approval email
     const { data: userData } = await supabase
-      .from('users')
+      .from('profiles')
       .select('email, username')
       .eq('id', photo.user_id)
       .single();
@@ -326,9 +332,9 @@ export async function rejectVerification(
 
     if (updateError) throw updateError;
 
-    // Send rejection email
+    // Send rejection email — profil lu dans `profiles` (Supabase Auth).
     const { data: userData } = await supabase
-      .from('users')
+      .from('profiles')
       .select('email, username')
       .eq('id', photo.user_id)
       .single();
