@@ -4,8 +4,9 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchResilient } from '@/lib/fetch-resilient';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
-import { LogOut, User, Mail, Camera, Star, Trash2, Loader2 } from 'lucide-react';
+import { LogOut, User, Mail, Camera, Star, Trash2, Loader2, Save, MapPin, X, Info } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
+import { CITIES, COUNTRIES } from '@/lib/geo';
 
 type Photo = {
   id: string;
@@ -27,7 +28,7 @@ type Photo = {
  */
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, isLoading, logout } = useAuth();
+  const { user, isLoading, logout, refreshUser } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -35,6 +36,22 @@ export default function ProfilePage() {
   const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [erreur, setErreur] = useState('');
+
+  // Champs éditables du profil (bio, intérêts, localisation, genre,
+  // orientation, date de naissance, NSFW). Chargés depuis /api/users/profile.
+  const [profilForm, setProfilForm] = useState({
+    bio: '',
+    interests: [] as string[],
+    location: '',
+    gender: '',
+    sexualOrientation: '',
+    dateOfBirth: '',
+    isNsfw: false,
+  });
+  const [profilLoading, setProfilLoading] = useState(true);
+  const [profilSaving, setProfilSaving] = useState(false);
+  const [profilMessage, setProfilMessage] = useState<{ type: 'ok' | 'err'; texte: string } | null>(null);
+  const [interestInput, setInterestInput] = useState('');
 
   const chargerPhotos = useCallback(async () => {
     try {
@@ -51,6 +68,74 @@ export default function ProfilePage() {
   useEffect(() => {
     if (user) chargerPhotos();
   }, [user, chargerPhotos]);
+
+  const chargerProfil = useCallback(async () => {
+    try {
+      const res = await fetchResilient('/api/users/profile');
+      const data = await res.json();
+      if (res.ok && data.profile) {
+        setProfilForm({
+          bio: data.profile.bio ?? '',
+          interests: Array.isArray(data.profile.interests) ? data.profile.interests : [],
+          location: data.profile.location ?? '',
+          gender: data.profile.gender ?? '',
+          sexualOrientation: data.profile.sexualOrientation ?? '',
+          dateOfBirth: data.profile.dateOfBirth ?? '',
+          isNsfw: !!data.profile.isNsfw,
+        });
+      }
+    } catch {
+      // Silencieux : le formulaire reste vide, ce n'est pas bloquant.
+    } finally {
+      setProfilLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user) chargerProfil();
+  }, [user, chargerProfil]);
+
+  const ajouterInteret = () => {
+    const val = interestInput.trim().slice(0, 40);
+    if (!val) return;
+    if (profilForm.interests.includes(val)) {
+      setInterestInput('');
+      return;
+    }
+    if (profilForm.interests.length >= 20) return;
+    setProfilForm((p) => ({ ...p, interests: [...p.interests, val] }));
+    setInterestInput('');
+  };
+
+  const retirerInteret = (tag: string) => {
+    setProfilForm((p) => ({ ...p, interests: p.interests.filter((i) => i !== tag) }));
+  };
+
+  const handleProfilSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setProfilMessage(null);
+    setProfilSaving(true);
+    try {
+      const res = await fetchResilient('/api/users/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profilForm),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setProfilMessage({ type: 'ok', texte: 'Profil mis à jour.' });
+        refreshUser();
+      } else if (res.status === 401) {
+        router.replace('/login');
+      } else {
+        setProfilMessage({ type: 'err', texte: data.error ?? 'Échec de la mise à jour.' });
+      }
+    } catch {
+      setProfilMessage({ type: 'err', texte: 'Erreur réseau. Réessayez.' });
+    } finally {
+      setProfilSaving(false);
+    }
+  };
 
   // Pas de session valide : on renvoie vers la connexion. On n'agit que
   // quand le contexte a fini de charger pour éviter un clignotement.
@@ -171,6 +256,184 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
+
+          {/* Modifier mon profil — bio, centres d'intérêt, localisation,
+              genre, orientation, date de naissance, contenu NSFW. */}
+          <form onSubmit={handleProfilSubmit} className="pt-6 border-t border-[#2C1B3D] space-y-5">
+            <h2 className="text-white font-semibold flex items-center gap-2">
+              <Save className="w-4 h-4 text-[#D4145A]" />
+              Modifier mon profil
+            </h2>
+
+            {profilLoading ? (
+              <p className="text-zinc-500 text-sm">Chargement…</p>
+            ) : (
+              <>
+                {/* Bio */}
+                <div>
+                <label className="text-sm text-zinc-400 flex items-center gap-1 mb-1">
+                  <Info className="w-3.5 h-3.5" /> À propos
+                </label>
+                <textarea
+                  value={profilForm.bio}
+                  onChange={(e) => setProfilForm((p) => ({ ...p, bio: e.target.value }))}
+                  rows={4}
+                  maxLength={1000}
+                  placeholder="Présentez-vous en quelques mots…"
+                  className="w-full px-3 py-2.5 rounded-lg bg-[#12091A] border border-[#3D2654] text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-[#D4145A] resize-none"
+                />
+                <p className="text-[11px] text-zinc-600 mt-1">{profilForm.bio.length}/1000</p>
+                </div>
+
+                {/* Centres d'intérêt */}
+                <div>
+                <label className="text-sm text-zinc-400 block mb-1">Centres d'intérêt</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={interestInput}
+                    onChange={(e) => setInterestInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        ajouterInteret();
+                      }
+                    }}
+                    maxLength={40}
+                    placeholder="Ex : voyages, photo…"
+                    className="flex-1 px-3 py-2 rounded-lg bg-[#12091A] border border-[#3D2654] text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-[#D4145A]"
+                  />
+                  <button
+                    type="button"
+                    onClick={ajouterInteret}
+                    className="px-3 py-2 rounded-lg bg-[#2C1B3D] text-white text-sm hover:bg-[#3C2B4D]"
+                  >
+                    Ajouter
+                  </button>
+                </div>
+                {profilForm.interests.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {profilForm.interests.map((tag) => (
+                      <span
+                        key={tag}
+                        className="inline-flex items-center gap-1 text-xs bg-[#D4145A]/15 text-[#E86B7A] px-2 py-1 rounded-full"
+                      >
+                        {tag}
+                        <button
+                          type="button"
+                          onClick={() => retirerInteret(tag)}
+                          className="hover:text-white"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                </div>
+
+                {/* Localisation */}
+                <div>
+                <label className="text-sm text-zinc-400 flex items-center gap-1 mb-1">
+                  <MapPin className="w-3.5 h-3.5" /> Localisation
+                </label>
+                <select
+                  value={profilForm.location}
+                  onChange={(e) => setProfilForm((p) => ({ ...p, location: e.target.value }))}
+                  className="w-full px-3 py-2.5 rounded-lg bg-[#12091A] border border-[#3D2654] text-sm text-white focus:outline-none focus:border-[#D4145A]"
+                >
+                  <option value="">— Aucune —</option>
+                  {COUNTRIES.filter((c) => c.code !== 'ALL').map((c) => (
+                    <optgroup key={c.code} label={`${c.flag} ${c.name}`}>
+                      {Object.values(CITIES)
+                        .filter((ci) => ci.country === c.name)
+                        .sort((a, b) => a.name.localeCompare(b.name))
+                        .map((ci) => (
+                          <option key={ci.name} value={ci.name}>
+                            {ci.name}
+                          </option>
+                        ))}
+                    </optgroup>
+                  ))}
+                </select>
+                </div>
+
+                {/* Genre + Orientation */}
+                <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm text-zinc-400 block mb-1">Genre</label>
+                  <select
+                    value={profilForm.gender}
+                    onChange={(e) => setProfilForm((p) => ({ ...p, gender: e.target.value }))}
+                    className="w-full px-3 py-2.5 rounded-lg bg-[#12091A] border border-[#3D2654] text-sm text-white focus:outline-none focus:border-[#D4145A]"
+                  >
+                    <option value="">—</option>
+                    <option value="femme">Femme</option>
+                    <option value="homme">Homme</option>
+                    <option value="couple">Couple</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-sm text-zinc-400 block mb-1">Orientation</label>
+                  <select
+                    value={profilForm.sexualOrientation}
+                    onChange={(e) => setProfilForm((p) => ({ ...p, sexualOrientation: e.target.value }))}
+                    className="w-full px-3 py-2.5 rounded-lg bg-[#12091A] border border-[#3D2654] text-sm text-white focus:outline-none focus:border-[#D4145A]"
+                  >
+                    <option value="">—</option>
+                    <option value="hetero">Hétérosexuel(le)</option>
+                    <option value="homo">Homosexuel(le)</option>
+                    <option value="bi">Bisexuel(le)</option>
+                    <option value="libertin">Libertin(e)</option>
+                  </select>
+                </div>
+                </div>
+
+                {/* Date de naissance + NSFW */}
+                <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm text-zinc-400 block mb-1">Date de naissance</label>
+                  <input
+                    type="date"
+                    value={profilForm.dateOfBirth}
+                    onChange={(e) => setProfilForm((p) => ({ ...p, dateOfBirth: e.target.value }))}
+                    className="w-full px-3 py-2.5 rounded-lg bg-[#12091A] border border-[#3D2654] text-sm text-white focus:outline-none focus:border-[#D4145A]"
+                  />
+                </div>
+                <label className="flex items-center gap-2 text-sm text-zinc-300 self-end pb-2.5">
+                  <input
+                    type="checkbox"
+                    checked={profilForm.isNsfw}
+                    onChange={(e) => setProfilForm((p) => ({ ...p, isNsfw: e.target.checked }))}
+                    className="w-4 h-4"
+                  />
+                  Contenu NSFW
+                </label>
+                </div>
+
+                {profilMessage && (
+                  <div
+                    className={`p-3 rounded-lg text-sm ${
+                      profilMessage.type === 'ok'
+                        ? 'bg-emerald-950/70 border border-emerald-700/40 text-emerald-200'
+                        : 'bg-rose-950/70 border border-rose-800/40 text-rose-200'
+                    }`}
+                  >
+                    {profilMessage.texte}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={profilSaving}
+                  className="w-full py-2.5 rounded-lg bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white text-sm font-semibold hover:opacity-90 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {profilSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  {profilSaving ? 'Enregistrement…' : 'Enregistrer'}
+                </button>
+              </>
+            )}
+          </form>
 
           {/* Photos — la route d'envoi existait déjà côté serveur mais
               n'était appelée nulle part et rien ne relisait la table
