@@ -4,20 +4,32 @@ import {
   saveVerificationPhoto,
 } from '@/lib/photo-verification';
 import { validateFileUpload } from '@/lib/validation';
+import { utilisateurActuel } from '@/lib/auth-serveur';
 
 /**
  * POST /api/verification/upload
- * Upload verification photo
+ *
+ * Upload d'un selfie de vérification. L'utilisateur est déduit de la session
+ * (utilisateurActuel) — JAMAIS du champ formData envoyé par le client.
+ * L'ancienne version lisait `formData.get('userId')` sans aucune vérification
+ * d'authentification : n'importe quel appelant anonyme pouvait attribuer une
+ * photo de vérification à n'importe quel utilisateur. Désormais le userId vient
+ * du cookie de session Supabase.
  */
 export async function POST(request: NextRequest) {
   try {
+    // Auth : l'utilisateur connecté est le propriétaire de la photo. On ignore
+    // tout éventuel `userId` envoyé dans le formData (non fiable côté client).
+    const auth = await utilisateurActuel();
+    if (!auth.ok) return auth.reponse;
+    const userId = auth.user.id;
+
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
-    const userId = formData.get('userId') as string | null;
 
-    if (!file || !userId) {
+    if (!file) {
       return NextResponse.json(
-        { error: 'Missing file or userId' },
+        { error: 'Fichier manquant' },
         { status: 400 }
       );
     }

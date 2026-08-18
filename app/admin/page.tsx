@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { fetchResilient } from '@/lib/fetch-resilient';
 import { Navbar } from '@/components/navbar';
-import { Users, Zap, MessageSquare, Heart, TrendingUp, Ban, Lock, Crown } from 'lucide-react';
+import { VerificationQueuePanel } from '@/components/admin-verification-queue';
+import { Users, Zap, MessageSquare, Heart, TrendingUp, Ban, Lock, Crown, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/auth-context';
 
@@ -314,24 +315,17 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Sections à venir — pages pas encore créées, affichées comme
-            indisponibles plutôt que comme des liens qui mènent à une 404. */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6 text-white opacity-50 cursor-not-allowed">
-            <h3 className="text-lg font-bold mb-2">Gestion des groupes</h3>
-            <p className="text-zinc-400 text-sm">Voir et gérer tous les groupes</p>
-            <span className="inline-block mt-3 text-xs text-zinc-500 uppercase tracking-wide">Bientôt disponible</span>
-          </div>
-          <div className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6 text-white opacity-50 cursor-not-allowed">
-            <h3 className="text-lg font-bold mb-2">Journal d'activité</h3>
-            <p className="text-zinc-400 text-sm">Voir l'historique des actions</p>
-            <span className="inline-block mt-3 text-xs text-zinc-500 uppercase tracking-wide">Bientôt disponible</span>
-          </div>
-          <div className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6 text-white opacity-50 cursor-not-allowed">
-            <h3 className="text-lg font-bold mb-2">Rapports</h3>
-            <p className="text-zinc-400 text-sm">Générer des rapports détaillés</p>
-            <span className="inline-block mt-3 text-xs text-zinc-500 uppercase tracking-wide">Bientôt disponible</span>
-          </div>
+        {/* Vérification des photos — file d'attente des selfies de vérification.
+            Les actions passent par /api/admin/verifications (gate serveur). */}
+        <div className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6 mb-8">
+          <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5 text-[#D4145A]" />
+            Vérification des photos
+          </h2>
+          <p className="text-zinc-400 text-sm mb-6">
+            Approuvez ou rejetez les selfies envoyés par les utilisateurs pour le badge vérifié.
+          </p>
+          <VerificationQueuePanel />
         </div>
       </div>
     </div>

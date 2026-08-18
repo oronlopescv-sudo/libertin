@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { fetchResilient } from '@/lib/fetch-resilient';
 import {
   Check,
   X,
@@ -10,25 +11,21 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
-import {
-  getPendingVerifications,
-  approveVerification,
-  rejectVerification,
-  getVerificationStats,
-} from '@/lib/photo-verification';
+
+interface VerificationUser {
+  username: string;
+  email: string;
+  age: number | null;
+  gender: string | null;
+  location: string | null;
+}
 
 interface PendingPhoto {
   id: string;
   url: string;
   status: string;
   created_at: string;
-  users: {
-    username: string;
-    email: string;
-    age: number;
-    gender: string;
-    location: string;
-  };
+  user: VerificationUser;
 }
 
 interface Stats {
@@ -38,6 +35,14 @@ interface Stats {
   approvalRate: number;
 }
 
+/**
+ * File d'attente de vérification des selfies (panneau admin).
+ *
+ * Toutes les actions passent par les routes /api/admin/verifications (gate
+ * serveur via utilisateurAdmin). Aucune logique privilégiée n'est importée
+ * côté client — l'ancienne version importait lib/photo-verification.ts (qui
+ * construit un client Supabase service-role) et hardcodait adminId='admin-id'.
+ */
 export function VerificationQueuePanel() {
   const [photos, setPhotos] = useState<PendingPhoto[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
@@ -46,65 +51,93 @@ export function VerificationQueuePanel() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [showRejectModal, setShowRejectModal] = useState(false);
+  const [erreur, setErreur] = useState('');
 
-  // Load pending verifications
-  useEffect(() => {
-    loadVerifications();
+  const loadVerifications = useCallback(async () => {
+    setIsLoading(true);
+    setErreur('');
+    try {
+      const res = await fetchResilient('/api/admin/verifications');
+      const data = await res.json();
+      if (res.ok) {
+        setPhotos(data.photos ?? []);
+        setStats(data.stats ?? null);
+      } else {
+        setErreur(data.error ?? 'Erreur lors du chargement');
+      }
+    } catch {
+      setErreur('Erreur réseau');
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
-  const loadVerifications = async () => {
-    setIsLoading(true);
-    const [photosData, statsData] = await Promise.all([
-      getPendingVerifications(50),
-      getVerificationStats(),
-    ]);
-
-    if (photosData) setPhotos(photosData);
-    if (statsData) setStats(statsData);
-    setIsLoading(false);
-  };
+  useEffect(() => {
+    loadVerifications();
+  }, [loadVerifications]);
 
   const currentPhoto = photos[currentIndex];
 
+  const removeCurrentAndAdvance = () => {
+    setPhotos((prev) => {
+      const next = prev.filter((_, i) => i !== currentIndex);
+      if (currentIndex >= next.length) {
+        setCurrentIndex(Math.max(0, next.length - 1));
+      }
+      return next;
+    });
+  };
+
   const handleApprove = async () => {
     if (!currentPhoto) return;
-
     setIsProcessing(true);
-    const success = await approveVerification(currentPhoto.id, 'admin-id');
-
-    if (success) {
-      // Remove from queue
-      setPhotos((prev) => prev.filter((_, i) => i !== currentIndex));
-      if (currentIndex >= photos.length - 1) {
-        setCurrentIndex(Math.max(0, photos.length - 2));
+    setErreur('');
+    try {
+      const res = await fetchResilient(
+        `/api/admin/verifications/${currentPhoto.id}/approve`,
+        { method: 'POST' }
+      );
+      if (res.ok) {
+        removeCurrentAndAdvance();
+        await loadVerifications();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setErreur(data.error ?? "Échec de l'approbation");
       }
-      await loadVerifications();
+    } catch {
+      setErreur('Erreur réseau');
+    } finally {
+      setIsProcessing(false);
     }
-
-    setIsProcessing(false);
   };
 
   const handleReject = async () => {
     if (!currentPhoto || !rejectionReason.trim()) return;
-
     setIsProcessing(true);
-    const success = await rejectVerification(
-      currentPhoto.id,
-      'admin-id',
-      rejectionReason
-    );
-
-    if (success) {
-      setPhotos((prev) => prev.filter((_, i) => i !== currentIndex));
-      if (currentIndex >= photos.length - 1) {
-        setCurrentIndex(Math.max(0, photos.length - 2));
+    setErreur('');
+    try {
+      const res = await fetchResilient(
+        `/api/admin/verifications/${currentPhoto.id}/reject`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason: rejectionReason }),
+        }
+      );
+      if (res.ok) {
+        removeCurrentAndAdvance();
+        setRejectionReason('');
+        setShowRejectModal(false);
+        await loadVerifications();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setErreur(data.error ?? 'Échec du rejet');
       }
-      setRejectionReason('');
-      setShowRejectModal(false);
-      await loadVerifications();
+    } catch {
+      setErreur('Erreur réseau');
+    } finally {
+      setIsProcessing(false);
     }
-
-    setIsProcessing(false);
   };
 
   if (isLoading) {
@@ -127,7 +160,7 @@ export function VerificationQueuePanel() {
         <h3 className="text-xl font-bold text-white mb-2">
           Aucune vérification en attente
         </h3>
-        <p className="text-zinc-400">Toutes les photos ont été vérifiées! 🎉</p>
+        <p className="text-zinc-400">Toutes les photos ont été vérifiées ! 🎉</p>
       </div>
     );
   }
@@ -137,6 +170,12 @@ export function VerificationQueuePanel() {
 
   return (
     <div className="space-y-6">
+      {erreur && (
+        <div className="p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-200 text-sm">
+          {erreur}
+        </div>
+      )}
+
       {/* Stats */}
       {stats && (
         <div className="grid grid-cols-4 gap-4">
@@ -165,7 +204,7 @@ export function VerificationQueuePanel() {
         <div className="aspect-video bg-black relative overflow-hidden">
           <img
             src={photo.url}
-            alt="Verification"
+            alt="Vérification"
             className="w-full h-full object-cover"
           />
           <div className="absolute top-4 left-4 bg-black/80 px-3 py-1.5 rounded-full text-xs text-white">
@@ -178,29 +217,33 @@ export function VerificationQueuePanel() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <div className="text-xs text-zinc-400 mb-1">Utilisateur</div>
-              <div className="font-bold text-white">{photo.users.username}</div>
+              <div className="font-bold text-white">{photo.user.username}</div>
             </div>
             <div>
               <div className="text-xs text-zinc-400 mb-1">Email</div>
-              <div className="text-sm text-zinc-300">{photo.users.email}</div>
+              <div className="text-sm text-zinc-300">{photo.user.email}</div>
             </div>
             <div>
               <div className="text-xs text-zinc-400 mb-1">Âge</div>
-              <div className="font-bold text-white">{photo.users.age} ans</div>
+              <div className="font-bold text-white">
+                {photo.user.age !== null ? `${photo.user.age} ans` : '—'}
+              </div>
             </div>
             <div>
               <div className="text-xs text-zinc-400 mb-1">Genre</div>
               <div className="font-bold text-white">
-                {photo.users.gender === 'couple'
+                {photo.user.gender === 'couple'
                   ? 'Couple'
-                  : photo.users.gender === 'femme'
+                  : photo.user.gender === 'femme'
                   ? 'Femme'
-                  : 'Homme'}
+                  : photo.user.gender === 'homme'
+                  ? 'Homme'
+                  : photo.user.gender ?? '—'}
               </div>
             </div>
             <div className="col-span-2">
               <div className="text-xs text-zinc-400 mb-1">Localisation</div>
-              <div className="text-sm text-zinc-300">{photo.users.location}</div>
+              <div className="text-sm text-zinc-300">{photo.user.location ?? '—'}</div>
             </div>
           </div>
 
