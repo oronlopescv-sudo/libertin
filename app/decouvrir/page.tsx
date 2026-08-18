@@ -255,6 +255,7 @@ export default function Decouvrir() {
                 <option value="">Tous</option>
                 <option value="femme">Femme</option>
                 <option value="homme">Homme</option>
+                <option value="couple">Couple</option>
               </select>
             </div>
 
@@ -304,7 +305,7 @@ export default function Decouvrir() {
 
                   <div className="flex gap-2 mb-4">
                     <span className="text-xs bg-[#D4145A]/20 text-[#D4145A] px-2 py-1 rounded">
-                      {profile.gender === 'femme' ? '♀️' : '♂️'}
+                      {profile.gender === 'femme' ? '♀️ Femme' : profile.gender === 'homme' ? '♂️ Homme' : '💞 Couple'}
                     </span>
                     <span className="text-xs bg-[#2C1B3D] text-zinc-400 px-2 py-1 rounded">
                       {profile.sexualOrientation}

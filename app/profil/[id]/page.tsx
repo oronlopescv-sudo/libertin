@@ -237,7 +237,7 @@ export default function ProfileDetailPage() {
             <div className="flex flex-wrap gap-2">
               {profil.gender && (
                 <span className="text-xs bg-[#D4145A]/20 text-[#D4145A] px-2 py-1 rounded">
-                  {profil.gender === 'femme' ? '♀️ Femme' : profil.gender === 'homme' ? '♂️ Homme' : profil.gender}
+                  {profil.gender === 'femme' ? '♀️ Femme' : profil.gender === 'homme' ? '♂️ Homme' : profil.gender === 'couple' ? '💞 Couple' : profil.gender}
                 </span>
               )}
               {profil.sexualOrientation && (
