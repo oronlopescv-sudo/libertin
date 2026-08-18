@@ -16,6 +16,7 @@ import {
   X,
   Database,
 } from 'lucide-react';
+import { NotificationBell } from '@/components/notification-bell';
 
 export function Navbar() {
   const pathname = usePathname();
@@ -87,6 +88,7 @@ export function Navbar() {
             {/* Current User Profile Pill */}
             {user ? (
               <div className="flex items-center gap-2">
+                <NotificationBell />
                 <Link
                   href="/profil"
                   className="flex items-center gap-2 p-1.5 pr-3 rounded-full bg-[#2C1B3D] border border-[#3D2654] hover:border-[#D4145A] transition-colors"
@@ -162,13 +164,16 @@ export function Navbar() {
                   </div>
                 </div>
               </div>
-              <Link
-                href="/profil"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-xs px-2.5 py-1 rounded-md bg-[#D4145A] text-white font-medium"
-              >
-                Profil
-              </Link>
+              <div className="flex items-center gap-2">
+                <NotificationBell />
+                <Link
+                  href="/profil"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-xs px-2.5 py-1 rounded-md bg-[#D4145A] text-white font-medium"
+                >
+                  Profil
+                </Link>
+              </div>
             </div>
           )}
 

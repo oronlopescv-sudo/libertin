@@ -134,6 +134,33 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gro
       );
     }
 
+    // Notifier les autres membres du groupe (best-effort : jamais bloquant).
+    try {
+      const { data: membres } = await supabase
+        .from('group_memberships')
+        .select('user_id')
+        .eq('group_id', groupId)
+        .neq('user_id', auth.user.id)
+        .limit(50);
+      const autres = (membres ?? []).map((m: { user_id: string }) => m.user_id);
+      if (autres.length > 0) {
+        const preview = content.length > 80 ? content.slice(0, 80) + '…' : content;
+        await supabase.from('notifications').insert(
+          autres.map((uid: string) => ({
+            user_id: uid,
+            type: 'message',
+            title: 'Nouveau message',
+            body: `${auth.user.username} : ${preview}`,
+            link: `/chat/${groupId}`,
+            is_read: false,
+            created_at: maintenant,
+          }))
+        );
+      }
+    } catch (notifErr) {
+      console.warn('[messages POST notif]', notifErr);
+    }
+
     return NextResponse.json({ success: true, message: mapMessage(message) });
   } catch (err) {
     console.error('[messages POST]', err);
