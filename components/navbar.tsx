@@ -25,6 +25,7 @@ export function Navbar() {
   const navLinks = [
     { href: '/decouvrir', label: 'Découvrir', icon: Flame, badge: isPremium ? null : 'Premium' },
     { href: '/groupes', label: 'Groupes', icon: Users },
+    { href: '/messagerie', label: 'Messages', icon: MessageSquare },
     { href: '/abonnements', label: 'Abonnements', icon: Crown, highlight: true },
     { href: '/admin', label: 'Modération', icon: ShieldCheck, adminOnly: true },
   ];
