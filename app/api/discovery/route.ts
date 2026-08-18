@@ -34,9 +34,10 @@ export async function GET(req: NextRequest) {
     // Construir query com filtros — table `profiles` (snake_case).
     let query = supabase
       .from('profiles')
-      .select('id, username, date_of_birth, gender, sexual_orientation, location, created_at', {
-        count: 'exact',
-      })
+      .select(
+        'id, username, date_of_birth, gender, sexual_orientation, location, is_verified, created_at',
+        { count: 'exact' }
+      )
       .neq('id', auth.user.id) // Non mostrar own profile
       .eq('is_active', true)
       .order('created_at', { ascending: false });
@@ -74,6 +75,19 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Erreur lors de la récupération des profils' }, { status: 500 });
     }
 
+    // Photos de couverture des profils renvoyés (une requête groupée plutôt
+    // qu'un join pour ne pas exclure les profils sans photo).
+    const userIds = (profiles || []).map((p: any) => p.id);
+    const coverMap = new Map<string, string>();
+    if (userIds.length > 0) {
+      const { data: covers } = await supabase
+        .from('photos')
+        .select('user_id, url')
+        .in('user_id', userIds)
+        .eq('is_cover', true);
+      (covers ?? []).forEach((c: any) => coverMap.set(c.user_id, c.url));
+    }
+
     // Calcular idade a partir de date_of_birth
     const profilesWithAge = (profiles || []).map((profile: any) => {
       const birthDate = new Date(profile.date_of_birth);
@@ -90,6 +104,8 @@ export async function GET(req: NextRequest) {
         sexualOrientation: profile.sexual_orientation,
         location: profile.location,
         age,
+        isVerified: !!profile.is_verified,
+        coverPhoto: coverMap.get(profile.id) ?? null,
       };
     });
 

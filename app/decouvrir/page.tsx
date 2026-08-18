@@ -4,9 +4,10 @@ import React, { useEffect, useState } from 'react';
 import { fetchResilient } from '@/lib/fetch-resilient';
 import { Navbar } from '@/components/navbar';
 import Link from 'next/link';
-import { Lock, Heart, MessageSquare } from 'lucide-react';
+import { Lock, Heart, MessageSquare, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
+import { CITIES, COUNTRIES } from '@/lib/geo';
 
 interface Profile {
   id: string;
@@ -15,7 +16,16 @@ interface Profile {
   gender: string;
   sexualOrientation: string;
   location: string;
+  isVerified?: boolean;
+  coverPhoto?: string | null;
 }
+
+const ORIENTATION_LABELS: Record<string, string> = {
+  hetero: 'Hétérosexuel(le)',
+  homo: 'Homosexuel(le)',
+  bi: 'Bisexuel(le)',
+  libertin: 'Libertin(e)',
+};
 
 export default function Decouvrir() {
   // Utilisateur connecté depuis le contexte d'authentification (Supabase Auth).
@@ -208,13 +218,19 @@ export default function Decouvrir() {
                 onChange={(e) => { setLocation(e.target.value); setPage(1); }}
                 className="w-full mt-1 px-3 py-2 bg-[#2C1B3D] border border-[#3C2B4D] rounded-lg text-white focus:outline-none focus:border-[#D4145A]"
               >
-                <option value="">Toutes</option>
-                <option value="Paris">Paris</option>
-                <option value="Lyon">Lyon</option>
-                <option value="Bordeaux">Bordeaux</option>
-                <option value="Côte d'Azur">Côte d'Azur</option>
-                <option value="Bruxelas">Bruxelas</option>
-                <option value="Luxembourg">Luxembourg</option>
+                <option value="">Toutes les villes</option>
+                {COUNTRIES.filter((c) => c.code !== 'ALL').map((c) => (
+                  <optgroup key={c.code} label={`${c.flag} ${c.name}`}>
+                    {Object.values(CITIES)
+                      .filter((ci) => ci.country === c.name)
+                      .sort((a, b) => a.name.localeCompare(b.name))
+                      .map((ci) => (
+                        <option key={ci.name} value={ci.name}>
+                          {ci.name}
+                        </option>
+                      ))}
+                  </optgroup>
+                ))}
               </select>
             </div>
 
@@ -259,18 +275,19 @@ export default function Decouvrir() {
               </select>
             </div>
 
-            {/* Orientaction */}
+            {/* Orientation */}
             <div>
-              <label className="text-sm text-zinc-400">Orientaction</label>
+              <label className="text-sm text-zinc-400">Orientation</label>
               <select
                 value={orientation}
                 onChange={(e) => { setOrientation(e.target.value); setPage(1); }}
                 className="w-full mt-1 px-3 py-2 bg-[#2C1B3D] border border-[#3C2B4D] rounded-lg text-white focus:outline-none focus:border-[#D4145A]"
               >
                 <option value="">Toutes</option>
-                <option value="heterosexuelle">Heterossexual</option>
-                <option value="bisexuelle">Bissexual</option>
-                <option value="lesbienne">Lésbica</option>
+                <option value="hetero">Hétérosexuel(le)</option>
+                <option value="homo">Homosexuel(le)</option>
+                <option value="bi">Bisexuel(le)</option>
+                <option value="libertin">Libertin(e)</option>
               </select>
             </div>
           </div>
@@ -288,27 +305,48 @@ export default function Decouvrir() {
                 key={profile.id}
                 className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] overflow-hidden hover:border-[#D4145A] transition"
               >
-                <Link href={`/profil/${profile.id}`} className="block">
-                  {/* Placeholder para foto */}
-                  <div className="h-48 bg-gradient-to-br from-[#D4145A]/20 to-[#E86B7A]/20 flex items-center justify-center">
-                    <span className="text-zinc-500">Photo</span>
+                <Link href={`/profil/${profile.id}`} className="block relative">
+                  <div className="h-48 bg-gradient-to-br from-[#D4145A]/20 to-[#E86B7A]/20 overflow-hidden">
+                    {profile.coverPhoto ? (
+                      <img
+                        src={profile.coverPhoto}
+                        alt={profile.username}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="text-zinc-500 text-sm">Aucune photo</span>
+                      </div>
+                    )}
                   </div>
+                  {profile.isVerified && (
+                    <span
+                      className="absolute top-2 right-2 bg-emerald-500/90 rounded-full p-1 shadow-md"
+                      title="Profil vérifié"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5 text-white" />
+                    </span>
+                  )}
                 </Link>
 
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-2">
                     <Link href={`/profil/${profile.id}`} className="block">
-                      <h3 className="text-lg font-bold text-white hover:text-[#E86B7A] transition">{profile.username}</h3>
+                      <h3 className="text-lg font-bold text-white hover:text-[#E86B7A] transition flex items-center gap-1">
+                        {profile.username}
+                        {profile.isVerified && <ShieldCheck className="w-4 h-4 text-emerald-400" />}
+                      </h3>
                       <p className="text-sm text-zinc-400">{profile.age} ans • {profile.location}</p>
                     </Link>
                   </div>
 
-                  <div className="flex gap-2 mb-4">
+                  <div className="flex gap-2 mb-4 flex-wrap">
                     <span className="text-xs bg-[#D4145A]/20 text-[#D4145A] px-2 py-1 rounded">
                       {profile.gender === 'femme' ? '♀️ Femme' : profile.gender === 'homme' ? '♂️ Homme' : '💞 Couple'}
                     </span>
                     <span className="text-xs bg-[#2C1B3D] text-zinc-400 px-2 py-1 rounded">
-                      {profile.sexualOrientation}
+                      {ORIENTATION_LABELS[profile.sexualOrientation] ?? profile.sexualOrientation}
                     </span>
                   </div>
 
