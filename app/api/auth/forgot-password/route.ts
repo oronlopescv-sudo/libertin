@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
 
     // Envoie l'email via Resend (si configuré)
     if (resend) {
-      const resetUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://xlibertine.com'}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
+      const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://xlibertine.com'}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
 
       try {
         await resend.emails.send({

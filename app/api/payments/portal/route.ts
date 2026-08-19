@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://xlibertine.com';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://xlibertine.com';
   const body = await req.json().catch(() => ({}));
   // On n'accepte qu'un chemin relatif interne (commence par / mais pas par //)
   // pour éviter une redirection ouverte vers un domaine arbitraire.
