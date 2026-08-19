@@ -38,7 +38,6 @@ export async function joinGroupAnonymous(
       if (
         !isPremium({
           email: profile.email,
-          username: profile.username,
           role: profile.role,
           subscriptionTier: profile.subscription_tier,
           subscriptionEnd: profile.subscription_end,
