@@ -16,6 +16,8 @@ import {
   VolumeX,
   UserX,
   AlertCircle,
+  ImageIcon,
+  Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -49,7 +51,13 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
   const [erreur, setErreur] = useState('');
   const [accesRefuse, setAccesRefuse] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  // Upload de mídia (Premium) : preview local + URL pública pronta para enviar.
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const [pendingMediaPreview, setPendingMediaPreview] = useState<string | null>(null);
+  const [pendingMediaUrl, setPendingMediaUrl] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const EMOJIS = ['🥂', '🌶️', '💋', '🍸', '✨', '🔥', '🖤', '🍓', '🔒', '🌹'];
 
@@ -122,6 +130,16 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Libère l'object URL du preview local au démontage du composant.
+  useEffect(() => {
+    return () => {
+      setPendingMediaPreview((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+    };
+  }, []);
+
   const playSendSound = () => {
     if (!soundEnabled || typeof Audio === 'undefined') return;
     try {
@@ -141,10 +159,78 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
     }
   };
 
+  // Retire la mídia en attente (preview local + URL uploadée) et libère
+  // l'object URL pour éviter une fuite de mémoire.
+  const clearPendingMedia = useCallback(() => {
+    setPendingMediaPreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+    setPendingMediaUrl(null);
+    setUploadError('');
+  }, []);
+
+  // Sélection d'un fichier image : upload immédiat vers /api/chat/upload
+  // (Premium gate côté serveur), puis on garde l'URL publique en attente
+  // d'envoi avec une éventuelle légende. L'utilisateur peut retirer l'image
+  // avant l'envoi.
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    // Réinitialise l'input pour permettre de re-sélectionner le même fichier.
+    e.target.value = '';
+    if (!file || !user) return;
+
+    // Feedback rapide côté client (le serveur valide aussi).
+    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowed.includes(file.type)) {
+      setUploadError('Format de fichier non autorisé (JPG, PNG, WebP).');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError('Fichier trop volumineux (max 5MB).');
+      return;
+    }
+
+    // Le gate Premium est déjà appliqué côté UI (bouton caché pour les
+    // non-Premium), mais on vérifie quand même pour éviter un appel inutile.
+    if (!isPremium) {
+      setUpgradeModalOpen(true);
+      return;
+    }
+
+    clearPendingMedia();
+    setUploadError('');
+    setIsUploading(true);
+    const preview = URL.createObjectURL(file);
+    setPendingMediaPreview(preview);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetchResilient('/api/chat/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.url) {
+        setPendingMediaUrl(data.url);
+      } else {
+        setUploadError(data.error ?? "Échec de l'envoi de l'image");
+        clearPendingMedia();
+      }
+    } catch {
+      setUploadError('Erreur réseau. Vérifiez votre connexion.');
+      clearPendingMedia();
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleSend = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const content = inputContent.trim();
-    if (!content || !user || isSending) return;
+    // On peut envoyer soit du texte, soit une image (uploadée), soit les deux.
+    if ((!content && !pendingMediaUrl) || !user || isSending) return;
 
     // Gate Premium côté client (évite un aller-retour inutile) — le serveur
     // vérifie aussi. L'admin est Premium à vie via lib/premium.
@@ -159,12 +245,16 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
       const res = await fetchResilient(`/api/messages/${groupId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({
+          content,
+          mediaUrl: pendingMediaUrl || undefined,
+        }),
       });
       const data = await res.json().catch(() => ({}));
 
       if (res.ok) {
         setInputContent('');
+        clearPendingMedia();
         if (data.message) appendMessage(data.message);
         playSendSound();
       } else if (res.status === 403 && data.premiumRequired) {
@@ -294,6 +384,14 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
                         : 'bg-[#2C1B3D] text-zinc-200 border border-[#3D2654] rounded-tl-none'
                     }`}
                   >
+                    {msg.mediaUrl && (
+                      <img
+                        src={msg.mediaUrl}
+                        alt="Image du tchat"
+                        loading="lazy"
+                        className="rounded-xl max-w-[220px] max-h-[220px] object-cover mb-1"
+                      />
+                    )}
                     {msg.content}
                   </div>
                 </div>
@@ -349,7 +447,76 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
           </div>
         )}
 
+        {/* Erreur d'upload d'image */}
+        {uploadError && (
+          <div className="mb-2 px-3 py-2 rounded-lg bg-red-950/60 border border-red-800/40 text-red-300 text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{uploadError}</span>
+            <button
+              type="button"
+              onClick={() => setUploadError('')}
+              className="ml-auto text-red-400 hover:text-white"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
+        {/* Preview de l'image en attente d'envoi */}
+        {pendingMediaPreview && (
+          <div className="mb-2 flex items-center gap-2 p-2 rounded-lg bg-[#1C102B] border border-[#3D2654]">
+            <div className="relative">
+              <img
+                src={pendingMediaPreview}
+                alt="Aperçu"
+                className="w-14 h-14 rounded-lg object-cover border border-[#D4145A]"
+              />
+              {isUploading && (
+                <div className="absolute inset-0 rounded-lg bg-black/60 flex items-center justify-center">
+                  <Loader2 className="w-5 h-5 text-white animate-spin" />
+                </div>
+              )}
+            </div>
+            <div className="text-xs text-zinc-400 flex-1">
+              {isUploading ? 'Envoi de l’image…' : 'Image prête. Ajoutez une légende ou envoyez.'}
+            </div>
+            {!isUploading && (
+              <button
+                type="button"
+                onClick={clearPendingMedia}
+                className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-[#2C1B3D]"
+                title="Retirer l'image"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        )}
+
         <div className="flex items-center gap-2">
+          {/* Bouton d'attachement d'image — Premium uniquement */}
+          {isPremium && (
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleFileSelect}
+                disabled={isUploading || isSending}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading || isSending}
+                className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-[#2C1B3D] disabled:opacity-50"
+                title="Envoyer une image"
+              >
+                <ImageIcon className="w-5 h-5 text-[#E86B7A]" />
+              </button>
+            </>
+          )}
+
           <button
             type="button"
             onClick={() => setEmojiPickerOpen(!emojiPickerOpen)}
@@ -365,15 +532,17 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
             onChange={(e) => setInputContent(e.target.value)}
             placeholder={
               isPremium
-                ? "Écrivez votre message discret..."
-                : "Abonnement requis pour envoyer un message..."
+                ? pendingMediaUrl
+                  ? "Ajoutez une légende (optionnel)…"
+                  : "Écrivez votre message discret…"
+                : "Abonnement requis pour envoyer un message…"
             }
             className="flex-1 px-4 py-2.5 rounded-xl bg-[#1C102B] border border-[#3D2654] text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#D4145A]"
           />
 
           <button
             type="submit"
-            disabled={isSending}
+            disabled={isSending || isUploading}
             className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white font-bold text-xs hover:opacity-95 shadow-md flex items-center gap-1.5 disabled:opacity-60"
           >
             <Send className="w-4 h-4" />
