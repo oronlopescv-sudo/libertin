@@ -12,16 +12,6 @@ import { utilisateurActuel } from '@/lib/auth-serveur';
  */
 export async function POST(req: NextRequest) {
   try {
-    if (!stripe) {
-      return NextResponse.json(
-        {
-          error: 'Passerelle de paiement non configurée.',
-          message: "La variable STRIPE_SECRET_KEY n'est pas définie sur le serveur.",
-        },
-        { status: 501 }
-      );
-    }
-
     const auth = await utilisateurActuel();
     if (!auth.ok) return auth.reponse;
 
@@ -34,12 +24,30 @@ export async function POST(req: NextRequest) {
     }
 
     // Chemin A — Stripe Payment Link (lien hébergé par Stripe).
-    // Si un lien de paiement est configuré pour ce tier (env STRIPE_LINK_<TIER>),
-    // on redirige directement dessus : aucune clé secrète Stripe n'est requise,
-    // aucun appel API serveur. Idéal si vous n'avez que des Payment Links.
+    // Prioritaire sur le Checkout Session : aucune clé secrète Stripe n'est
+    // requise, aucun appel API serveur. On encode userId + planId dans
+    // client_reference_id (paramètre URL accepté par les Payment Links) pour
+    // que le webhook puisse activer l'abonnement après paiement — sans cela,
+    // le paiement passerait mais le Premium ne s'activerait jamais automatiquement.
     const lienPaiement = process.env[`STRIPE_LINK_${tier}`];
     if (lienPaiement && /^https?:\/\//.test(lienPaiement)) {
-      return NextResponse.json({ url: lienPaiement });
+      const sep = lienPaiement.includes('?') ? '&' : '?';
+      const url = `${lienPaiement}${sep}client_reference_id=${encodeURIComponent(
+        `${auth.user.id}|${plan.id}`
+      )}`;
+      return NextResponse.json({ url });
+    }
+
+    // Chemin B — Checkout Session personnalisée (nécessite STRIPE_SECRET_KEY).
+    if (!stripe) {
+      return NextResponse.json(
+        {
+          error: 'Passerelle de paiement non configurée.',
+          message:
+            "Aucun STRIPE_LINK_<TIER> ni STRIPE_SECRET_KEY n'est défini sur le serveur.",
+        },
+        { status: 501 }
+      );
     }
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://xlibertine.com';
