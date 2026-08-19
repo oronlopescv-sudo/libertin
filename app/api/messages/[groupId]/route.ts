@@ -100,8 +100,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gro
 
     const body = await req.json().catch(() => ({}));
     const content = typeof body.content === 'string' ? body.content.trim() : '';
+    const mediaUrl = typeof body.mediaUrl === 'string' ? body.mediaUrl.trim() : '';
 
-    if (!content) {
+    // Un message doit contenir au moins un texte ou une image.
+    if (!content && !mediaUrl) {
       return NextResponse.json({ error: 'Le contenu du message est vide.' }, { status: 400 });
     }
 
@@ -121,6 +123,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gro
         user_id: auth.user.id,
         user_name: auth.user.username,
         content,
+        media_url: mediaUrl || null,
         created_at: maintenant,
       })
       .select('id, user_id, group_id, user_name, user_avatar, content, media_url, created_at')
@@ -144,7 +147,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gro
         .limit(50);
       const autres = (membres ?? []).map((m: { user_id: string }) => m.user_id);
       if (autres.length > 0) {
-        const preview = content.length > 80 ? content.slice(0, 80) + '…' : content;
+        // S'il n'y a que l'image (pas de texte), un placeholder lisible.
+        const textePreview = content || '📷 Photo';
+        const preview = textePreview.length > 80 ? textePreview.slice(0, 80) + '…' : textePreview;
         await supabase.from('notifications').insert(
           autres.map((uid: string) => ({
             user_id: uid,
