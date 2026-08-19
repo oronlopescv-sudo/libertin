@@ -105,7 +105,7 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
           table: 'messages',
           filter: `group_id=eq.${groupId}`,
         },
-        (payload) => {
+        (payload: any) => {
           const row = payload.new as any;
           appendMessage({
             id: row.id,
