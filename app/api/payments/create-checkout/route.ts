@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ url: lienPaiement });
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://xlibertine.com';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://xlibertine.com';
 
     // Récupère ou crée le client Stripe associé au compte, pour que les
     // paiements futurs et le tableau de bord propriétaire puissent
