@@ -101,6 +101,44 @@ export default function AdminDashboard() {
     }
   };
 
+  // Ativar (ou renovar) Premium para um usuário, sem passar par Stripe.
+  // O admin escolhe a duração : 3, 12 ou 24 meses.
+  const grantPremium = async (userId: string, currentTier: string) => {
+    const input = prompt(
+      'Ativar Premium — quantos meses?\nDigite 3, 12 ou 24 (padrão: 12)',
+      '12'
+    );
+    if (input === null) return;
+
+    const meses = parseInt(input.trim(), 10);
+    const plan =
+      meses === 3 ? 'PREMIUM_3M' :
+      meses === 24 ? 'PREMIUM_24M' :
+      'PREMIUM_12M';
+
+    const verbo = currentTier && currentTier !== 'FREE' ? 'Renovar' : 'Ativar';
+    if (!confirm(`${verbo} Premium (${plan}) para este usuário ?`)) return;
+
+    const res = await fetchResilient('/api/admin/users/grant-premium', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, plan }),
+    });
+
+    if (res.ok) {
+      alert(`✅ Premium ${plan} ativado com sucesso !`);
+      // Recarregar users
+      const usersRes = await fetchResilient(`/api/admin/users?page=${page}`);
+      if (usersRes.ok) {
+        const usersData = await usersRes.json();
+        setUsers(usersData.users);
+      }
+    } else {
+      const err = await res.json().catch(() => ({}));
+      alert(`❌ Erro: ${err.error || 'falha ao ativar premium'}`);
+    }
+  };
+
   if (loading || authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#12091A] to-[#1C102B]">
@@ -273,21 +311,32 @@ export default function AdminDashboard() {
                       )}
                     </td>
                     <td className="py-3 px-4">
-                      {u.isBanned ? (
-                        <button
-                          onClick={() => unbanUser(u.id)}
-                          className="text-green-400 hover:text-green-300 text-xs font-semibold"
-                        >
-                          Desbannir
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => banUser(u.id, 'Violation des conditions')}
-                          className="text-red-400 hover:text-red-300 text-xs font-semibold flex items-center gap-1"
-                        >
-                          <Ban className="w-4 h-4" /> Bannir
-                        </button>
-                      )}
+                      <div className="flex flex-col gap-1">
+                        {u.isBanned ? (
+                          <button
+                            onClick={() => unbanUser(u.id)}
+                            className="text-green-400 hover:text-green-300 text-xs font-semibold"
+                          >
+                            Desbannir
+                          </button>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => grantPremium(u.id, u.subscriptionTier)}
+                              className="text-yellow-400 hover:text-yellow-300 text-xs font-semibold flex items-center gap-1"
+                            >
+                              <Crown className="w-4 h-4" />
+                              {u.subscriptionTier && u.subscriptionTier !== 'FREE' ? 'Renovar Premium' : 'Ativar Premium'}
+                            </button>
+                            <button
+                              onClick={() => banUser(u.id, 'Violation des conditions')}
+                              className="text-red-400 hover:text-red-300 text-xs font-semibold flex items-center gap-1"
+                            >
+                              <Ban className="w-4 h-4" /> Bannir
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
