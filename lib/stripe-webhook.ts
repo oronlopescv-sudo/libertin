@@ -80,8 +80,19 @@ export async function handleStripeWebhook(request: NextRequest) {
  * Paiement réussi : active l'abonnement Premium dans `profiles`.
  */
 async function handleCheckoutSessionCompleted(session: any) {
-  const userId = session.client_reference_id;
-  const planId = session.metadata?.planId;
+  // client_reference_id peut prendre deux formes :
+  //  - "userId"         → Chemin B (Checkout Session), planId est dans metadata
+  //  - "userId|planId"   → Chememin A (Payment Link), planId encodé dans le ref
+  //    car les Payment Links n'acceptent pas metadata via l'URL.
+  const ref = session.client_reference_id || '';
+  let userId: string | undefined;
+  let planId: string | undefined;
+  if (ref.includes('|')) {
+    [userId, planId] = ref.split('|');
+  } else {
+    userId = ref;
+    planId = session.metadata?.planId;
+  }
 
   if (!userId || !planId) {
     console.error('Missing userId or planId in webhook');
