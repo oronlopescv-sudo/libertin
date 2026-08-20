@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       client_reference_id: auth.user.id,
-      mode: 'payment',
+      mode: 'subscription',
       payment_method_types: ['card'],
       line_items: [
         {
@@ -88,9 +88,11 @@ export async function POST(req: NextRequest) {
             currency: 'eur',
             product_data: {
               name: plan.title,
-              description: `Abonnement xlibertine — ${plan.durationMonths} mois`,
+              description: `Abonnement xlibertine — facturation mensuelle`,
             },
-            unit_amount: Math.round(plan.totalPrice * 100),
+            // Prix MENSUEL prélevé chaque mois (récurrent).
+            unit_amount: Math.round(plan.pricePerMonth * 100),
+            recurring: { interval: 'month', interval_count: 1 },
           },
           quantity: 1,
         },

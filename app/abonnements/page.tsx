@@ -41,7 +41,7 @@ export default function AbonnementsPage() {
                 <tr className="border-b border-[#2C1B3D] text-zinc-400">
                   <th className="py-3 px-4 font-semibold">Fonctionnalité</th>
                   <th className="py-3 px-4 font-semibold text-center">Gratuit (0€)</th>
-                  <th className="py-3 px-4 font-semibold text-center text-[#E86B7A]">Pass Premium 3M / 12M / 24M</th>
+                  <th className="py-3 px-4 font-semibold text-center text-[#E86B7A]">Pass Premium (mensuel)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#2C1B3D] text-zinc-300">

@@ -45,7 +45,7 @@
     - Username
     - Email
     - Localisation
-    - Tipo de abonnement (FREE, PREMIUM_3M, etc)
+    - Tipo de abonnement (FREE, PASS_EPICURIEN, etc)
 [ ] Botão "Logout" está visível
 [ ] ✅ PASSOU ou ❌ FALHOU
 ```
@@ -126,14 +126,14 @@
 ## 💎 TESTE 3: PREMIUM FEATURES (22 clientes)
 
 **Credenciais (escolhe uma):**
-- `premium.maya@xlibertine.com` / `TestPass123` (PREMIUM_12M)
-- `premium.alice@xlibertine.com` / `TestPass123` (PREMIUM_3M)
+- `premium.maya@xlibertine.com` / `TestPass123` (PASS_PRIVILEGE)
+- `premium.alice@xlibertine.com` / `TestPass123` (PASS_EPICURIEN)
 
 ### Passo 3.1: Login como PREMIUM
 ```
 [ ] Faz login com credenciais PREMIUM
 [ ] Vai para /profil ✅
-[ ] Vê abonnement: PREMIUM_3M ou PREMIUM_12M
+[ ] Vê abonnement: PASS_EPICURIEN ou PASS_PRIVILEGE
 [ ] ✅ PASSOU ou ❌ FALHOU
 ```
 

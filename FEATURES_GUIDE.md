@@ -178,28 +178,28 @@ FREE
 ├─ Pode entrar em grupos (identificado)
 └─ Sem acesso a "Nudes Anonymes"
 
-PREMIUM_3M — €24,99
+PASS_EPICURIEN — €24,99
 ├─ Messages privadas
 ├─ Anonimato em grupos
 ├─ Acesso completo
 
-CREATOR_3M — €74,99
-├─ Tudo do PREMIUM_3M +
+PASS_EPICURIEN — €74,99
+├─ Tudo do PASS_EPICURIEN +
 ├─ Criar grupos (€50 incluído)
 ├─ Válido 5 mois
 
-PREMIUM_12M — €59,99
-├─ 12 mois premium
+PASS_PRIVILEGE — €59,99
+├─ mensuel premium
 ├─ Anonimato
 └─ Sem criar grupos
 
-CREATOR_12M — €109,99
-├─ 12 mois premium +
+PASS_PRIVILEGE — €109,99
+├─ mensuel premium +
 ├─ Criar 1 grupo (€50 incluído)
 └─ Válido 5 mois
 
-VIP_24M — €149,99
-├─ 24 mois premium
+PASS_VIP — €149,99
+├─ mensuel premium
 ├─ Criar 2 grupos (€50 cada incluído)
 ├─ Priority support
 └─ Featured listing
@@ -320,7 +320,7 @@ User Journey → Revenue:
 
 Free user
   ↓
-Upgrade PREMIUM_3M (€24,99)
+Upgrade PASS_EPICURIEN (€24,99)
   ↓
 Join annymous groups ✓
   ↓

@@ -84,12 +84,9 @@ type Donnees = {
 
 const NOM_OFFRE: Record<string, string> = {
   FREE: 'Gratuit',
-  PREMIUM_3M: 'Premium 3 mois',
-  PREMIUM_12M: 'Premium 12 mois',
-  PREMIUM_24M: 'Premium 24 mois',
-  CREATOR_3M: 'Créateur 3 mois',
-  CREATOR_12M: 'Créateur 12 mois',
-  VIP_24M: 'VIP 24 mois',
+  PASS_EPICURIEN: 'Pass Épicurien',
+  PASS_PRIVILEGE: 'Pass Privilège',
+  PASS_VIP: 'Pass VIP Elite',
 };
 
 function formatEuros(n: number) {

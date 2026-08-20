@@ -3,7 +3,7 @@
 **Status:** ✅ COMPLETAMENTE IMPLEMENTADO  
 **Commit:** `c3d5309`  
 **URL:** https://xlibertine.com/admin  
-**Acesso:** Apenas 3 Agentes (VIP_24M)
+**Acesso:** Apenas 3 Agentes (PASS_VIP)
 
 ---
 
@@ -65,11 +65,11 @@ Grid mostrando:
 ┌──────────────────────┐
 │ FREE:        25      │ (47%)
 ├──────────────────────┤
-│ PREMIUM_3M:  12      │ (23%)
+│ PASS_EPICURIEN:  12      │ (23%)
 ├──────────────────────┤
-│ PREMIUM_12M: 10      │ (19%)
+│ PASS_PRIVILEGE: 10      │ (19%)
 ├──────────────────────┤
-│ VIP_24M:     3       │ (6%)
+│ PASS_VIP:     3       │ (6%)
 └──────────────────────┘
 ```
 
@@ -91,9 +91,9 @@ Response:
   "totalLikes": 1240,
   "tierBreakdown": {
     "FREE": 25,
-    "PREMIUM_3M": 12,
-    "PREMIUM_12M": 10,
-    "VIP_24M": 3
+    "PASS_EPICURIEN": 12,
+    "PASS_PRIVILEGE": 10,
+    "PASS_VIP": 3
   }
 }
 ```
@@ -109,7 +109,7 @@ Response:
       "id": "uuid",
       "username": "alice",
       "email": "alice@test.com",
-      "abonnementTier": "PREMIUM_3M",
+      "abonnementTier": "PASS_EPICURIEN",
       "abonnementEnd": "2026-11-09",
       "isVerified": true,
       "createdAt": "2026-08-01",
@@ -142,7 +142,7 @@ DELETE /api/admin/users?userId=uuid
 
 ### **Autenticaction**
 ```
-✅ Apenas VIP_24M (3 agentes) podem aceder
+✅ Apenas PASS_VIP (3 agentes) podem aceder
 ✅ httpOnly auth token validado
 ✅ Middleware em todas as APIs
 
@@ -169,19 +169,19 @@ Agent 1:
   Email: agent.marie@xlibertine.com
   Mot de passe: TestPass123
   Role: Admin
-  Tier: VIP_24M
+  Tier: PASS_VIP
 
 Agent 2:
   Email: agent.pierre@xlibertine.com
   Mot de passe: TestPass123
   Role: Admin
-  Tier: VIP_24M
+  Tier: PASS_VIP
 
 Agent 3:
   Email: agent.sophie@xlibertine.com
   Mot de passe: TestPass123
   Role: Admin
-  Tier: VIP_24M
+  Tier: PASS_VIP
 ```
 
 ### **O Que Podem Fazer**
@@ -411,7 +411,7 @@ ADMIN_DASHBOARD_DOCS.md               (Documentaction completa)
    ↓
 4️⃣ Procura "alice" na tabela
    ↓
-5️⃣ Vê: alice | alice@test.com | PREMIUM_3M | ATIVO
+5️⃣ Vê: alice | alice@test.com | PASS_EPICURIEN | ATIVO
    ↓
 6️⃣ Clica "Bannir"
    ↓

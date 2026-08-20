@@ -1,6 +1,6 @@
 export type GenderType = 'couple' | 'homme' | 'femme';
 export type SexualOrientationType = 'hetero' | 'homo' | 'bi' | 'libertin';
-export type AbonnementTier = 'FREE' | 'PREMIUM_3M' | 'PREMIUM_12M' | 'PREMIUM_24M' | 'CREATOR_3M' | 'CREATOR_12M' | 'VIP_24M';
+export type AbonnementTier = 'FREE' | 'PASS_EPICURIEN' | 'PASS_PRIVILEGE' | 'PASS_VIP';
 export type EventType = 'festa' | 'gang_bang' | 'troca' | 'other';
 export type EventPlanType = 'basic' | 'featured' | 'vip_gold';
 

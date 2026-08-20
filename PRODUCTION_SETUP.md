@@ -105,15 +105,15 @@ CREATE POLICY "Users can update own profile" ON users
 #### Create Stripe Account
 - [ ] Register at https://stripe.com
 - [ ] Create products for each tier:
-  - **Pass Épicurien 3M** → Product ID: `prod_3m_xxx`
-  - **Pass Privilège 12M** → Product ID: `prod_12m_xxx`
-  - **Pass VIP Elite 24M** → Product ID: `prod_24m_xxx`
+  - **Pass Épicurien mensuel** → Product ID: `prod_3m_xxx`
+  - **Pass Privilège mensuel** → Product ID: `prod_12m_xxx`
+  - **Pass VIP Elite mensuel** → Product ID: `prod_24m_xxx`
 
 #### Add Prices
 For each product, create a price:
-- 3M: €16 (one-time payment)
-- 12M: €25 (one-time payment)
-- 24M: €70 (one-time payment)
+- mensuel: €16 (one-time payment)
+- mensuel: €25 (one-time payment)
+- mensuel: €70 (one-time payment)
 
 **Note:** These are one-time payments, not recurring abonnements.
 
@@ -166,9 +166,9 @@ DATABASE_URL=postgresql://postgres:...
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_xxx
 STRIPE_SECRET_KEY=sk_live_xxx
 STRIPE_WEBHOOK_SECRET=whsec_xxx
-STRIPE_PRODUCT_PREMIUM_3M=prod_xxx
-STRIPE_PRODUCT_PREMIUM_12M=prod_xxx
-STRIPE_PRODUCT_PREMIUM_24M=prod_xxx
+STRIPE_PRODUCT_PASS_EPICURIEN=prod_xxx
+STRIPE_PRODUCT_PASS_PRIVILEGE=prod_xxx
+STRIPE_PRODUCT_PASS_VIP=prod_xxx
 
 # Email
 RESEND_API_KEY=re_xxx

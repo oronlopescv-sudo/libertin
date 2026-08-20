@@ -15,14 +15,21 @@ export const stripe = process.env.STRIPE_SECRET_KEY
  */
 export const STRIPE_PRODUCT_IDS: Record<AbonnementTier, string | null> = {
   FREE: null, // No Stripe product for free tier
-  PREMIUM_3M: process.env.STRIPE_PRODUCT_PREMIUM_3M || 'prod_3m_placeholder',
-  PREMIUM_12M: process.env.STRIPE_PRODUCT_PREMIUM_12M || 'prod_12m_placeholder',
-  PREMIUM_24M: process.env.STRIPE_PRODUCT_PREMIUM_24M || 'prod_24m_placeholder',
-  CREATOR_3M: process.env.STRIPE_PRODUCT_CREATOR_3M || 'prod_creator_3m_placeholder',
-  CREATOR_12M: process.env.STRIPE_PRODUCT_CREATOR_12M || 'prod_creator_12m_placeholder',
-  VIP_24M: process.env.STRIPE_PRODUCT_VIP_24M || 'prod_vip_24m_placeholder',
+  PASS_EPICURIEN: process.env.STRIPE_PRODUCT_PASS_EPICURIEN || 'prod_epicurien_placeholder',
+  PASS_PRIVILEGE: process.env.STRIPE_PRODUCT_PASS_PRIVILEGE || 'prod_privilege_placeholder',
+  PASS_VIP: process.env.STRIPE_PRODUCT_PASS_VIP || 'prod_vip_placeholder',
 };
 
+/**
+ * Plans d'abonnement — facturation MENSUELLE RÉCURRENTE, sans durée fixe.
+ *
+ * `pricePerMonth` est le montant réellement prélevé chaque mois (affiché en
+ * grand et envoyé à Stripe). `totalPrice` vaut `pricePerMonth` (un seul mois)
+ * et n'est plus qu'un résidu du modèle ancien; `durationMonths` vaut 0 pour
+ * tous les plans payants : l'abonnement est mensuel tant qu'il n'est pas
+ * annulé. Les IDs PASS_EPICURIEN / PASS_PRIVILEGE / PASS_VIP sont les clés
+ * internes stables (DB, Stripe, env). Aucune notion de durée.
+ */
 export const SUBSCRIPTION_PLANS: AbonnementPlan[] = [
   {
     id: 'FREE',
@@ -39,11 +46,11 @@ export const SUBSCRIPTION_PLANS: AbonnementPlan[] = [
     ],
   },
   {
-    id: 'PREMIUM_3M',
-    title: 'Pass Épicurien 3 Mois',
-    durationMonths: 3,
-    totalPrice: 24,
-    pricePerMonth: 8.00,
+    id: 'PASS_EPICURIEN',
+    title: 'Pass Épicurien',
+    durationMonths: 0,
+    totalPrice: 9,
+    pricePerMonth: 9.00,
     savings: 'Sans engagement',
     features: [
       'Accès illimité à tous les profils vérifiés',
@@ -54,15 +61,15 @@ export const SUBSCRIPTION_PLANS: AbonnementPlan[] = [
     ],
   },
   {
-    id: 'PREMIUM_12M',
-    title: 'Pass Privilège 12 Mois',
-    durationMonths: 12,
-    totalPrice: 70,
-    pricePerMonth: 5.83,
+    id: 'PASS_PRIVILEGE',
+    title: 'Pass Privilège',
+    durationMonths: 0,
+    totalPrice: 15,
+    pricePerMonth: 15.00,
     popular: true,
-    savings: 'LE PLUS CHOISI (-27%)',
+    savings: 'LE PLUS CHOISI',
     features: [
-      'Toutes les fonctionnalités Premium 3M',
+      'Toutes les fonctionnalités Pass Épicurien',
       'Création illimitée de groupes de soirées & clubs',
       'Priorité absolue sur la modération & vérification',
       'Visibilité prioritaire dans l\'onglet Découvrir',
@@ -71,14 +78,14 @@ export const SUBSCRIPTION_PLANS: AbonnementPlan[] = [
     ],
   },
   {
-    id: 'PREMIUM_24M',
-    title: 'Pass VIP Elite 24 Mois',
-    durationMonths: 24,
-    totalPrice: 110,
-    pricePerMonth: 4.58,
-    savings: 'Le meilleur tarif mensuel (-43%)',
+    id: 'PASS_VIP',
+    title: 'Pass VIP Elite',
+    durationMonths: 0,
+    totalPrice: 25,
+    pricePerMonth: 25.00,
+    savings: 'Statut VIP Or permanent',
     features: [
-      'Toutes les fonctionnalités Privilège 12M',
+      'Toutes les fonctionnalités Pass Privilège',
       'Statut VIP Or permanent sur la communauté',
       'Conseiller libertin dédié pour vos sorties',
       'Aucune publicité & aucune restriction d\'envoi',

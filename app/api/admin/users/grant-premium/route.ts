@@ -6,20 +6,17 @@ import { sendAbonnementConfirmationEmail } from '@/lib/email';
 /**
  * POST /api/admin/users/grant-premium
  *
- * Permet à un administrateur d'activer Premium sur le compte d'un autre
- * utilisateur, sans passer par Stripe. Écrit dans `profiles` (snake_case) —
- * la source unique de vérité lue par lib/auth-serveur.ts et lib/premium.ts.
+ * Permet à un administrateur d'offrir un abonnement Premium sur le compte d'un
+ * autre utilisateur, sans passer par Stripe. Écrit dans `profiles` (snake_case)
+ * — la source unique de vérité lue par lib/auth-serveur.ts et lib/premium.ts.
  *
- * Corps : { userId: string, plan?: 'PREMIUM_3M' | 'PREMIUM_12M' | 'PREMIUM_24M' }
+ * Corps : { userId: string, plan: 'PASS_EPICURIEN' | 'PASS_PRIVILEGE' | 'PASS_VIP', months?: number }
  *
- * Le plan par défaut est PREMIUM_12M. L'activation est immédiate : isPremium()
- * renverra true dès le prochain appel pour cet utilisateur.
+ * `plan` est le pacquet mensuel attribué. `months` est la durée de la cortesie
+ * (en mois) ; par défaut 1. L'activation est immédiate : isPremium() renverra
+ * true dès le prochain appel pour cet utilisateur.
  */
-const PLAN_MONTHS: Record<string, number> = {
-  PREMIUM_3M: 3,
-  PREMIUM_12M: 12,
-  PREMIUM_24M: 24,
-};
+const VALID_PLANS = new Set(['PASS_EPICURIEN', 'PASS_PRIVILEGE', 'PASS_VIP']);
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,12 +29,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'userId obrigatório' }, { status: 400 });
     }
 
-    // Plan valide ? Sinon, défaut 12 mois.
+    // Pacquet mensuel valide ? Sinon, défaut Pass Privilège.
     const planId =
-      typeof body.plan === 'string' && PLAN_MONTHS[body.plan]
+      typeof body.plan === 'string' && VALID_PLANS.has(body.plan)
         ? body.plan
-        : 'PREMIUM_12M';
-    const months = PLAN_MONTHS[planId];
+        : 'PASS_PRIVILEGE';
+
+    // Durée de la cortesie en mois (défaut 1, min 1).
+    const parsedMonths = Number(body.months);
+    const months = Number.isFinite(parsedMonths) && parsedMonths >= 1
+      ? Math.floor(parsedMonths)
+      : 1;
 
     const supabase = createServiceRoleClient();
 

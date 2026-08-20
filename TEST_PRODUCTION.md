@@ -130,7 +130,7 @@ Login:
 Resultado:
 ✅ Redireciona para /profil
 ✅ Navbar mostra "Maya"
-✅ Abonnement: PREMIUM_12M (visível no perfil)
+✅ Abonnement: PASS_PRIVILEGE (visível no perfil)
 ```
 
 #### **4.2 Discovery - /decouvrir (DESBLOQUEADO)**
@@ -263,7 +263,7 @@ Login como Agent:
 Resultado:
 ✅ Redireciona para /profil
 ✅ Username: Marie_Agent
-✅ Abonnement: VIP_24M
+✅ Abonnement: PASS_VIP
 ```
 
 #### **5.2 Aceder /admin**
@@ -279,9 +279,9 @@ Page Carrega:
    └─ Interactions (Likes): 1000+
 ☐ Breakdown de Abonnements:
    ├─ FREE: 25
-   ├─ PREMIUM_3M: 12
-   ├─ PREMIUM_12M: 10
-   └─ VIP_24M: 3
+   ├─ PASS_EPICURIEN: 12
+   ├─ PASS_PRIVILEGE: 10
+   └─ PASS_VIP: 3
 
 Status:
 ✅ DASHBOARD CARREGA

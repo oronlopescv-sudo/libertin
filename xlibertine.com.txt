@@ -1,0 +1,121 @@
+==============================================================================
+ DNS CORRECTOS — xlibertine.com  (Hostinger + Resend)
+==============================================================================
+Data: 2026-08-19
+
+Estes son TODOS os rexistros que debe haber na Zona DNS do Hostinger para
+xlibertine.com. Se vas a importar manualmente, crea/edita cada fila coa
+información de abaixo. Os marcados con [GARDAR] xa os tes; os [RESSEND] son
+os do email; os [BORRAR] é o que sobra e tes que eliminar.
+
+Orde por Nome.
+
+------------------------------------------------------------------------------
+1. A          ftp                                 0    72.60.93.207                              1800   [GARDAR - sitio/ftp Hostinger]
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+2. ALIAS      @                                   0    xlibertine.com.cdn.hstgr.net              300    [GARDAR - dominio raiz -> CDN Hostinger]
+   (Se o Hostinger non aceptar ALIAS, usa: A @ 0 72.60.93.207 14400)
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+3. CNAME      www                                 0    www.xlibertine.com.cdn.hstgr.net          300    [GARDAR - www -> CDN]
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+4. CNAME      autodiscover                        0    autodiscover.mail.hostinger.com           300    [GARDAR - mail Hostinger]
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+5. CNAME      autoconfig                          0    autoconfig.mail.hostinger.com             300    [GARDAR - mail Hostinger]
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+6. CNAME      hostingermail-a._domainkey          0    hostingermail-a.dkim.mail.hostinger.com   300    [GARDAR - DKIM mail Hostinger]
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+7. CNAME      hostingermail-b._domainkey          0    hostingermail-b.dkim.mail.hostinger.com   300    [GARDAR - DKIM mail Hostinger]
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+8. CNAME      hostingermail-c._domainkey          0    hostingermail-c.dkim.mail.hostinger.com   300    [GARDAR - DKIM mail Hostinger]
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+9. MX         @                                   5    mx1.hostinger.com                         14400  [GARDAR - mail Hostinger]
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+10. MX        @                                   10   mx2.hostinger.com                         14400  [GARDAR - mail Hostinger]
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+11. TXT       @                                   0    v=spf1 include:_spf.mail.hostinger.com ~all   14400  [GARDAR - SPF raiz, UN SO]
+------------------------------------------------------------------------------
+   >>> BORRAR calquera outro TXT @ que teña "include:_spf.resend.com".
+   >>> So pode haber UN SPF no @.
+
+------------------------------------------------------------------------------
+12. TXT       _dmarc                              0    v=DMARC1; p=none                          3600   [GARDAR - DMARC]
+------------------------------------------------------------------------------
+
+============================== RESEND (email) ================================
+
+------------------------------------------------------------------------------
+13. TXT       resend._domainkey                   0    p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCYUtRwf02vxMXwzHOWq/YQHIMPG1gaHguRJIrHzlpRW8bo8MXr9XTJ5PaKNagA4/00U+BU5ojghUZYgsY/dQdVj20o2FdLtaRaXovWcWg6q0jwXQnPC9Nx9RC36YnU4tuHwFfAaLtd627/VDUHdguMB2Rch6GyJ2Ct8q4GTCvnFwIDAQAB    3600   [RESSEND - DKIM]
+------------------------------------------------------------------------------
+   >>> O valor de arriba é UNHA SOA cadea, SEN espazos. Copia todo xunto.
+   >>> Se ao pegar se mete un espazo entre "BU5ojghU" e "ZYgsY", bórrao.
+
+------------------------------------------------------------------------------
+14. MX        send                                10   feedback-smtp.eu-west-1.amazoneses.com    3600   [RESSEND - return-path]
+------------------------------------------------------------------------------
+   >>> Rexión eu-west-1 (NON us-east-1). Sen punto final se o Hostinger o rechaza.
+
+------------------------------------------------------------------------------
+15. TXT       send                                0    v=spf1 include:amazonses.com ~all         3600   [RESSEND - SPF subdominio send]
+------------------------------------------------------------------------------
+
+==============================================================================
+ RESUMEN DO QUE FALTABA / HAI QUE BORRAR
+==============================================================================
+ - BORRAR:  TXT @ con "include:_spf.resend.com" (sobra; o SPF do Resend vai en send)
+ - GARDAR:  TXT @ = "v=spf1 include:_spf.mail.hostinger.com ~all"  (un so)
+ - ENGADIR: TXT send = "v=spf1 include:amazonses.com ~all"
+ - ENGADIR: MX  send = feedback-smtp.eu-west-1.amazoneses.com  (prioridade 10)
+ - POÑER:   TXT resend._domainkey = a chave p=MIGf... (sen espazos)
+
+==============================================================================
+ DESPOIS DE POÑER TODO:
+==============================================================================
+ 1. Ir a https://resend.com -> Domains -> xlibertine.com -> Verify domain
+ 2. Ten que quedar Verified (verde).
+ 3. Probar enviar un email.
+
+==============================================================================
+ FORMATO BIND (por se o Hostinger permite importar zona)
+==============================================================================
+$ORIGIN xlibertine.com.
+$TTL 3600
+
+@           IN ALIAS xlibertine.com.cdn.hstgr.net.
+ftp         IN A     72.60.93.207
+www         IN CNAME www.xlibertine.com.cdn.hstgr.net.
+autodiscover IN CNAME autodiscover.mail.hostinger.com.
+autoconfig  IN CNAME autoconfig.mail.hostinger.com.
+hostingermail-a._domainkey IN CNAME hostingermail-a.dkim.mail.hostinger.com.
+hostingermail-b._domainkey IN CNAME hostingermail-b.dkim.mail.hostinger.com.
+hostingermail-c._domainkey IN CNAME hostingermail-c.dkim.mail.hostinger.com.
+
+@           IN MX    5  mx1.hostinger.com.
+@           IN MX    10 mx2.hostinger.com.
+@           IN TXT   "v=spf1 include:_spf.mail.hostinger.com ~all"
+_dmarc      IN TXT   "v=DMARC1; p=none"
+
+resend._domainkey IN TXT "p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCYUtRwf02vxMXwzHOWq/YQHIMPG1gaHguRJIrHzlpRW8bo8MXr9XTJ5PaKNagA4/00U+BU5ojghUZYgsY/dQdVj20o2FdLtaRaXovWcWg6q0jwXQnPC9Nx9RC36YnU4tuHwFfAaLtd627/VDUHdguMB2Rch6GyJ2Ct8q4GTCvnFwIDAQAB"
+
+send        IN MX    10 feedback-smtp.eu-west-1.amazoneses.com.
+send        IN TXT   "v=spf1 include:amazonses.com ~all"
+==============================================================================
