@@ -148,7 +148,7 @@ AGENTES (ADMIN):
   ✓ Novo grupo aparece na lista
 
 ☐ ADMIN DASHBOARD
-  ✓ Apenas VIP_24M acede
+  ✓ Apenas PASS_VIP acede
   ✓ Stats carregam correto
   ✓ Tabela users funciona
   ✓ Busca filtra users

@@ -92,7 +92,7 @@ Backups:       Automáticos Supabase
 
 ### **Utilisateurs (53 total)**
 ```
-✅ 3 Agentes (VIP_24M)
+✅ 3 Agentes (PASS_VIP)
    ├─ agent.marie@xlibertine.com
    ├─ agent.pierre@xlibertine.com
    └─ agent.sophie@xlibertine.com
@@ -102,13 +102,13 @@ Backups:       Automáticos Supabase
    ├─ client.bob@xlibertine.com
    └─ ... mais 23
 
-✅ 12 Clientes PREMIUM_3M
+✅ 12 Clientes PASS_EPICURIEN
    └─ Válidos até 2026-11-09
 
-✅ 10 Clientes PREMIUM_12M
+✅ 10 Clientes PASS_PRIVILEGE
    └─ Válidos até 2027-08-09
 
-✅ 3 Clientes VIP_24M
+✅ 3 Clientes PASS_VIP
    └─ Válidos até 2028-08-09
 ```
 
@@ -218,7 +218,7 @@ Resultado esperado: 100% sucesso
 - messages: RLS protege conversas
 
 ✅ **Admin**
-- Apenas VIP_24M pode aceder
+- Apenas PASS_VIP pode aceder
 - Toutes ações logged
 - Non pode bannir a si mesmo
 

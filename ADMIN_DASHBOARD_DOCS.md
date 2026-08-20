@@ -2,7 +2,7 @@
 
 **Status:** ✅ IMPLEMENTADO  
 **URL:** https://xlibertine.com/admin  
-**Acesso:** Apenas VIP_24M (Agentes)  
+**Acesso:** Apenas PASS_VIP (Agentes)  
 **Data:** 09/08/2026
 
 ---
@@ -63,9 +63,9 @@ GET /api/admin/dashboard
   "totalLikes": 1240,
   "tierBreakdown": {
     "FREE": 25,
-    "PREMIUM_3M": 12,
-    "PREMIUM_12M": 10,
-    "VIP_24M": 3
+    "PASS_EPICURIEN": 12,
+    "PASS_PRIVILEGE": 10,
+    "PASS_VIP": 3
   }
 }
 ```
@@ -81,7 +81,7 @@ Query Params:
   - page: 1 (default)
   - limit: 20 (default)
   - search: "alice" (optionnel - récupère username/email)
-  - tier: "PREMIUM_3M" (optionnel - filtro por abonnement)
+  - tier: "PASS_EPICURIEN" (optionnel - filtro por abonnement)
 
 Response:
 {
@@ -90,7 +90,7 @@ Response:
       "id": "uuid",
       "username": "alice",
       "email": "alice@test.com",
-      "abonnementTier": "PREMIUM_3M",
+      "abonnementTier": "PASS_EPICURIEN",
       "abonnementEnd": "2026-11-09",
       "isVerified": true,
       "createdAt": "2026-08-01",
@@ -115,10 +115,10 @@ fetch('/api/admin/users?page=1&limit=20')
 fetch('/api/admin/users?search=alice')
 
 // Filtrer par tier
-fetch('/api/admin/users?tier=PREMIUM_3M')
+fetch('/api/admin/users?tier=PASS_EPICURIEN')
 
 // Combinar filtros
-fetch('/api/admin/users?search=alice&tier=PREMIUM_3M&page=1')
+fetch('/api/admin/users?search=alice&tier=PASS_EPICURIEN&page=1')
 ```
 
 #### **Bannir Utilisateur**
@@ -186,9 +186,9 @@ A tabela mostra:
 - **Email**
 - **Abonnement** (badge colorido)
   - 🟦 FREE (cinzento)
-  - 🟦 PREMIUM_3M (azul)
-  - 🟦 PREMIUM_12M (roxo)
-  - 🟦 VIP_24M (ouro)
+  - 🟦 PASS_EPICURIEN (azul)
+  - 🟦 PASS_PRIVILEGE (roxo)
+  - 🟦 PASS_VIP (ouro)
 - **Status** (ATIVO/BANIDO)
 - **Actions** (Bannir/Desbannir)
 
@@ -309,7 +309,7 @@ POST /api/admin/groups/:id/approve    - Aprovar
 
 ### **Quem pode aceder?**
 ```
-✅ Admins VIP_24M (agent.marie, agent.pierre, agent.sophie)
+✅ Admins PASS_VIP (agent.marie, agent.pierre, agent.sophie)
 ❌ FREE users
 ❌ PREMIUM users
 ❌ Users normais
@@ -325,7 +325,7 @@ async function isAdmin(userId: string): Promise<boolean> {
     .eq('id', userId)
     .single();
 
-  return user && ['VIP_24M'].includes(user.abonnementTier);
+  return user && ['PASS_VIP'].includes(user.abonnementTier);
 }
 ```
 
@@ -410,7 +410,7 @@ Accent: #D4145A (text-[#D4145A])
 
 ┌─────────────────────────────────┐
 │ Abonnement Breakdown           │
-│ [FREE] [PREMIUM_3M] [etc]       │
+│ [FREE] [PASS_EPICURIEN] [etc]       │
 └─────────────────────────────────┘
 
 ┌─────────────────────────────────┐
@@ -498,7 +498,7 @@ Accent: #D4145A (text-[#D4145A])
    ```
    Username: alice
    Email: alice@test.com
-   Abonnement: PREMIUM_3M
+   Abonnement: PASS_EPICURIEN
    Status: ATIVO
    ```
 

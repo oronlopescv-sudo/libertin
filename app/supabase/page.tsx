@@ -144,7 +144,7 @@ export default function SupabaseDataPage() {
         { name: 'location', type: 'TEXT', default: "'Paris'", description: 'Ville / Ville de rattachement' },
         { name: 'lat', type: 'DOUBLE PRECISION', default: '48.8566', description: 'Latitude GPS pour filtre géographique' },
         { name: 'lng', type: 'DOUBLE PRECISION', default: '2.3522', description: 'Longitude GPS pour filtre géographique' },
-        { name: 'subscription_tier', type: 'TEXT', default: "'FREE'", description: 'Formule: FREE, PREMIUM_3M, PREMIUM_12M, PREMIUM_24M' },
+        { name: 'subscription_tier', type: 'TEXT', default: "'FREE'", description: 'Formule: FREE, PASS_EPICURIEN, PASS_PRIVILEGE, PASS_VIP' },
         { name: 'subscription_start', type: 'TIMESTAMPTZ', description: 'Début de l\'abonnement Stripe' },
         { name: 'subscription_end', type: 'TIMESTAMPTZ', description: 'Expiration de l\'abonnement Stripe' },
         { name: 'stripe_customer_id', type: 'TEXT', description: 'ID Client Stripe' },
@@ -228,7 +228,7 @@ export default function SupabaseDataPage() {
       columns: [
         { name: 'id', type: 'UUID', primary: true, default: 'gen_random_uuid()', description: 'ID de la souscription' },
         { name: 'user_id', type: 'UUID', fk: 'profiles(id)', description: 'Utilisateur abonné' },
-        { name: 'tier', type: 'TEXT', description: 'Formule souscrite (PREMIUM_3M, 12M, 24M)' },
+        { name: 'tier', type: 'TEXT', description: 'Formule souscrite (PASS_EPICURIEN, PASS_PRIVILEGE, PASS_VIP)' },
         { name: 'price', type: 'DECIMAL(10,2)', description: 'Montant réglé en Euros (€)' },
         { name: 'start_date', type: 'TIMESTAMPTZ', default: 'NOW()', description: 'Date de début d\'accès' },
         { name: 'end_date', type: 'TIMESTAMPTZ', description: 'Date de fin de validité' },

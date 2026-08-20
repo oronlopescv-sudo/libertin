@@ -50,9 +50,9 @@ npm run dev
 
 **Plans a vender:**
 - FREE: €0
-- PREMIUM_3M: €5.33/mois (€16 total)
-- PREMIUM_12M: €2.08/mois (€25 total)
-- VIP_24M: €2.91/mois (€70 total)
+- PASS_EPICURIEN: €5.33/mois (€16 total)
+- PASS_PRIVILEGE: €2.08/mois (€25 total)
+- PASS_VIP: €2.91/mois (€70 total)
 
 **O que fazer:**
 1. Créer un compte Stripe

@@ -101,32 +101,40 @@ export default function AdminDashboard() {
     }
   };
 
-  // Ativar (ou renovar) Premium para um usuário, sem passar par Stripe.
-  // O admin escolhe a duração : 3, 12 ou 24 meses.
+  // Ativar (ou renovar) um pacquet mensual Premium para um usuário, sem pasar
+  // par Stripe. O admin escolhe o pacquete e a duração da cortesia em meses.
   const grantPremium = async (userId: string, currentTier: string) => {
-    const input = prompt(
-      'Ativar Premium — quantos meses?\nDigite 3, 12 ou 24 (padrão: 12)',
-      '12'
+    const pacote = prompt(
+      'Ativar Premium — qual pacote?\n1 = Pass Épicurien (9€/mês)\n2 = Pass Privilège (15€/mês)\n3 = Pass VIP Elite (25€/mês)\n(padral: 2)',
+      '2'
     );
-    if (input === null) return;
+    if (pacote === null) return;
 
-    const meses = parseInt(input.trim(), 10);
     const plan =
-      meses === 3 ? 'PREMIUM_3M' :
-      meses === 24 ? 'PREMIUM_24M' :
-      'PREMIUM_12M';
+      pacote.trim() === '1' ? 'PASS_EPICURIEN' :
+      pacote.trim() === '3' ? 'PASS_VIP' :
+      'PASS_PRIVILEGE';
+
+    const mesesInput = prompt(
+      'Quantos meses de cortesia? (padrão: 1)',
+      '1'
+    );
+    if (mesesInput === null) return;
+
+    const meses = parseInt(mesesInput.trim(), 10);
+    const mesesFinal = Number.isFinite(meses) && meses >= 1 ? meses : 1;
 
     const verbo = currentTier && currentTier !== 'FREE' ? 'Renovar' : 'Ativar';
-    if (!confirm(`${verbo} Premium (${plan}) para este usuário ?`)) return;
+    if (!confirm(`${verbo} ${plan} por ${mesesFinal} mês(es) para este usuário?`)) return;
 
     const res = await fetchResilient('/api/admin/users/grant-premium', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, plan }),
+      body: JSON.stringify({ userId, plan, months: mesesFinal }),
     });
 
     if (res.ok) {
-      alert(`✅ Premium ${plan} ativado com sucesso !`);
+      alert(`✅ ${plan} ativado por ${mesesFinal} mês(es) com sucesso!`);
       // Recarregar users
       const usersRes = await fetchResilient(`/api/admin/users?page=${page}`);
       if (usersRes.ok) {
@@ -292,8 +300,8 @@ export default function AdminDashboard() {
                     <td className="py-3 px-4">
                       <span className={`px-2 py-1 rounded text-xs font-semibold ${
                         u.subscriptionTier === 'FREE' ? 'bg-zinc-600 text-zinc-200' :
-                        u.subscriptionTier === 'PREMIUM_3M' ? 'bg-blue-600 text-blue-100' :
-                        u.subscriptionTier === 'PREMIUM_12M' ? 'bg-purple-600 text-purple-100' :
+                        u.subscriptionTier === 'PASS_EPICURIEN' ? 'bg-blue-600 text-blue-100' :
+                        u.subscriptionTier === 'PASS_PRIVILEGE' ? 'bg-purple-600 text-purple-100' :
                         'bg-yellow-600 text-yellow-100'
                       }`}>
                         {u.subscriptionTier}

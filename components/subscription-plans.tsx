@@ -282,31 +282,31 @@ export function AbonnementPlans() {
                 <div>
                   <h3 className="text-lg font-bold text-white">{plan.title}</h3>
                   <div className="text-xs text-zinc-400 mt-0.5">
-                    {plan.durationMonths > 0
-                      ? `Engagement sur ${plan.durationMonths} mois`
-                      : 'Accès basique gratuit'}
+                    {plan.id === 'FREE'
+                      ? 'Accès basique gratuit'
+                      : 'Abonnement mensuel'}
                   </div>
                 </div>
 
-                {/* Price Display */}
+                {/* Price Display — mensual récurrent en vedette */}
                 <div className="space-y-1">
                   <div className="flex items-baseline gap-1">
                     <span className="text-3xl font-extrabold text-white tracking-tight">
-                      {plan.totalPrice === 0 ? '0€' : `${plan.totalPrice}€`}
+                      {plan.pricePerMonth === 0 ? '0€' : `${plan.pricePerMonth.toFixed(2)}€`}
                     </span>
-                    {plan.durationMonths > 0 && (
+                    {plan.id !== 'FREE' && (
                       <span className="text-xs text-zinc-400">
-                        / au total
+                        / mois
                       </span>
                     )}
                   </div>
 
-                  {plan.durationMonths > 0 && (
+                  {plan.id !== 'FREE' && (
                     <div className="text-xs text-[#E86B7A] font-semibold flex items-center gap-1">
-                      <span>soit seulement</span>
                       <span className="px-1.5 py-0.5 rounded bg-[#D4145A]/20 font-bold text-white">
-                        {plan.pricePerMonth.toFixed(2)}€ / mois
+                        prélevé chaque mois
                       </span>
+                      <span>· sans engagement</span>
                     </div>
                   )}
                 </div>
@@ -387,12 +387,12 @@ export function AbonnementPlans() {
                 <span className="font-bold text-white">{selectedPlan.title}</span>
               </div>
               <div className="flex justify-between text-zinc-300">
-                <span>Durée:</span>
-                <span className="font-bold text-white">{selectedPlan.durationMonths} Mois</span>
+                <span>Facturation:</span>
+                <span className="font-bold text-white">Mensuelle récurrente</span>
               </div>
               <div className="pt-2 border-t border-[#3D2654] flex justify-between text-sm">
-                <span className="font-bold text-white">Montant à régler :</span>
-                <span className="font-extrabold text-[#E86B7A]">{selectedPlan.totalPrice} €</span>
+                <span className="font-bold text-white">Prélèvement mensuel :</span>
+                <span className="font-extrabold text-[#E86B7A]">{selectedPlan.pricePerMonth.toFixed(2)} € / mois</span>
               </div>
             </div>
 
@@ -409,7 +409,7 @@ export function AbonnementPlans() {
               ) : (
                 <>
                   <ArrowRight className="w-4 h-4" />
-                  <span>Régler {selectedPlan.totalPrice} € sur Stripe</span>
+                  <span>S'abonner — {selectedPlan.pricePerMonth.toFixed(2)} € / mois</span>
                 </>
               )}
             </button>

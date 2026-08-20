@@ -166,7 +166,7 @@ client.carol@xlibertine.com / TestPass123
 ... (25 total)
 ```
 
-### PREMIUM 3M (12)
+### PREMIUM mensuel (12)
 ```
 premium.alice@xlibertine.com / TestPass123
 premium.ben@xlibertine.com / TestPass123
@@ -174,7 +174,7 @@ premium.clara@xlibertine.com / TestPass123
 ... (12 total)
 ```
 
-### PREMIUM 12M (10)
+### PREMIUM mensuel (10)
 ```
 premium.maya@xlibertine.com / TestPass123
 premium.nathan@xlibertine.com / TestPass123

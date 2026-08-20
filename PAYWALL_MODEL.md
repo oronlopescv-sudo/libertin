@@ -40,9 +40,9 @@ Bloqué:
 ## 🔴 PREMIUM USERS
 
 **Tiers:**
-- `PREMIUM_3M` — €5.33/mois (€16 total)
-- `PREMIUM_12M` — €2.08/mois (€25 total)
-- `VIP_24M` — €2.91/mois (€70 total)
+- `PASS_EPICURIEN` — €5.33/mois (€16 total)
+- `PASS_PRIVILEGE` — €2.08/mois (€25 total)
+- `PASS_VIP` — €2.91/mois (€70 total)
 
 **Acesso:**
 ```
@@ -60,7 +60,7 @@ Bloqué:
 **Validaction:**
 ```typescript
 const isPremium = 
-  ['PREMIUM_3M', 'PREMIUM_12M', 'VIP_24M'].includes(user.abonnementTier) &&
+  ['PASS_EPICURIEN', 'PASS_PRIVILEGE', 'PASS_VIP'].includes(user.abonnementTier) &&
   user.abonnementEnd &&
   new Date(user.abonnementEnd) > new Date();
 ```
@@ -159,7 +159,7 @@ const isPremium =
 ### Validaction em Page
 
 ```typescript
-const isPremium = user && ['PREMIUM_3M', 'PREMIUM_12M', 'VIP_24M'].includes(user.abonnementTier);
+const isPremium = user && ['PASS_EPICURIEN', 'PASS_PRIVILEGE', 'PASS_VIP'].includes(user.abonnementTier);
 
 if (!user || !isPremium) {
   return (

@@ -73,9 +73,9 @@
 **What to do:**
 1. Go to https://stripe.com and create account
 2. Create 3 products:
-   - Pass Épicurien 3M → €16
-   - Pass Privilège 12M → €25
-   - Pass VIP Elite 24M → €70
+   - Pass Épicurien mensuel → €16
+   - Pass Privilège mensuel → €25
+   - Pass VIP Elite mensuel → €70
 3. Get API keys:
    - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (public key)
    - `STRIPE_SECRET_KEY` (secret key)
@@ -86,9 +86,9 @@
    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_xxx
    STRIPE_SECRET_KEY=sk_live_xxx
    STRIPE_WEBHOOK_SECRET=whsec_xxx
-   STRIPE_PRODUCT_PREMIUM_3M=prod_xxx
-   STRIPE_PRODUCT_PREMIUM_12M=prod_xxx
-   STRIPE_PRODUCT_PREMIUM_24M=prod_xxx
+   STRIPE_PRODUCT_PASS_EPICURIEN=prod_xxx
+   STRIPE_PRODUCT_PASS_PRIVILEGE=prod_xxx
+   STRIPE_PRODUCT_PASS_VIP=prod_xxx
    ```
 
 ### 2. Email Setup (Resend) (10 min)
@@ -188,7 +188,7 @@ npm run dev
 # - Go to /register
 # - Create account
 # - Go to /abonnements
-# - Click "Activer Pass Épicurien 3 Mois"
+# - Click "Activer Pass Épicurien Mensuel"
 # - Complete checkout on Stripe (use test card)
 
 # 6. Verify email

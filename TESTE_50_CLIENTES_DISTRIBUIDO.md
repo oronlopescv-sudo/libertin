@@ -211,16 +211,16 @@ Client 10: client.jack@xlibertine.com / TestPass123
 
 ### Credenciais
 ```
-Client 11: premium.alice@xlibertine.com / TestPass123 (PREMIUM 3M)
-Client 12: premium.ben@xlibertine.com / TestPass123 (PREMIUM 3M)
-Client 13: premium.clara@xlibertine.com / TestPass123 (PREMIUM 3M)
-Client 14: premium.daniel@xlibertine.com / TestPass123 (PREMIUM 3M)
-Client 15: premium.eva@xlibertine.com / TestPass123 (PREMIUM 3M)
-Client 16: premium.maya@xlibertine.com / TestPass123 (PREMIUM 12M)
-Client 17: premium.nathan@xlibertine.com / TestPass123 (PREMIUM 12M)
-Client 18: premium.osha@xlibertine.com / TestPass123 (PREMIUM 12M)
-Client 19: premium.paul@xlibertine.com / TestPass123 (PREMIUM 12M)
-Client 20: premium.quinn@xlibertine.com / TestPass123 (PREMIUM 12M)
+Client 11: premium.alice@xlibertine.com / TestPass123 (PREMIUM mensuel)
+Client 12: premium.ben@xlibertine.com / TestPass123 (PREMIUM mensuel)
+Client 13: premium.clara@xlibertine.com / TestPass123 (PREMIUM mensuel)
+Client 14: premium.daniel@xlibertine.com / TestPass123 (PREMIUM mensuel)
+Client 15: premium.eva@xlibertine.com / TestPass123 (PREMIUM mensuel)
+Client 16: premium.maya@xlibertine.com / TestPass123 (PREMIUM mensuel)
+Client 17: premium.nathan@xlibertine.com / TestPass123 (PREMIUM mensuel)
+Client 18: premium.osha@xlibertine.com / TestPass123 (PREMIUM mensuel)
+Client 19: premium.paul@xlibertine.com / TestPass123 (PREMIUM mensuel)
+Client 20: premium.quinn@xlibertine.com / TestPass123 (PREMIUM mensuel)
 ```
 
 ### Cliente 11: DISCOVERY - PÁGINA BÁSICA
@@ -501,7 +501,7 @@ Client 25: premium.vera@xlibertine.com / TestPass123
 
 ## 👥 GRUPO 26-35: GRUPOS (10 CLIENTES PREMIUM)
 
-### Credenciais (Mix de PREMIUM 3M e 12M)
+### Credenciais (Mix de PREMIUM mensuel e mensuel)
 ```
 Client 26: premium.felix@xlibertine.com / TestPass123
 Client 27: premium.gina@xlibertine.com / TestPass123
@@ -834,9 +834,9 @@ Client 45: premium.quinn@xlibertine.com
 ```
 Client 46: client.kate@xlibertine.com / TestPass123 (FREE)
 Client 47: client.liam@xlibertine.com / TestPass123 (FREE)
-Client 48: premium.felix@xlibertine.com / TestPass123 (PREMIUM 3M)
-Client 49: premium.gina@xlibertine.com / TestPass123 (PREMIUM 3M)
-Client 50: premium.harry@xlibertine.com / TestPass123 (PREMIUM 3M)
+Client 48: premium.felix@xlibertine.com / TestPass123 (PREMIUM mensuel)
+Client 49: premium.gina@xlibertine.com / TestPass123 (PREMIUM mensuel)
+Client 50: premium.harry@xlibertine.com / TestPass123 (PREMIUM mensuel)
 ```
 
 ### Cliente 46: CASOS DE ERRO - PASSWORD FRACA

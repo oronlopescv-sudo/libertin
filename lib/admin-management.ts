@@ -32,7 +32,7 @@ export async function getUsers(
   adminId: string,
   filters?: {
     status?: 'active' | 'banned' | 'unverified';
-    subscription?: 'FREE' | 'PREMIUM_3M' | 'PREMIUM_12M' | 'PREMIUM_24M';
+    subscription?: 'FREE' | 'PASS_EPICURIEN' | 'PASS_PRIVILEGE' | 'PASS_VIP';
     limit?: number;
     offset?: number;
   }

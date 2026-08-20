@@ -130,7 +130,7 @@ dateOfBirth DATE
 gender VARCHAR (couple, femme, homme)
 sexualOrientation VARCHAR
 location VARCHAR
-abonnementTier VARCHAR (FREE, PREMIUM_3M, PREMIUM_12M, VIP_24M)
+abonnementTier VARCHAR (FREE, PASS_EPICURIEN, PASS_PRIVILEGE, PASS_VIP)
 abonnementEnd TIMESTAMP
 isVerified BOOLEAN
 createdAt TIMESTAMP

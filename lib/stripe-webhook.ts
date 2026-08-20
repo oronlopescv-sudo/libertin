@@ -12,15 +12,6 @@ const supabase = createClient(
   { auth: { persistSession: false } }
 );
 
-const PLAN_DURATIONS: Record<string, number> = {
-  PREMIUM_3M: 3,
-  PREMIUM_12M: 12,
-  PREMIUM_24M: 24,
-  CREATOR_3M: 3,
-  CREATOR_12M: 12,
-  VIP_24M: 24,
-};
-
 /**
  * Gestionnaire du webhook Stripe. À monter sur la route de paiement :
  *   export const POST = handleStripeWebhook;
@@ -46,6 +37,10 @@ export async function handleStripeWebhook(request: NextRequest) {
     switch (event.type) {
       case 'checkout.session.completed':
         await handleCheckoutSessionCompleted(event.data.object);
+        break;
+
+      case 'invoice.paid':
+        await handleInvoicePaid(event.data.object);
         break;
 
       case 'charge.succeeded':
@@ -99,10 +94,12 @@ async function handleCheckoutSessionCompleted(session: any) {
     return;
   }
 
-  const durationMonths = PLAN_DURATIONS[planId] || 3;
+  // Facturation MENSUELLE récurrente : le premier paiement ne couvre qu'un
+  // seul mois. Les renouvellements mensuels étendent `subscription_end` via
+  // l'événement `invoice.paid` (voir handleInvoicePaid).
   const now = new Date();
   const subscriptionEnd = new Date(now);
-  subscriptionEnd.setMonth(subscriptionEnd.getMonth() + durationMonths);
+  subscriptionEnd.setMonth(subscriptionEnd.getMonth() + 1);
 
   // Mise à jour du profil (snake_case) — pas la table `users`.
   const { data: profileData, error } = await supabase
@@ -137,6 +134,41 @@ async function handleCheckoutSessionCompleted(session: any) {
   }
 
   console.log(`✅ Abonnement activated for user ${userId}: ${planId}`);
+}
+
+/**
+ * Renouvellement mensuel réussi : étend `subscription_end` jusqu'à la fin de
+ * la période facturée. Idempotent — reprendre la même facture remettrait le
+ * même `period.end`, sans double-crédit.
+ */
+async function handleInvoicePaid(invoice: any) {
+  const customerId = invoice.customer;
+  if (!customerId) return;
+
+  // `period.end` (timestamp unix) = date jusqu'à laquelle ce mois est payé.
+  const line = invoice.lines?.data?.[0];
+  const periodEnd = line?.period?.end;
+  if (!periodEnd) {
+    console.log('invoice.paid sans period.end — ignoré');
+    return;
+  }
+
+  const subscriptionEnd = new Date(periodEnd * 1000);
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({
+      subscription_end: subscriptionEnd.toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('stripe_customer_id', customerId);
+
+  if (error) {
+    console.error('Failed to extend subscription_end on invoice.paid:', error);
+    return;
+  }
+
+  console.log(`🔁 Abonnement renouvelé jusqu'au ${subscriptionEnd.toISOString()} (customer ${customerId})`);
 }
 
 /**

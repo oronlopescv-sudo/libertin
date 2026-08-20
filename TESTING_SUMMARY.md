@@ -11,11 +11,11 @@
 
 ### 1️⃣ **UTILIZADORES DE TESTE**
 ```
-✅ 3 Agentes (VIP_24M - Admins)
+✅ 3 Agentes (PASS_VIP - Admins)
 ✅ 25 Clientes FREE (Sem acesso a features)
-✅ 12 Clientes PREMIUM 3M (Acesso 3 mois)
-✅ 10 Clientes PREMIUM 12M (Acesso 12 mois)
-✅ 3 Clientes VIP 24M (Acesso 24 mois)
+✅ 12 Clientes PREMIUM mensuel (Acesso mensuel)
+✅ 10 Clientes PREMIUM mensuel (Acesso mensuel)
+✅ 3 Clientes VIP mensuel (Acesso mensuel)
 
 Total: 53 utilisateurs prontos
 Mot de passe: TestPass123 (para todos)

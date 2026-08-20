@@ -18,12 +18,9 @@ const ADMIN_EMAILS = new Set([
 
 /** Offres qui donnent accès Premium. */
 const PREMIUM_TIERS: readonly string[] = [
-  'PREMIUM_3M',
-  'PREMIUM_12M',
-  'PREMIUM_24M',
-  'CREATOR_3M',
-  'CREATOR_12M',
-  'VIP_24M',
+  'PASS_EPICURIEN',
+  'PASS_PRIVILEGE',
+  'PASS_VIP',
 ]
 
 type UserLike = {
@@ -39,7 +36,7 @@ type UserLike = {
  * Trois façons d'être administrateur :
  *   1. Email présent dans ADMIN_EMAILS.
  *   2. Colonne `role` égale à 'admin'.
- *   3. Abonnement VIP_24M (compatibilité avec l'existant).
+ *   3. Abonnement Pass VIP Elite (PASS_VIP).
  */
 export function isAdmin(user: UserLike): boolean {
   if (!user) return false
@@ -49,7 +46,7 @@ export function isAdmin(user: UserLike): boolean {
 
   if (user.role === 'admin') return true
 
-  return user.subscriptionTier === 'VIP_24M'
+  return user.subscriptionTier === 'PASS_VIP'
 }
 
 /**

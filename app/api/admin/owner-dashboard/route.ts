@@ -16,23 +16,13 @@ import { createServiceRoleClient } from '@/lib/supabase';
  * (snake_case) via la clé de service après vérification administrateur.
  */
 
-// Prix canoniques (cf. lib/stripe.ts SUBSCRIPTION_PLANS : 24/70/110 EUR).
+// Prix MENSUELS canoniques (cf. lib/stripe.ts SUBSCRIPTION_PLANS : 9/15/25 EUR).
+// Abonnement mensuel récurrent : le prix ci-dessous est déjà le montant prélevé
+// chaque mois — pas de division par une durée.
 const PRIX_PAR_OFFRE: Record<string, number> = {
-  PREMIUM_3M: 24,
-  PREMIUM_12M: 70,
-  PREMIUM_24M: 110,
-  CREATOR_3M: 24,
-  CREATOR_12M: 70,
-  VIP_24M: 110,
-};
-
-const DUREE_MOIS: Record<string, number> = {
-  PREMIUM_3M: 3,
-  PREMIUM_12M: 12,
-  PREMIUM_24M: 24,
-  CREATOR_3M: 3,
-  CREATOR_12M: 12,
-  VIP_24M: 24,
+  PASS_EPICURIEN: 9,
+  PASS_PRIVILEGE: 15,
+  PASS_VIP: 25,
 };
 
 export async function GET(req: NextRequest) {
@@ -70,9 +60,8 @@ export async function GET(req: NextRequest) {
         abonnements.gratuits += 1;
       } else if (encoreValide) {
         abonnements.actifs += 1;
-        const prix = PRIX_PAR_OFFRE[offre] ?? 0;
-        const mois = DUREE_MOIS[offre] ?? 1;
-        abonnements.revenuMensuelRecurrent += prix / mois;
+        // Abonnement mensuel : le prix de l'offre est déjà le MRR unitaire.
+        abonnements.revenuMensuelRecurrent += PRIX_PAR_OFFRE[offre] ?? 0;
 
         if (expire && expire <= dans7Jours) {
           abonnements.expirentBientot.push({

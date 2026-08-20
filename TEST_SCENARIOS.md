@@ -95,7 +95,7 @@ T1.10: Mot de passe Recovery
 
 ---
 
-## 🔴 SCENARIO 2: PREMIUM USER (22 clientes - 12 Premium 3M + 10 Premium 12M)
+## 🔴 SCENARIO 2: PREMIUM USER (22 clientes - 12 Premium mensuel + 10 Premium mensuel)
 
 ### Objetivo
 Validar que PREMIUM users têm acesso a TODAS as features.
@@ -219,7 +219,7 @@ T2.15: Ver Profil Privé
 
 ---
 
-## 🟣 SCENARIO 3: AGENT/ADMIN (3 agentes - VIP_24M)
+## 🟣 SCENARIO 3: AGENT/ADMIN (3 agentes - PASS_VIP)
 
 ### Objetivo
 Validar que Agentes têm acesso admin quando implementado.

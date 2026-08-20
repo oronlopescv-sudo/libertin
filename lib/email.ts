@@ -191,9 +191,9 @@ export async function sendAbonnementConfirmationEmail(
   subscriptionEnd: Date
 ): Promise<boolean> {
   const planNames: Record<string, string> = {
-    PREMIUM_3M: 'Pass Épicurien 3 Mois',
-    PREMIUM_12M: 'Pass Privilège 12 Mois',
-    PREMIUM_24M: 'Pass VIP Elite 24 Mois',
+    PASS_EPICURIEN: 'Pass Épicurien',
+    PASS_PRIVILEGE: 'Pass Privilège',
+    PASS_VIP: 'Pass VIP Elite',
   };
 
   const planName = planNames[planId] || planId;
