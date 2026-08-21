@@ -64,7 +64,7 @@ export function CreateEventForm({ userId, onSuccess }: CreateEventFormProps) {
       });
 
       if (!result.success) {
-        setError(result.error || 'Échec de criar anúncio');
+        setError(result.error || 'Échec de la création de l\'annonce');
         setIsLoading(false);
         return;
       }
@@ -82,14 +82,14 @@ export function CreateEventForm({ userId, onSuccess }: CreateEventFormProps) {
       });
 
       if (!response.ok) {
-        setError('Échec de processar pagamento');
+        setError('Échec du traitement du paiement');
         return;
       }
 
       const { checkoutUrl } = await response.json();
       router.push(checkoutUrl);
     } catch (err) {
-      setError('Erreur lors de criar anúncio');
+      setError('Erreur lors de la création de l\'annonce');
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -97,17 +97,17 @@ export function CreateEventForm({ userId, onSuccess }: CreateEventFormProps) {
   };
 
   const eventTypes = [
-    { value: 'festa', label: '🎉 Festa Privada' },
+    { value: 'festa', label: '🎉 Fête Privée' },
     { value: 'gang_bang', label: '🔥 Gang Bang' },
-    { value: 'troca', label: '💑 Troca de Couples' },
-    { value: 'other', label: '⭐ Outro Événement' },
+    { value: 'troca', label: '💑 Échange de Couples' },
+    { value: 'other', label: '⭐ Autre Événement' },
   ];
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
       {/* Event Type */}
       <div>
-        <label className="block text-sm font-bold text-white mb-2">Tipo de Événement</label>
+        <label className="block text-sm font-bold text-white mb-2">Type d'événement</label>
         <select
           name="type"
           value={formData.type}
@@ -124,13 +124,13 @@ export function CreateEventForm({ userId, onSuccess }: CreateEventFormProps) {
 
       {/* Title */}
       <div>
-        <label className="block text-sm font-bold text-white mb-2">Título</label>
+        <label className="block text-sm font-bold text-white mb-2">Titre</label>
         <input
           type="text"
           name="title"
           value={formData.title}
           onChange={handleChange}
-          placeholder="Ex: Gang Bang Paris - 8 homens procurados"
+          placeholder="Ex: Gang Bang Paris - 8 hommes recherchés"
           maxLength={255}
           className="w-full bg-[#1C102B] border border-[#3D2654] rounded-lg px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-[#D4145A] transition-colors"
           required
@@ -145,25 +145,25 @@ export function CreateEventForm({ userId, onSuccess }: CreateEventFormProps) {
           name="description"
           value={formData.description}
           onChange={handleChange}
-          placeholder="Descreva seu evento em detalhes. Inclua o que procura, ambiente, regras de segurança..."
+          placeholder="Décrivez votre événement en détail. Incluez ce que vous recherchez, l'ambiance, les règles de sécurité..."
           minLength={50}
           rows={5}
           className="w-full bg-[#1C102B] border border-[#3D2654] rounded-lg px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-[#D4145A] transition-colors resize-none"
           required
         />
-        <p className="text-xs text-zinc-400 mt-1">{formData.description.length} caracteres</p>
+        <p className="text-xs text-zinc-400 mt-1">{formData.description.length} caractères</p>
       </div>
 
       {/* Location */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-bold text-white mb-2">Local</label>
+          <label className="block text-sm font-bold text-white mb-2">Lieu</label>
           <input
             type="text"
             name="location"
             value={formData.location}
             onChange={handleChange}
-            placeholder="Ex: Apartamento Paris 11e"
+            placeholder="Ex: Appartement Paris 11e"
             className="w-full bg-[#1C102B] border border-[#3D2654] rounded-lg px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-[#D4145A] transition-colors"
           />
         </div>
@@ -183,7 +183,7 @@ export function CreateEventForm({ userId, onSuccess }: CreateEventFormProps) {
 
       {/* Date */}
       <div>
-        <label className="block text-sm font-bold text-white mb-2">Data (Optionnel)</label>
+        <label className="block text-sm font-bold text-white mb-2">Date (Optionnel)</label>
         <div className="flex gap-4 items-end">
           <div className="flex-1">
             <input
@@ -202,7 +202,7 @@ export function CreateEventForm({ userId, onSuccess }: CreateEventFormProps) {
               onChange={handleChange}
               className="w-4 h-4"
             />
-            Flexível
+            Flexible
           </label>
         </div>
       </div>
@@ -210,7 +210,7 @@ export function CreateEventForm({ userId, onSuccess }: CreateEventFormProps) {
       {/* Participants */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-bold text-white mb-2">Minimum de Participantes</label>
+          <label className="block text-sm font-bold text-white mb-2">Participants minimum</label>
           <input
             type="number"
             name="min_participants"
@@ -222,7 +222,7 @@ export function CreateEventForm({ userId, onSuccess }: CreateEventFormProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-bold text-white mb-2">Maximum de Participantes</label>
+          <label className="block text-sm font-bold text-white mb-2">Participants maximum</label>
           <input
             type="number"
             name="max_participants"
@@ -236,20 +236,20 @@ export function CreateEventForm({ userId, onSuccess }: CreateEventFormProps) {
 
       {/* Looking For */}
       <div>
-        <label className="block text-sm font-bold text-white mb-2">Procurando</label>
+        <label className="block text-sm font-bold text-white mb-2">Recherche</label>
         <input
           type="text"
           name="looking_for"
           value={formData.looking_for}
           onChange={handleChange}
-          placeholder="Ex: 8 homens ativos, 18-50 ans"
+          placeholder="Ex: 8 hommes actifs, 18-50 ans"
           className="w-full bg-[#1C102B] border border-[#3D2654] rounded-lg px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-[#D4145A] transition-colors"
         />
       </div>
 
       {/* Plan Selection */}
       <div>
-        <label className="block text-sm font-bold text-white mb-3">Tipo de Anúncio</label>
+        <label className="block text-sm font-bold text-white mb-3">Type d'annonce</label>
         <div className="grid grid-cols-3 gap-3">
           {(Object.entries(EVENT_PLANS) as [EventPlanType, (typeof EVENT_PLANS)['basic']][]).map(
             ([key, plan]) => (
@@ -294,12 +294,12 @@ export function CreateEventForm({ userId, onSuccess }: CreateEventFormProps) {
         {isLoading ? (
           <>
             <Loader className="w-5 h-5 animate-spin" />
-            Processando...
+            Traitement...
           </>
         ) : (
           <>
             <Heart className="w-5 h-5" />
-            Criar Anúncio (€{EVENT_PLANS[planType].price})
+            Créer l'annonce (€{EVENT_PLANS[planType].price})
           </>
         )}
       </button>

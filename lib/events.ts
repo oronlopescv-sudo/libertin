@@ -15,9 +15,9 @@ const supabase = createClient(
  * Event pricing
  */
 export const EVENT_PLANS: Record<EventPlanType, { price: number; duration: number; name: string }> = {
-  basic: { price: 100, duration: 30, name: 'Anúncio Básico' },
-  featured: { price: 150, duration: 30, name: 'Anúncio Featured' },
-  vip_gold: { price: 200, duration: 60, name: 'Anúncio VIP Gold' },
+  basic: { price: 100, duration: 30, name: 'Annonce Basique' },
+  featured: { price: 150, duration: 30, name: 'Annonce Featured' },
+  vip_gold: { price: 200, duration: 60, name: 'Annonce VIP Gold' },
 };
 
 /**
@@ -46,11 +46,11 @@ export async function createEvent(
     }
 
     if (eventData.title.length < 10 || eventData.title.length > 255) {
-      return { success: false, error: 'Título deve ter 10-255 caracteres' };
+      return { success: false, error: 'Le titre doit contenir 10 à 255 caractères' };
     }
 
     if (eventData.description.length < 50) {
-      return { success: false, error: 'Description deve ter no mínimo 50 caracteres' };
+      return { success: false, error: 'La description doit contenir au minimum 50 caractères' };
     }
 
     // Calculate expiration
@@ -87,7 +87,7 @@ export async function createEvent(
     return { success: true, eventId: data.id };
   } catch (error) {
     console.error('Failed to create event:', error);
-    return { success: false, error: 'Échec de criar anúncio' };
+    return { success: false, error: 'Échec de la création de l\'annonce' };
   }
 }
 
@@ -306,7 +306,7 @@ export async function renewEvent(
     return { success: true };
   } catch (error) {
     console.error('Failed to renew event:', error);
-    return { success: false, error: 'Échec de renovar anúncio' };
+    return { success: false, error: 'Échec du renouvellement de l\'annonce' };
   }
 }
 

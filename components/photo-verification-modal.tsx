@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '@/context/auth-context';
-import { supabase } from '@/lib/supabase';
+import { fetchResilient } from '@/lib/fetch-resilient';
 import { ShieldCheck, Upload, Check, Camera, Lock, X, AlertCircle } from 'lucide-react';
 
 interface PhotoVerificationModalProps {
@@ -13,6 +13,7 @@ interface PhotoVerificationModalProps {
 export function PhotoVerificationModal({ isOpen, onClose }: PhotoVerificationModalProps) {
   const { user, refreshUser } = useAuth();
   const [photoUrl, setPhotoUrl] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -23,7 +24,7 @@ export function PhotoVerificationModal({ isOpen, onClose }: PhotoVerificationMod
     e.preventDefault();
     setErrorMsg(null);
 
-    if (!photoUrl) {
+    if (!photoUrl && !selectedFile) {
       setErrorMsg('Veuillez sélectionner ou fournir une photo.');
       return;
     }
@@ -31,13 +32,33 @@ export function PhotoVerificationModal({ isOpen, onClose }: PhotoVerificationMod
     setIsUploading(true);
 
     try {
-      const { error } = await supabase.from('verification_photos').insert({
-        user_id: user.id,
-        url: photoUrl,
-        status: 'pending',
-      });
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append('file', selectedFile);
 
-      if (error) throw error;
+        const res = await fetchResilient('/api/verification/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Erreur lors de l'envoi de la photo.");
+        }
+      } else if (photoUrl) {
+        const res = await fetchResilient('/api/verification/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: photoUrl }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Erreur lors de l'envoi de la photo.");
+        }
+      }
 
       await refreshUser();
       setIsUploading(false);
@@ -121,6 +142,7 @@ export function PhotoVerificationModal({ isOpen, onClose }: PhotoVerificationMod
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
+                        setSelectedFile(file);
                         const reader = new FileReader();
                         reader.onloadend = () => {
                           setPhotoUrl(reader.result as string);
@@ -153,7 +175,7 @@ export function PhotoVerificationModal({ isOpen, onClose }: PhotoVerificationMod
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>
                 Le stockage de fichiers (Supabase Storage) n&apos;est pas encore configuré.
-                Pour tester, utilisez un lien URL direct ou converta a imagem em base64.
+                Pour tester, utilisez un lien URL direct ou convertissez l&apos;image en base64.
               </span>
             </div>
 

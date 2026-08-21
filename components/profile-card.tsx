@@ -17,7 +17,9 @@ import {
   X,
   UserX,
   ShieldAlert,
+  Loader,
 } from 'lucide-react';
+import { fetchResilient } from '@/lib/fetch-resilient';
 import Link from 'next/link';
 
 interface ProfileCardProps {
@@ -37,22 +39,10 @@ export function ProfileCard({
 }: ProfileCardProps) {
   const { refreshUser } = useAuth();
   const [liked, setLiked] = useState(false);
+  const [likeLoading, setLikeLoading] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
 
   const isUserBlocked = currentUser ? Store.isBlocked(currentUser.id, profile.id) : false;
-
-  const handleToggleBlock = (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    if (!currentUser) return;
-
-    if (isUserBlocked) {
-      Store.unblockUser(currentUser.id, profile.id);
-    } else {
-      Store.blockUser(currentUser.id, profile.id);
-    }
-    refreshUser();
-    if (onBlockStatusChange) onBlockStatusChange();
-  };
 
   // Compute distance in km from current user location
   const currentCoords = currentUser
@@ -67,6 +57,56 @@ export function ProfileCard({
     targetCoords.lat,
     targetCoords.lng
   );
+
+  // Calcul de compatibilité basé sur les intérêts communs et la proximité
+  const compatibility = React.useMemo(() => {
+    if (!currentUser) return 0;
+    const myInterests = currentUser.interests ?? [];
+    const theirInterests = profile.interests ?? [];
+    const commonInterests = myInterests.filter((i) => theirInterests.includes(i));
+    const interestScore = myInterests.length > 0
+      ? (commonInterests.length / Math.max(myInterests.length, theirInterests.length)) * 60
+      : 0;
+    const proximityScore = distanceKm !== Infinity && distanceKm < 100 ? 25 : distanceKm !== Infinity && distanceKm < 500 ? 15 : 5;
+    const verificationScore = profile.isVerified ? 15 : 5;
+    return Math.min(99, Math.round(interestScore + proximityScore + verificationScore));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser, profile.interests, profile.isVerified, distanceKm]);
+
+  const handleToggleLike = async (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!currentUser || likeLoading) return;
+
+    setLikeLoading(true);
+    const wasLiked = liked;
+    setLiked(!wasLiked);
+
+    try {
+      await fetchResilient('/api/likes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetUserId: profile.id }),
+      });
+    } catch (err) {
+      setLiked(wasLiked);
+      console.error('Erreur lors du like:', err);
+    } finally {
+      setLikeLoading(false);
+    }
+  };
+
+  const handleToggleBlock = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!currentUser) return;
+
+    if (isUserBlocked) {
+      Store.unblockUser(currentUser.id, profile.id);
+    } else {
+      Store.blockUser(currentUser.id, profile.id);
+    }
+    refreshUser();
+    if (onBlockStatusChange) onBlockStatusChange();
+  };
 
   const primaryPhoto =
     (profile.photos ?? []).find((p) => p.isCover)?.url ||
@@ -193,15 +233,16 @@ export function ProfileCard({
           <div className="pt-2 border-t border-[#2C1B3D] flex items-center justify-between gap-1">
             <div className="flex items-center gap-1">
               <button
-                onClick={() => setLiked(!liked)}
-                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                onClick={handleToggleLike}
+                disabled={likeLoading}
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-50 ${
                   liked
                     ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40'
                     : 'bg-[#2C1B3D] text-zinc-400 hover:text-white'
                 }`}
                 title={liked ? "Coup de cœur" : "J'aime"}
               >
-                <Heart className={`w-3.5 h-3.5 ${liked ? 'fill-rose-400' : ''}`} />
+                {likeLoading ? <Loader className="w-3.5 h-3.5 animate-spin" /> : <Heart className={`w-3.5 h-3.5 ${liked ? 'fill-rose-400' : ''}`} />}
                 <span className="hidden sm:inline">{liked ? 'Coup de cœur' : 'J\'aime'}</span>
               </button>
 
@@ -272,7 +313,7 @@ export function ProfileCard({
 
                 <div className="inline-flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-950/60 border border-emerald-800/40 px-2.5 py-1 rounded-md">
                   <Flame className="w-3.5 h-3.5 text-[#E86B7A]" />
-                  <span>Compatibilité Libertine: 94%</span>
+                  <span>Compatibilité Libertine: {compatibility}%</span>
                 </div>
               </div>
             </div>
