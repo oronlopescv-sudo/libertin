@@ -22,7 +22,7 @@ export function LoginForm() {
 
     try {
       if (!formData.email || !formData.password) {
-        throw new Error('Email e senha obligatoires');
+        throw new Error('Email et mot de passe obligatoires');
       }
 
       // Passe par le contexte d'authentification (Supabase Auth), qui est la

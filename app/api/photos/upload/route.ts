@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { utilisateurPremium } from '@/lib/auth-serveur';
-import { createServerSupabaseClient } from '@/lib/supabase-server';
+import { createServiceRoleClient } from '@/lib/supabase';
 import { validateFileUpload } from '@/lib/validation';
 
 /**
@@ -9,10 +9,12 @@ import { validateFileUpload } from '@/lib/validation';
  * la table `photos`. Réservé aux membres Premium (vérifié côté serveur via la
  * session Supabase Auth, jamais via le corps de la requête).
  *
- * On utilise le client de session (clé anon + cookie de l'utilisateur) plutôt
- * que la clé de service : la RLS et la politique du bucket `photos` autorisent
- * un membre authentifié à écrire dans son propre dossier. Cela évite que
- * l'envoi ne dépende d'une clé de service absente ou expirée.
+ * L'identité est vérifiée avec le client de session (clé anon + cookie).
+ * L'écriture dans Storage et la table `photos` utilise le client de service
+ * (clé service_role) : cela contourne les politiques RLS du bucket qui, si
+ * elles ne sont pas configurées correctement, font échouer silencieusement
+ * tout upload — l'utilisateur voit "Échec de l'envoi" sans cause apparente.
+ * Le service role n'est utilisé qu'après authentification réussie.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -34,14 +36,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
-    const supabase = await createServerSupabaseClient();
+    // Client de service pour Storage + table photos : contourne les RLS
+    // du bucket qui peuvent ne pas être configurées.
+    const supabaseAdmin = createServiceRoleClient();
 
     const bucket = process.env.SUPABASE_PHOTOS_BUCKET || 'photos';
     const ext = file.name.split('.').pop() || 'jpg';
     const filename = `profiles/${auth.user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
     const arrayBuffer = await file.arrayBuffer();
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
       .from(bucket)
       .upload(filename, arrayBuffer, {
         contentType: file.type,
@@ -51,8 +55,6 @@ export async function POST(req: NextRequest) {
 
     if (uploadError || !uploadData) {
       console.error('Photo upload error:', uploadError);
-      // Remonter le message réel de Supabase Storage : sans lui, une cause
-      // concrète (bucket absent, clé invalide, type refusé) reste invisible.
       return NextResponse.json(
         {
           error: "Échec de l'envoi de la photo",
@@ -62,17 +64,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(uploadData.path);
+    const { data: urlData } = supabaseAdmin.storage.from(bucket).getPublicUrl(uploadData.path);
     const url = urlData.publicUrl;
 
     // Première photo = photo de couverture.
-    const { data: existing } = await supabase
+    const { data: existing } = await supabaseAdmin
       .from('photos')
       .select('id')
       .eq('user_id', auth.user.id);
     const isFirst = !existing || existing.length === 0;
 
-    const { error: insertError } = await supabase.from('photos').insert({
+    const { error: insertError } = await supabaseAdmin.from('photos').insert({
       user_id: auth.user.id,
       url,
       is_cover: isFirst,
