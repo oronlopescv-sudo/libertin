@@ -39,7 +39,7 @@ export const SUBSCRIPTION_PLANS: AbonnementPlan[] = [
     pricePerMonth: 0,
     savings: '100% Gratuit',
     features: [
-      'Création de profil libertin annyme',
+      'Création de profil libertin anonyme',
       'Accès aux groupes en mode lecture',
       'Envoi de photos de vérification',
       'Support par email en Français',

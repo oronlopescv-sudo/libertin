@@ -8,16 +8,16 @@ export async function POST(req: NextRequest) {
 
     // Validaction
     if (!email || !password || !username || !dateOfBirth) {
-      return NextResponse.json({ error: 'Campos obligatoires faltando' }, { status: 400 });
+      return NextResponse.json({ error: 'Champs obligatoires manquants' }, { status: 400 });
     }
 
     if (password.length < 8) {
-      return NextResponse.json({ error: 'Senha deve ter 8+ caracteres' }, { status: 400 });
+      return NextResponse.json({ error: 'Le mot de passe doit contenir au moins 8 caractères' }, { status: 400 });
     }
 
     const age = new Date().getFullYear() - new Date(dateOfBirth).getFullYear();
     if (age < 18) {
-      return NextResponse.json({ error: 'Deve ter 18+ ans' }, { status: 400 });
+      return NextResponse.json({ error: 'Vous devez avoir 18 ans ou plus' }, { status: 400 });
     }
 
     // Hash mot de passe

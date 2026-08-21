@@ -36,10 +36,10 @@ export default function Decouvrir() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const [mensagemEnviando, setMensagemEnviando] = useState<string | null>(null);
+  const [messageEnCours, setMessageEnCours] = useState<string | null>(null);
 
   const handleOpenMessage = async (profileId: string) => {
-    setMensagemEnviando(profileId);
+    setMessageEnCours(profileId);
     try {
       const res = await fetchResilient('/api/conversations', {
         method: 'POST',
@@ -64,7 +64,7 @@ export default function Decouvrir() {
     } catch {
       setError('Erreur réseau. Vérifiez votre connexion et réessayez.');
     } finally {
-      setMensagemEnviando(null);
+      setMessageEnCours(null);
     }
   };
   const [likedUsers, setLikedUsers] = useState<Set<string>>(new Set());
@@ -364,11 +364,11 @@ export default function Decouvrir() {
                     </button>
                     <button
                       onClick={() => handleOpenMessage(profile.id)}
-                      disabled={mensagemEnviando === profile.id}
+                      disabled={messageEnCours === profile.id}
                       className="flex-1 py-2 rounded-lg font-semibold bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white hover:opacity-90 transition flex items-center justify-center gap-2 disabled:opacity-50"
                     >
                       <MessageSquare className="w-4 h-4" />
-                      {mensagemEnviando === profile.id ? '...' : 'Message'}
+                      {messageEnCours === profile.id ? '...' : 'Message'}
                     </button>
                   </div>
                 </div>

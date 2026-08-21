@@ -37,7 +37,7 @@ export function LoginForm() {
 
       router.push('/profil');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      setError(err instanceof Error ? err.message : 'Erreur inconnue');
     } finally {
       setLoading(false);
     }
