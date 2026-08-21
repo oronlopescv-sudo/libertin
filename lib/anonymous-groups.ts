@@ -62,7 +62,7 @@ export async function joinGroupAnonymous(
     }
 
     if (existing) {
-      return { success: false, error: 'Vous já é membro deste grupo' };
+      return { success: false, error: 'Vous êtes déjà membre de ce groupe' };
     }
 
     // Generate annymous name if needed
@@ -118,7 +118,7 @@ export async function getGroupMemberDisplayName(
       .eq('id', userId)
       .single();
 
-    return user?.username || 'Membro';
+    return user?.username || 'Membre';
   } catch (error) {
     console.error('Failed to get display name:', error);
     return null;
@@ -168,7 +168,7 @@ export async function getGroupMembers(groupId: string): Promise<
       const user = userMap.get(m.user_id);
       return {
         id: m.user_id,
-        displayName: user?.username || 'Membro',
+        displayName: user?.username || 'Membre',
         isAnonymous: false,
         photoUrl: user?.photos?.[0]?.url,
         isVerified: user?.is_verified,
@@ -223,7 +223,7 @@ export async function createGroupWithExpiry(
   try {
     // Validate name
     if (!groupData.name || groupData.name.length < 3 || groupData.name.length > 100) {
-      return { success: false, error: 'Nom du groupe deve ter 3-100 caracteres' };
+      return { success: false, error: 'Le nom du groupe doit contenir 3 à 100 caractères' };
     }
 
     // Calculate expiration (5 months)
@@ -270,7 +270,7 @@ export async function createGroupWithExpiry(
     return { success: true, groupId: data.id };
   } catch (error) {
     console.error('Failed to create group:', error);
-    return { success: false, error: 'Échec de criar grupo' };
+    return { success: false, error: 'Échec de la création du groupe' };
   }
 }
 
@@ -311,7 +311,7 @@ export async function renewGroup(
     return { success: true };
   } catch (error) {
     console.error('Failed to renew group:', error);
-    return { success: false, error: 'Échec de renovar grupo' };
+    return { success: false, error: 'Échec du renouvellement du groupe' };
   }
 }
 

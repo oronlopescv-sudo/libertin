@@ -22,7 +22,7 @@ export function ResetPasswordForm() {
     const e = searchParams.get('email');
 
     if (!t || !e) {
-      setError('Link de réinitialisation inválido ou expirado');
+      setError('Lien de réinitialisation invalide ou expiré');
       return;
     }
 
@@ -41,7 +41,7 @@ export function ResetPasswordForm() {
       }
 
       if (password.length < 8) {
-        throw new Error('Mot de passe deve ter 8+ caracteres');
+        throw new Error('Le mot de passe doit contenir au moins 8 caractères');
       }
 
       if (password !== confirmPassword) {
@@ -61,14 +61,14 @@ export function ResetPasswordForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Erreur lors de réinitialiser le mot de passe');
+        throw new Error(data.error || 'Erreur lors de la réinitialisation du mot de passe');
       }
 
       setSuccess(true);
-      // Redireciona para login após 2 segundos
+      // Redirection vers la connexion après 2 secondes
       setTimeout(() => router.push('/login'), 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      setError(err instanceof Error ? err.message : 'Erreur inconnue');
     } finally {
       setLoading(false);
     }
@@ -81,13 +81,13 @@ export function ResetPasswordForm() {
           <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto">
             <AlertCircle className="w-8 h-8 text-red-500" />
           </div>
-          <h2 className="text-2xl font-bold text-white">Link Inválido</h2>
-          <p className="text-zinc-400">O link de réinitialisation expirou ou é inválido.</p>
+          <h2 className="text-2xl font-bold text-white">Lien invalide</h2>
+          <p className="text-zinc-400">Le lien de réinitialisation a expiré ou est invalide.</p>
           <a
             href="/login"
             className="inline-block py-2 px-6 bg-gradient-to-r from-[#D4145A] to-[#E86B7A] rounded-lg font-semibold text-white hover:opacity-90 transition"
           >
-            Retour para Login
+            Retour à la connexion
           </a>
         </div>
       </div>
@@ -102,8 +102,8 @@ export function ResetPasswordForm() {
             <CheckCircle2 className="w-8 h-8 text-green-500" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-white">Mot de passe Resetada!</h2>
-            <p className="text-zinc-400 mt-2">Vous será redirecionado para o login em breve...</p>
+            <h2 className="text-2xl font-bold text-white">Mot de passe réinitialisé !</h2>
+            <p className="text-zinc-400 mt-2">Vous serez redirigé vers la page de connexion...</p>
           </div>
         </div>
       </div>
@@ -115,8 +115,8 @@ export function ResetPasswordForm() {
       <div className="w-full max-w-md">
         <div className="space-y-6">
           <div className="text-center space-y-2">
-            <h1 className="text-3xl font-bold text-white">Réinitialiser Mot de passe</h1>
-            <p className="text-zinc-400">Crie uma nova password segura</p>
+            <h1 className="text-3xl font-bold text-white">Réinitialiser le mot de passe</h1>
+            <p className="text-zinc-400">Créez un nouveau mot de passe sécurisé</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -128,22 +128,22 @@ export function ResetPasswordForm() {
 
             {/* Nova Mot de passe */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-[#F5F0F8]">Nova Mot de passe</label>
+              <label className="text-sm font-medium text-[#F5F0F8]">Nouveau mot de passe</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 w-5 h-5 text-[#D4145A]/50" />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Minimum 8 caracteres"
+                  placeholder="Minimum 8 caractères"
                   className="w-full pl-10 pr-4 py-2 bg-[#1C102B] border border-[#2C1B3D] rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-[#D4145A]"
                 />
               </div>
             </div>
 
-            {/* Confirmer Mot de passe */}
+            {/* Confirmer le mot de passe */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-[#F5F0F8]">Confirmer Mot de passe</label>
+              <label className="text-sm font-medium text-[#F5F0F8]">Confirmer le mot de passe</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 w-5 h-5 text-[#D4145A]/50" />
                 <input
@@ -161,7 +161,7 @@ export function ResetPasswordForm() {
               disabled={loading}
               className="w-full py-2 bg-gradient-to-r from-[#D4145A] to-[#E86B7A] rounded-lg font-semibold text-white hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Resetando...' : 'Réinitialiser Mot de passe'}
+              {loading ? 'Réinitialisation...' : 'Réinitialiser le mot de passe'}
             </button>
           </form>
         </div>

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { X, Lock, Eye, Loader } from 'lucide-react';
 import { joinGroupAnonymous } from '@/lib/anonymous-groups';
+import { useAuth } from '@/context/auth-context';
 
 interface JoinGroupModalProps {
   groupId: string;
@@ -19,18 +20,23 @@ export function JoinGroupModal({
   onSuccess,
   onClose,
 }: JoinGroupModalProps) {
+  const { user } = useAuth();
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleJoin = async () => {
+    if (!user) {
+      setError('Vous devez être connecté pour rejoindre un groupe.');
+      return;
+    }
     setIsLoading(true);
     setError(null);
 
-    const result = await joinGroupAnonymous(groupId, 'current-user-id', isAnonymous);
+    const result = await joinGroupAnonymous(groupId, user.id, isAnonymous);
 
     if (!result.success) {
-      setError(result.error || 'Échec de entrar no grupo');
+      setError(result.error || 'Échec de la connexion au groupe');
       setIsLoading(false);
       return;
     }
@@ -43,7 +49,7 @@ export function JoinGroupModal({
       <div className="bg-[#1C102B] border border-[#3D2654] rounded-2xl p-6 max-w-md w-full space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h3 className="text-xl font-bold text-white">Se connecter em "{groupName}"</h3>
+          <h3 className="text-xl font-bold text-white">Rejoindre « {groupName} »</h3>
           <button
             onClick={onClose}
             className="p-2 hover:bg-[#2C1B3D] rounded-full transition-colors"
@@ -66,7 +72,7 @@ export function JoinGroupModal({
             <div className="flex-1">
               <div className="font-bold text-white flex items-center gap-2">
                 <Eye className="w-4 h-4 text-[#D4145A]" />
-                Se connecter como seu nome
+                Se connecter avec votre nom
               </div>
               <div className="text-xs text-zinc-400 mt-1">
                 Votre profil vérifié sera visible. Les autres membres sauront qui vous êtes.
@@ -86,15 +92,15 @@ export function JoinGroupModal({
             <div className="flex-1">
               <div className="font-bold text-white flex items-center gap-2">
                 <Lock className="w-4 h-4 text-[#D4145A]" />
-                Se connecter Anonyme ⭐
+                Se connecter en Anonyme ⭐
               </div>
               <div className="text-xs text-zinc-400 mt-1">
-                Seu nome será "Anonyme #XXXX". Ninguém saberá sua identidade.
+                Votre nom sera « Anonyme #XXXX ». Personne ne connaîtra votre identité.
               </div>
 
               {!isPremium && (
                 <div className="text-xs text-amber-400 mt-2 bg-amber-950/30 p-2 rounded border border-amber-800/30">
-                  ⚠️ Requer assinatura PREMIUM
+                  ⚠️ Réservé aux membres PREMIUM
                 </div>
               )}
             </div>
@@ -103,12 +109,12 @@ export function JoinGroupModal({
 
         {/* Info Box */}
         <div className="p-3 bg-[#D4145A]/10 border border-[#D4145A]/30 rounded-lg text-xs text-[#E86B7A]">
-          <strong>Como funciona:</strong>
+          <strong>Comment ça marche :</strong>
           <ul className="mt-2 space-y-1 text-zinc-300">
-            <li>• Vous vê todos os membros como identificados</li>
-            <li>• Mas outros só veem vous como "Anonyme"</li>
-            <li>• Nenhuma foto ou localizaction compartilhada</li>
-            <li>• Permaneça discreto e seguro</li>
+            <li>• Vous voyez tous les membres identifiés</li>
+            <li>• Mais les autres ne vous voient que comme « Anonyme »</li>
+            <li>• Aucune photo ni localisation partagée</li>
+            <li>• Restez discret et en sécurité</li>
           </ul>
         </div>
 
@@ -135,10 +141,10 @@ export function JoinGroupModal({
             {isLoading ? (
               <>
                 <Loader className="w-4 h-4 animate-spin" />
-                Entrando...
+                Connexion...
               </>
             ) : (
-              <>Confirmer Entrada</>
+              <>Confirmer l'inscription</>
             )}
           </button>
         </div>
