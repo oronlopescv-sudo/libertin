@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { utilisateurPremium } from '@/lib/auth-serveur';
-import { createServerSupabaseClient } from '@/lib/supabase-server';
+import { createServiceRoleClient } from '@/lib/supabase';
 import { validateFileUpload } from '@/lib/validation';
 
 /**
@@ -12,12 +12,12 @@ import { validateFileUpload } from '@/lib/validation';
  * messages (/api/messages/[groupId]).
  *
  * Contrairement à /api/photos/upload, on n'insère rien dans la table
- * `photos` : la mídia de tchat vit dans `messages.media_url`, renseigné au
+ * `photos` : la média de tchat vit dans `messages.media_url`, renseigné au
  * moment de l'envoi du message par /api/messages/[groupId].
  *
- * On utilise le client de session (clé anon + cookie de l'utilisateur) :
- * la politique du bucket `chat-media` autorise un membre authentifié à
- * écrire, et le gate Premium est appliqué ici avant l'appel Storage.
+ * L'identité est vérifiée avec le client de session. L'écriture dans Storage
+ * utilise le client de service (service_role) pour éviter que des politiques
+ * RLS mal configurées ne fassent échouer silencieusement l'envoi.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
-    const supabase = await createServerSupabaseClient();
+    const supabase = createServiceRoleClient();
 
     const bucket = process.env.SUPABASE_CHAT_BUCKET || 'chat-media';
     const ext = file.name.split('.').pop() || 'jpg';
@@ -56,8 +56,6 @@ export async function POST(req: NextRequest) {
 
     if (uploadError || !uploadData) {
       console.error('Chat media upload error:', uploadError);
-      // Remonter le message réel de Supabase Storage : sans lui, une cause
-      // concrète (bucket absent, clé invalide, type refusé) reste invisible.
       return NextResponse.json(
         {
           error: "Échec de l'envoi de l'image",

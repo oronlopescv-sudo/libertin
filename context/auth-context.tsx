@@ -45,11 +45,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(current);
         setUsersList(list);
         return true;
+      } else {
+        // Pas de session valide : on réinitialise l'état utilisateur
+        // pour que le site affiche les boutons "Se connecter" au lieu
+        // de rester bloqué en mode "chargement" (effet hors-ligne).
+        setUser(null);
+        setUsersList(list);
+        return false;
       }
     } catch (e) {
       console.warn('Supabase load failed', e);
+      setUser(null);
+      return false;
     }
-    return false;
   }, []);
 
   const refreshUser = useCallback(async () => {

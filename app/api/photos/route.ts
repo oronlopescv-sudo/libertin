@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { utilisateurActuel } from '@/lib/auth-serveur';
-import { createServerSupabaseClient } from '@/lib/supabase-server';
+import { createServiceRoleClient } from '@/lib/supabase';
 
 /**
  * GET /api/photos — liste les photos du membre connecté.
  * DELETE /api/photos?id=... — supprime une de ses photos (fichier + ligne).
  *
- * Sans ce fichier, les photos envoyées via POST /api/photos/upload
- * n'étaient jamais visibles nulle part : rien ne les relisait.
+ * L'identité est vérifiée via la session Supabase Auth. Les opérations sur
+ * Storage et la table `photos` utilisent le client de service pour éviter
+ * que des politiques RLS mal configurées ne bloquent la lecture ou la
+ * suppression.
  */
 
 export async function GET(req: NextRequest) {
@@ -15,7 +17,7 @@ export async function GET(req: NextRequest) {
     const auth = await utilisateurActuel();
     if (!auth.ok) return auth.reponse;
 
-    const supabase = await createServerSupabaseClient();
+    const supabase = createServiceRoleClient();
     const { data: photos, error } = await supabase
       .from('photos')
       .select('id, url, is_cover, display_order, uploaded_at')
@@ -44,7 +46,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "L'identifiant de la photo est requis" }, { status: 400 });
     }
 
-    const supabase = await createServerSupabaseClient();
+    const supabase = createServiceRoleClient();
 
     // Vérifie que la photo appartient bien à la personne qui la supprime.
     const { data: photo, error: fetchError } = await supabase
