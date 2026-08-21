@@ -54,10 +54,10 @@ export default function RegisterPage() {
   const [photoUrl, setPhotoUrl] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const [photoErro, setPhotoErro] = useState('');
+  const [photoErreur, setPhotoErreur] = useState('');
   const topoRef = useRef<HTMLDivElement>(null);
 
-  const mostrarErro = (msg: string) => {
+  const afficherErreur = (msg: string) => {
     setErrorMsg(msg);
     // Sans ceci, l'erreur s'affiche en haut de la page pendant que la
     // personne est en train de remplir le bas d'un long formulaire — elle
@@ -90,7 +90,7 @@ export default function RegisterPage() {
   const handleNextStep = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password || !username) {
-      mostrarErro('Veuillez remplir tous les champs obligatoires.');
+      afficherErreur('Veuillez remplir tous les champs obligatoires.');
       return;
     }
 
@@ -103,7 +103,7 @@ export default function RegisterPage() {
       age -= 1;
     }
     if (age < 18 || isNaN(age)) {
-      mostrarErro('Accès strictement interdit aux personnes de moins de 18 ans.');
+      afficherErreur('Accès strictement interdit aux personnes de moins de 18 ans.');
       return;
     }
 
@@ -114,7 +114,7 @@ export default function RegisterPage() {
   const handleCompleteRegistration = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!termsAccepted) {
-      mostrarErro('Vous devez accepter les conditions d\'utilisation et certifier avoir plus de 18 ans.');
+      afficherErreur('Vous devez accepter les conditions d\'utilisation et certifier avoir plus de 18 ans.');
       return;
     }
 
@@ -140,7 +140,7 @@ export default function RegisterPage() {
       });
       router.push('/decouvrir');
     } catch (err: any) {
-      mostrarErro(err?.message || "Erreur lors de l'inscription. Veuillez réessayer.");
+      afficherErreur(err?.message || "Erreur lors de l'inscription. Veuillez réessayer.");
     }
   };
 
@@ -379,13 +379,13 @@ export default function RegisterPage() {
                         // sans message clair. On refuse tôt, avec une raison.
                         const LIMITE_MO = 3;
                         if (file.size > LIMITE_MO * 1024 * 1024) {
-                          setPhotoErro(
+                          setPhotoErreur(
                             `Cette photo dépasse ${LIMITE_MO} Mo. Choisissez une photo plus légère, ou passez cette étape — vous pourrez l'ajouter depuis votre profil après inscription.`
                           );
                           return;
                         }
 
-                        setPhotoErro('');
+                        setPhotoErreur('');
                         const reader = new FileReader();
                         reader.onloadend = () => {
                           setPhotoUrl(reader.result as string);
@@ -395,8 +395,8 @@ export default function RegisterPage() {
                     />
                   </label>
 
-                  {photoErro && (
-                    <p className="text-[11px] text-rose-400">{photoErro}</p>
+                  {photoErreur && (
+                    <p className="text-[11px] text-rose-400">{photoErreur}</p>
                   )}
 
                   <input

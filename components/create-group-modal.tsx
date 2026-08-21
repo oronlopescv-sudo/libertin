@@ -73,7 +73,7 @@ export function CreateGroupModal({ isOpen, onClose, userAbonnement }: CreateGrou
         window.location.reload();
       }, 1500);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      setError(err instanceof Error ? err.message : 'Erreur inconnue');
     } finally {
       setLoading(false);
     }

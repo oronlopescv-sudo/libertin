@@ -81,7 +81,7 @@ export default function AbonnementsPage() {
             <Lock className="w-6 h-6 text-[#E86B7A] shrink-0" />
             <div>
               <strong className="block text-white">Discrétion Bancaire</strong>
-              Intitulé bancaire annyme &quot;RP-SERVICES&quot; sans mention libertine.
+              Intitulé bancaire anonyme &quot;RP-SERVICES&quot; sans mention libertine.
             </div>
           </div>
           <div className="p-4 rounded-2xl bg-[#1C102B] border border-[#2C1B3D] flex items-center gap-3">

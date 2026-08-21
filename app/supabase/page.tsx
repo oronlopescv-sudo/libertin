@@ -407,7 +407,7 @@ export default function SupabaseDataPage() {
             }`}
           >
             <Table className="w-4 h-4" />
-            <span>Structures des 6 Tabelas</span>
+            <span>Structures des 6 Tables</span>
           </button>
 
           <button

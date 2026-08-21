@@ -86,7 +86,7 @@ export async function joinGroupAnonymous(
     return { success: true };
   } catch (error) {
     console.error('Failed to join group:', error);
-    return { success: false, error: 'Échec de entrar no grupo' };
+    return { success: false, error: 'Échec de la connexion au groupe' };
   }
 }
 
