@@ -99,10 +99,18 @@ export async function signUpWithSupabase(userData: {
       email: userData.email,
       password,
       options: {
+        // Lu par le trigger SQL on_auth_user_created (migration 007) : le profil
+        // est créé côté base même si l'upsert client ci-dessous échoue (ex. :
+        // confirmation d'email activée -> pas de session -> RLS refuse l'insert).
         data: {
           username: userData.username,
+          dateOfBirth: userData.dateOfBirth,
           gender: userData.gender,
+          sexualOrientation: userData.sexualOrientation,
           location: userData.location,
+          lat: userData.lat ?? null,
+          lng: userData.lng ?? null,
+          bio: userData.bio || '',
         },
       },
     });

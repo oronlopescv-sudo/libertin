@@ -1,0 +1,8 @@
+-- 007_production_fix — aplicado em produção (2026-09-03) via Supabase MCP.
+-- 1. Trigger on_auth_user_created -> cria linha em profiles a partir de auth.users
+-- 2. verification_photos: colunas snake_case, id/user_id uuid, FK -> profiles
+-- 3. events / event_participants: uuid, FK -> profiles, policies RLS (antes: RLS sem policies = tabela inutilizável)
+-- 4. groups update/delete pelo criador, messages delete próprio
+-- 5. Migração dos 42 perfis legados public.users -> public.profiles
+-- 6. orsonricardo@hotmail.fr -> role=admin, PASS_VIP; tiers PREMIUM_* -> PASS_VIP
+-- Ver histórico completo em: Supabase Dashboard > Database > Migrations > 007_production_fix

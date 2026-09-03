@@ -6,3 +6,6 @@ coverage/
 .env*
 !.env.example
 tsconfig.tsbuildinfo
+HOSTINGER_ENV_VARS.txt
+VARIAVEIS_PRONTAS.md
+TESTE_NO_DOMINIO.txt
