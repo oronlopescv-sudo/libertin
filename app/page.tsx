@@ -84,7 +84,7 @@ export default function HomePage() {
       author: 'Sophie',
       city: 'Bordeaux (33)',
       role: 'Femme Solo',
-      text: 'Le respect et la modération sont primorjourux pour une femme solo. Les profils vérifiés rassurent dès les premiers échanges.',
+      text: 'Le respect et la modération sont primordiaux pour une femme solo. Les profils vérifiés rassurent dès les premiers échanges.',
       stars: 5,
     },
     {
@@ -244,7 +244,7 @@ export default function HomePage() {
             <div className="text-center max-w-2xl mx-auto mb-12">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D4145A]/20 text-[#E86B7A] text-xs font-bold mb-3">
                 <Crown className="w-4 h-4" />
-                <span>Formules de Abonnements</span>
+                <span>Formules d&apos;Abonnement</span>
               </div>
               <h2 className="text-3xl font-extrabold text-white">
                 Choisissez Votre Niveau de Privilège

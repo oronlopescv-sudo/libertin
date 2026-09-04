@@ -8,7 +8,7 @@ export interface CityConfig {
 
 export const CITIES: Record<string, CityConfig> = {
   // ============================================================
-  // FRANCE — principais cidades (metros + préfeituras + balnéarios)
+  // FRANCE — principales villes (métropoles + préfectures + balnéaires)
   // ============================================================
   Paris: { name: 'Paris', country: 'France', flag: '🇫🇷', lat: 48.8566, lng: 2.3522 },
   Marseille: { name: 'Marseille', country: 'France', flag: '🇫🇷', lat: 43.2965, lng: 5.3698 },

@@ -99,7 +99,7 @@ export default function Decouvrir() {
             setProfiles(data.profiles);
           }
 
-          // Buscar meus likes
+          // Charger mes likes
           const likesRes = await fetchResilient('/api/likes');
           const likesData = await likesRes.json();
           if (likesRes.ok) {
@@ -127,7 +127,7 @@ export default function Decouvrir() {
     );
   }
 
-  // Tous os utilisateurs autenticados podem ver perfis.
+  // Tous les utilisateurs authentifiés peuvent voir les profils.
   // La règle Premium s'applique uniquement à l'envoi de messages.
   if (!user) {
     return (

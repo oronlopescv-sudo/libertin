@@ -95,6 +95,11 @@ export async function signUpWithSupabase(userData: {
     }
 
     // 1. Supabase Auth Registration
+    //
+    // `options.data` alimente `user_metadata`. On y met TOUS les champs du
+    // profil : si l'insertion dans `profiles` échoue, `creerProfilManquant`
+    // reconstruit le profil à partir de ces métadonnées. Sans date de
+    // naissance ni orientation, le profil de secours serait incomplet.
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: userData.email,
       password,
@@ -108,9 +113,10 @@ export async function signUpWithSupabase(userData: {
           gender: userData.gender,
           sexualOrientation: userData.sexualOrientation,
           location: userData.location,
-          lat: userData.lat ?? null,
-          lng: userData.lng ?? null,
-          bio: userData.bio || '',
+          lat: userData.lat,
+          lng: userData.lng,
+          bio: userData.bio,
+          interests: userData.interests,
         },
       },
     });
@@ -195,6 +201,11 @@ export async function signUpWithSupabase(userData: {
       success: true,
       userId,
       user: authData.user,
+      // Quand Supabase exige une confirmation par e-mail, `signUp` crée le
+      // compte mais ne renvoie PAS de session. Le distinguer permet au
+      // contexte d'auth de ne pas faire croire que l'utilisateur est connecté.
+      session: authData.session,
+      needsEmailConfirmation: !authData.session,
     };
   } catch (err: any) {
     console.error('Supabase registration error:', err);
@@ -732,7 +743,7 @@ CREATE POLICY "Public messages read" ON public.messages FOR SELECT USING (true);
 CREATE POLICY "Allow messages insert" ON public.messages FOR INSERT WITH CHECK (true);
 
 
--- 6. TABLE SUBSCRIPTIONS (PAGAMENTOS STRIPE & PLANOS)
+-- 6. TABLE SUBSCRIPTIONS (PAIEMENTS STRIPE & ABONNEMENTS)
 CREATE TABLE IF NOT EXISTS public.subscriptions (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,

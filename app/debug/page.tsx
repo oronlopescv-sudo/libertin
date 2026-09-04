@@ -12,17 +12,17 @@ export default function DebugPage() {
         
         <p>
           <strong>NEXT_PUBLIC_SUPABASE_URL:</strong><br />
-          {url ? `✅ CARREGADO: ${url}` : '❌ VAZIO'}
+          {url ? `✅ CHARGÉ : ${url}` : '❌ VIDE'}
         </p>
         
         <p>
           <strong>NEXT_PUBLIC_SUPABASE_ANON_KEY:</strong><br />
-          {annKey ? `✅ CARREGADO (${annKey.length} chars)` : '❌ VAZIO'}
+          {annKey ? `✅ CHARGÉ (${annKey.length} chars)` : '❌ VIDE'}
         </p>
         
         <p>
           <strong>NEXT_PUBLIC_APP_URL:</strong><br />
-          {appUrl ? `✅ CARREGADO: ${appUrl}` : '❌ VAZIO'}
+          {appUrl ? `✅ CHARGÉ : ${appUrl}` : '❌ VIDE'}
         </p>
       </div>
 
@@ -30,11 +30,11 @@ export default function DebugPage() {
         <h2>Status:</h2>
         {!url || !annKey ? (
           <p style={{color: 'red', fontSize: '18px'}}>
-            ❌ Variáveis de ambiente NÃO foram carregadas do .env.local
+            ❌ Variables d'environnement NON chargées depuis .env.local
           </p>
         ) : (
           <p style={{color: 'green', fontSize: '18px'}}>
-            ✅ Variáveis de ambiente carregadas avec succès!
+            ✅ Variables d'environnement chargées avec succès !
           </p>
         )}
       </div>

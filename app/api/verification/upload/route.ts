@@ -19,10 +19,51 @@ import { utilisateurActuel } from '@/lib/auth-serveur';
 export async function POST(request: NextRequest) {
   try {
     // Auth : l'utilisateur connecté est le propriétaire de la photo. On ignore
-    // tout éventuel `userId` envoyé dans le formData (non fiable côté client).
+    // tout éventuel `userId` envoyé dans le corps (non fiable côté client).
     const auth = await utilisateurActuel();
     if (!auth.ok) return auth.reponse;
     const userId = auth.user.id;
+
+    const contentType = request.headers.get('content-type') ?? '';
+
+    // Deux modes d'envoi, selon ce que le client fournit :
+    // 1. URL directe (application/json) — le client envoie déjà une URL
+    //    publique (lien direct ou data: URL base64). On l'enregistre telle
+    //    quelle, sans passer par Supabase Storage.
+    // 2. Fichier binaire (multipart/form-data) — uploadé vers Storage.
+    if (contentType.includes('application/json')) {
+      const body = await request.json().catch(() => ({}));
+      const url = typeof body.url === 'string' ? body.url.trim() : '';
+
+      if (!url) {
+        return NextResponse.json(
+          { error: 'URL de photo manquante' },
+          { status: 400 }
+        );
+      }
+
+      if (!/^https?:\/\//i.test(url) && !url.startsWith('data:image/')) {
+        return NextResponse.json(
+          { error: 'URL de photo invalide' },
+          { status: 400 }
+        );
+      }
+
+      const saveResult = await saveVerificationPhoto(userId, url, '');
+
+      if (!saveResult.success) {
+        return NextResponse.json(
+          { error: saveResult.error, nsfw: saveResult.nsfw },
+          { status: saveResult.nsfw ? 400 : 500 }
+        );
+      }
+
+      return NextResponse.json({
+        photoId: saveResult.photoId,
+        url,
+        message: 'Photo soumise pour vérification',
+      });
+    }
 
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
@@ -50,7 +91,7 @@ export async function POST(request: NextRequest) {
 
     if (!uploadResult) {
       return NextResponse.json(
-        { error: 'Failed to upload photo' },
+        { error: "Échec de l'envoi de la photo" },
         { status: 500 }
       );
     }
@@ -77,7 +118,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Upload error:', error);
     return NextResponse.json(
-      { error: 'Failed to process upload' },
+      { error: "Échec du traitement de l'envoi" },
       { status: 500 }
     );
   }

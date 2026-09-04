@@ -66,7 +66,7 @@ export default function GroupesPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Buscar grupos
+        // Charger les groupes
         const res = await fetchResilient('/api/groups');
         const data = await res.json();
         setGroups(data.groups || []);
@@ -165,7 +165,7 @@ export default function GroupesPage() {
                 className="inline-flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-[#D4145A] to-[#E86B7A] rounded-lg font-semibold text-white hover:opacity-90 transition"
               >
                 <Plus className="w-5 h-5" />
-                Criar Primeiro Groupe
+                Créer le premier groupe
               </button>
             )}
           </div>

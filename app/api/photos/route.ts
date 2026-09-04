@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { utilisateurActuel } from '@/lib/auth-serveur';
 import { createServiceRoleClient } from '@/lib/supabase';
+import { apiError, apiSuccess } from '@/lib/api-response';
 
 /**
  * GET /api/photos — liste les photos du membre connecté.
@@ -26,13 +27,13 @@ export async function GET(req: NextRequest) {
 
     if (error) {
       console.error('[photos GET]', error);
-      return NextResponse.json({ error: 'Erreur lors de la récupération des photos' }, { status: 500 });
+      return apiError('Erreur lors de la récupération des photos', 500);
     }
 
-    return NextResponse.json({ photos: photos ?? [] });
+    return apiSuccess({ photos: photos ?? [] });
   } catch (error) {
     console.error('[photos GET]', error);
-    return NextResponse.json({ error: 'Erreur interne' }, { status: 500 });
+    return apiError('Erreur interne', 500);
   }
 }
 
@@ -43,7 +44,7 @@ export async function DELETE(req: NextRequest) {
 
     const photoId = req.nextUrl.searchParams.get('id');
     if (!photoId) {
-      return NextResponse.json({ error: "L'identifiant de la photo est requis" }, { status: 400 });
+      return apiError("L'identifiant de la photo est requis", 400);
     }
 
     const supabase = createServiceRoleClient();
@@ -56,10 +57,10 @@ export async function DELETE(req: NextRequest) {
       .single();
 
     if (fetchError || !photo) {
-      return NextResponse.json({ error: 'Photo introuvable' }, { status: 404 });
+      return apiError('Photo introuvable', 404);
     }
     if (photo.user_id !== auth.user.id) {
-      return NextResponse.json({ error: 'Vous ne possédez pas cette photo' }, { status: 403 });
+      return apiError('Vous ne possédez pas cette photo', 403);
     }
 
     // Retrouve le chemin dans le bucket à partir de l'URL publique pour
@@ -79,7 +80,7 @@ export async function DELETE(req: NextRequest) {
     const { error: deleteError } = await supabase.from('photos').delete().eq('id', photoId);
     if (deleteError) {
       console.error('[photos DELETE]', deleteError);
-      return NextResponse.json({ error: 'Erreur lors de la suppression' }, { status: 500 });
+      return apiError('Erreur lors de la suppression', 500);
     }
 
     // Si la photo supprimée était la couverture, promouvoir la suivante.
@@ -99,6 +100,6 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('[photos DELETE]', error);
-    return NextResponse.json({ error: 'Erreur interne' }, { status: 500 });
+    return apiError('Erreur interne', 500);
   }
 }

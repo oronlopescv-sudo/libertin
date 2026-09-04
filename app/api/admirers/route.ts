@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
       `
       )
       .eq('liked_user_id', auth.user.id)
-      .order('createdAt', { ascending: false });
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('[admirers]', error);

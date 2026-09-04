@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase-server';
 
 /**
  * GET /api/groups — liste publique des groupes.
@@ -13,6 +13,8 @@ import { supabase } from '@/lib/supabase';
  */
 export async function GET(req: NextRequest) {
   try {
+    const supabase = await createServerSupabaseClient();
+
     const { data: groups, error } = await supabase
       .from('groups')
       .select('*')

@@ -247,8 +247,8 @@ export function AbonnementPlans() {
           <span>
             Le règlement s&apos;effectue sur la page sécurisée de Stripe. Votre abonnement est
             activé automatiquement après confirmation du paiement. Intitulé bancaire discret
-            « RP-SERVICES », sans mention libertine. Les Pass sont des forfaits à durée
-            déterminée : ils expirent à la date de fin sans renouvellement automatique.
+            « RP-SERVICES », sans mention libertine. Les Pass sont des abonnements mensuels
+            sans engagement : vous êtes prélevé chaque mois et pouvez résilier à tout moment.
           </span>
         </div>
       </div>

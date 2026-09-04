@@ -34,7 +34,7 @@ export function CreateGroupModal({ isOpen, onClose, userAbonnement }: CreateGrou
     e.preventDefault();
     
     if (!isPremium) {
-      setError('Apenas utilisateurs Premium podem criar grupos');
+      setError('Seuls les utilisateurs Premium peuvent créer des groupes');
       return;
     }
 
@@ -67,7 +67,7 @@ export function CreateGroupModal({ isOpen, onClose, userAbonnement }: CreateGrou
       setMaxMembers(100);
       setCategory('general');
 
-      // Fermer modal após sucesso
+      // Fermer la modale après succès
       setTimeout(() => {
         onClose();
         window.location.reload();
@@ -104,7 +104,7 @@ export function CreateGroupModal({ isOpen, onClose, userAbonnement }: CreateGrou
                 <Lock className="w-8 h-8 text-[#D4145A]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-2">Premium Apenas</h3>
+                <h3 className="text-lg font-bold text-white mb-2">Premium uniquement</h3>
                 <p className="text-zinc-400 text-sm mb-4">
                   Seuls les utilisateurs avec un abonnement Premium peuvent créer des groupes.
                 </p>
@@ -113,7 +113,7 @@ export function CreateGroupModal({ isOpen, onClose, userAbonnement }: CreateGrou
                 href="/abonnements"
                 className="w-full py-2 bg-gradient-to-r from-[#D4145A] to-[#E86B7A] rounded-lg font-semibold text-white hover:opacity-90 transition inline-block"
               >
-                Fazer Upgrade
+                Passer à Premium
               </Link>
               <button
                 onClick={onClose}
@@ -133,7 +133,7 @@ export function CreateGroupModal({ isOpen, onClose, userAbonnement }: CreateGrou
 
               {success && (
                 <div className="p-3 rounded-lg bg-green-500/20 border border-green-500/50 text-green-200 text-sm">
-                  ✓ Groupe criado avec succès!
+                  ✓ Groupe créé avec succès !
                 </div>
               )}
 
@@ -156,7 +156,7 @@ export function CreateGroupModal({ isOpen, onClose, userAbonnement }: CreateGrou
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Descreve o grupo..."
+                  placeholder="Décrivez le groupe..."
                   rows={3}
                   className="w-full px-4 py-2 bg-[#2C1B3D] border border-[#3C2B4D] rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-[#D4145A] resize-none"
                 />

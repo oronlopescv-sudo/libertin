@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase-server';
 import { utilisateurPremium } from '@/lib/auth-serveur';
 
 /**
@@ -12,6 +12,8 @@ export async function POST(req: NextRequest) {
   try {
     const auth = await utilisateurPremium('créer des groupes');
     if (!auth.ok) return auth.reponse;
+
+    const supabase = await createServerSupabaseClient();
 
     const body = await req.json().catch(() => ({}));
     const name = typeof body.name === 'string' ? body.name.trim() : '';

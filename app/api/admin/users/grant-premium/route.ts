@@ -12,7 +12,7 @@ import { sendAbonnementConfirmationEmail } from '@/lib/email';
  *
  * Corps : { userId: string, plan: 'PASS_EPICURIEN' | 'PASS_PRIVILEGE' | 'PASS_VIP', months?: number }
  *
- * `plan` est le pacquet mensuel attribué. `months` est la durée de la cortesie
+ * `plan` est le forfait mensuel attribué. `months` est la durée de la courtoisie
  * (en mois) ; par défaut 1. L'activation est immédiate : isPremium() renverra
  * true dès le prochain appel pour cet utilisateur.
  */
@@ -26,10 +26,10 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => ({}));
     const userId = typeof body.userId === 'string' ? body.userId : '';
     if (!userId) {
-      return NextResponse.json({ error: 'userId obrigatório' }, { status: 400 });
+      return NextResponse.json({ error: 'Identifiant utilisateur requis' }, { status: 400 });
     }
 
-    // Pacquet mensuel valide ? Sinon, défaut Pass Privilège.
+    // Forfait mensuel valide ? Sinon, défaut Pass Privilège.
     const planId =
       typeof body.plan === 'string' && VALID_PLANS.has(body.plan)
         ? body.plan
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     if (error) {
       console.error('[grant-premium] update error:', error);
       return NextResponse.json(
-        { error: 'Erro ao ativar premium', detail: error.message },
+        { error: "Erreur lors de l'activation du Premium", detail: error.message },
         { status: 500 }
       );
     }
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
         admin_id: auth.user.id,
         action: 'GRANT_PREMIUM',
         target_id: userId,
-        reason: `${planId} (${months} meses) — atribuído pelo admin ${auth.user.email ?? ''}`,
+        reason: `${planId} (${months} mois) — attribué par l'admin ${auth.user.email ?? ''}`,
         created_at: now.toISOString(),
       });
     } catch (logErr) {

@@ -153,6 +153,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     if (sbResult.success) {
+      // Compte créé mais Supabase exige une confirmation par e-mail : aucune
+      // session n'est encore ouverte. Rediriger vers /decouvrir ferait croire
+      // que l'utilisateur est connecté alors qu'il serait déconnecté au
+      // prochain chargement (aucune session à lire). On l'informe clairement.
+      if (sbResult.needsEmailConfirmation) {
+        throw new Error(
+          "Compte créé ! Vérifiez votre boîte mail et cliquez sur le lien de confirmation, puis connectez-vous."
+        );
+      }
+
       const profile = await getSupabaseUserByEmail(userData.email);
       if (profile) {
         setUser(profile);

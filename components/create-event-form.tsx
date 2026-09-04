@@ -74,8 +74,6 @@ export function CreateEventForm({ userId, onSuccess }: CreateEventFormProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId,
-          email: 'user@example.com', // Get from auth
           planType,
           eventTitle: formData.title,
         }),

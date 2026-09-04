@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase-server';
 import { utilisateurActuel, utilisateurPremium } from '@/lib/auth-serveur';
 
 /**
@@ -16,7 +16,11 @@ import { utilisateurActuel, utilisateurPremium } from '@/lib/auth-serveur';
  */
 
 /** Vérifie que l'utilisateur appartient bien au groupe. */
-async function estMembre(userId: string, groupId: string): Promise<boolean> {
+async function estMembre(
+  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
+  userId: string,
+  groupId: string
+): Promise<boolean> {
   const { data } = await supabase
     .from('group_memberships')
     .select('id')
@@ -47,7 +51,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ grou
     const auth = await utilisateurActuel();
     if (!auth.ok) return auth.reponse;
 
-    if (!(await estMembre(auth.user.id, groupId))) {
+    const supabase = await createServerSupabaseClient();
+
+    if (!(await estMembre(supabase, auth.user.id, groupId))) {
       return NextResponse.json(
         { error: 'Vous ne faites pas partie de ce groupe' },
         { status: 403 }
@@ -91,7 +97,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gro
     const auth = await utilisateurPremium('envoyer des messages dans les groupes');
     if (!auth.ok) return auth.reponse;
 
-    if (!(await estMembre(auth.user.id, groupId))) {
+    const supabase = await createServerSupabaseClient();
+
+    if (!(await estMembre(supabase, auth.user.id, groupId))) {
       return NextResponse.json(
         { error: 'Vous ne faites pas partie de ce groupe' },
         { status: 403 }
