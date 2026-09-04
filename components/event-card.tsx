@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
 import { Calendar, MapPin, Users, Heart, Eye } from 'lucide-react';
 import { Event } from '@/lib/types';
 
@@ -13,10 +12,10 @@ interface EventCardProps {
 
 export function EventCard({ event, onJoin, isJoined }: EventCardProps) {
   const eventTypes: Record<string, string> = {
-    festa: '🎉 Festa Privada',
+    festa: '🎉 Fête Privée',
     gang_bang: '🔥 Gang Bang',
-    troca: '💑 Troca de Couples',
-    other: '⭐ Outro Événement',
+    troca: '💑 Échange de Couples',
+    other: '⭐ Autre Événement',
   };
 
   const planIcons: Record<string, string> = {
@@ -38,7 +37,7 @@ export function EventCard({ event, onJoin, isJoined }: EventCardProps) {
             <div className="flex items-center gap-2 mb-2">
               <span className="text-lg">{eventTypes[event.type as keyof typeof eventTypes] || event.type}</span>
               <span className="text-xs px-2 py-1 rounded-full bg-[#D4145A]/20 text-[#E86B7A]">
-                {planIcons[event.plan_type as keyof typeof planIcons]} {event.plan_type === 'basic' ? 'Básico' : event.plan_type === 'featured' ? 'Featured' : 'VIP Gold'}
+                {planIcons[event.plan_type as keyof typeof planIcons]} {event.plan_type === 'basic' ? 'Basique' : event.plan_type === 'featured' ? 'Featured' : 'VIP Gold'}
               </span>
             </div>
             <h3 className="font-bold text-white text-lg leading-tight">{event.title}</h3>
@@ -79,11 +78,11 @@ export function EventCard({ event, onJoin, isJoined }: EventCardProps) {
         <div className="pt-2 flex items-center justify-between text-xs text-zinc-400 border-t border-[#2C1B3D]">
           <span className="flex items-center gap-1">
             <Eye className="w-3 h-3" />
-            {event.confirmed_count} confirmado{event.confirmed_count !== 1 ? 's' : ''}
+            {event.confirmed_count} confirmé{event.confirmed_count !== 1 ? 's' : ''}
           </span>
           {daysUntilExpiry > 0 && (
             <span className={daysUntilExpiry < 7 ? 'text-amber-400' : 'text-zinc-400'}>
-              Expira em {daysUntilExpiry} jours
+              Expire dans {daysUntilExpiry} jours
             </span>
           )}
         </div>
@@ -91,13 +90,6 @@ export function EventCard({ event, onJoin, isJoined }: EventCardProps) {
 
       {/* Footer */}
       <div className="p-4 bg-[#160B21] border-t border-[#2C1B3D] flex gap-2">
-        <Link
-          href={`/evenements/${event.id}`}
-          className="flex-1 py-2 px-3 text-center text-sm font-bold text-[#E86B7A] hover:text-white transition-colors"
-        >
-          Ver Detalhes
-        </Link>
-
         <button
           onClick={() => onJoin?.(event.id)}
           disabled={isJoined}
@@ -108,7 +100,7 @@ export function EventCard({ event, onJoin, isJoined }: EventCardProps) {
           }`}
         >
           <Heart className={`w-4 h-4 ${isJoined ? 'fill-emerald-300' : ''}`} />
-          {isJoined ? 'Interessado' : 'Interesse'}
+          {isJoined ? 'Intéressé' : 'Intéressé'}
         </button>
       </div>
     </div>

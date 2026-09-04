@@ -42,13 +42,13 @@ export async function GET(req: NextRequest) {
       .eq('is_active', true)
       .order('created_at', { ascending: false });
 
-    // Aplicar filtros
+    // Appliquer les filtres
     if (location) {
       query = query.eq('location', location);
     }
 
     if (ageMin && ageMax) {
-      // Calcular ans de nascimento baseado em idade
+      // Calculer l'année de naissance à partir de l'âge
       const now = new Date();
       const birthYearMax = now.getFullYear() - ageMin;
       const birthYearMin = now.getFullYear() - ageMax;
@@ -88,7 +88,7 @@ export async function GET(req: NextRequest) {
       (covers ?? []).forEach((c: any) => coverMap.set(c.user_id, c.url));
     }
 
-    // Calcular idade a partir de date_of_birth
+    // Calculer l'âge à partir de date_of_birth
     const profilesWithAge = (profiles || []).map((profile: any) => {
       const birthDate = new Date(profile.date_of_birth);
       const today = new Date();
@@ -123,6 +123,6 @@ export async function GET(req: NextRequest) {
     );
   } catch (error) {
     console.error('Discovery error:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return NextResponse.json({ error: 'Erreur interne' }, { status: 500 });
   }
 }

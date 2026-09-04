@@ -39,8 +39,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  return response;
+  return addSecurityHeaders(response);
 }
+
+import { addSecurityHeaders } from '@/middleware/securityHeaders';
 
 export const config = {
   matcher: ['/((?!api|_next|static|favicon).*)'],

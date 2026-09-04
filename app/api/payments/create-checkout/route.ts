@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe, SUBSCRIPTION_PLANS } from '@/lib/stripe';
-import { supabase } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase-server';
 import { utilisateurActuel } from '@/lib/auth-serveur';
 
 /**
@@ -14,6 +14,8 @@ export async function POST(req: NextRequest) {
   try {
     const auth = await utilisateurActuel();
     if (!auth.ok) return auth.reponse;
+
+    const supabase = await createServerSupabaseClient();
 
     const body = await req.json().catch(() => ({}));
     const tier = typeof body.tier === 'string' ? body.tier : '';

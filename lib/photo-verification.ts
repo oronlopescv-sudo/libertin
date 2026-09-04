@@ -132,8 +132,11 @@ export async function saveVerificationPhoto(
     const isNSFW = await checkNSFWContent(photoUrl);
 
     if (isNSFW) {
-      // Delete the uploaded photo
-      await supabase.storage.from('verification-photos').remove([photoPath]);
+      // Delete the uploaded photo (uniquement si elle a été stockée : le mode
+      // « URL directe » n'a rien dans Storage, photoPath est alors vide).
+      if (photoPath) {
+        await supabase.storage.from('verification-photos').remove([photoPath]);
+      }
       return {
         success: false,
         error: 'Photo contient du contenu non approprié',

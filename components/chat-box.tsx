@@ -51,7 +51,7 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
   const [erreur, setErreur] = useState('');
   const [accesRefuse, setAccesRefuse] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  // Upload de mídia (Premium) : preview local + URL pública pronta para enviar.
+  // Upload de média (Premium) : aperçu local + URL publique prête à envoyer.
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [pendingMediaPreview, setPendingMediaPreview] = useState<string | null>(null);
@@ -159,7 +159,7 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
     }
   };
 
-  // Retire la mídia en attente (preview local + URL uploadée) et libère
+  // Retire le média en attente (aperçu local + URL uploadée) et libère
   // l'object URL pour éviter une fuite de mémoire.
   const clearPendingMedia = useCallback(() => {
     setPendingMediaPreview((prev) => {
@@ -577,7 +577,7 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
                 className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white text-xs font-bold shadow-lg flex items-center justify-center gap-2"
               >
                 <Crown className="w-4 h-4" />
-                <span>Débloquer les tchats (dès 4,58€/mois)</span>
+                <span>Débloquer les tchats (dès 9€/mois)</span>
               </Link>
               <button
                 onClick={() => setUpgradeModalOpen(false)}

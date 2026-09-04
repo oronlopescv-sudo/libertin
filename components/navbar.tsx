@@ -105,7 +105,7 @@ export function Navbar() {
                     </div>
                     <div className="text-[10px] text-zinc-400 font-medium">
                       {isPremium ? (
-                        <span className="text-[#E86B7A] font-bold">Premium Active</span>
+                        <span className="text-[#E86B7A] font-bold">Premium Actif</span>
                       ) : (
                         <span className="text-zinc-400">Compte Gratuit</span>
                       )}

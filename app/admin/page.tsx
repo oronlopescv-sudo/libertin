@@ -45,14 +45,14 @@ export default function AdminDashboard() {
   useEffect(() => {
     const loadDashboard = async () => {
       try {
-        // Carregar stats
+        // Charger les stats
         const statsRes = await fetchResilient('/api/admin/dashboard');
         if (statsRes.ok) {
           const statsData = await statsRes.json();
           setStats(statsData);
         }
 
-        // Carregar users
+        // Charger les utilisateurs
         const usersRes = await fetchResilient(`/api/admin/users?page=${page}&search=${search}`);
         if (usersRes.ok) {
           const usersData = await usersRes.json();
@@ -79,7 +79,7 @@ export default function AdminDashboard() {
     });
 
     if (res.ok) {
-      // Recarregar users
+      // Recharger les utilisateurs
       const usersRes = await fetchResilient(`/api/admin/users?page=${page}`);
       const usersData = await usersRes.json();
       setUsers(usersData.users);
@@ -94,18 +94,19 @@ export default function AdminDashboard() {
     });
 
     if (res.ok) {
-      // Recarregar users
+      // Recharger les utilisateurs
       const usersRes = await fetchResilient(`/api/admin/users?page=${page}`);
       const usersData = await usersRes.json();
       setUsers(usersData.users);
     }
   };
 
-  // Ativar (ou renovar) um pacquet mensual Premium para um usuário, sem pasar
-  // par Stripe. O admin escolhe o pacquete e a duração da cortesia em meses.
+  // Activer (ou renouveler) un forfait mensuel Premium pour un utilisateur,
+  // sans passer par Stripe. L'admin choisit le forfait et la durée de la
+  // courtoisie en mois.
   const grantPremium = async (userId: string, currentTier: string) => {
     const pacote = prompt(
-      'Ativar Premium — qual pacote?\n1 = Pass Épicurien (9€/mês)\n2 = Pass Privilège (15€/mês)\n3 = Pass VIP Elite (25€/mês)\n(padral: 2)',
+      'Activer Premium — quel forfait ?\n1 = Pass Épicurien (9€/mois)\n2 = Pass Privilège (15€/mois)\n3 = Pass VIP Elite (25€/mois)\n(défaut : 2)',
       '2'
     );
     if (pacote === null) return;
@@ -116,7 +117,7 @@ export default function AdminDashboard() {
       'PASS_PRIVILEGE';
 
     const mesesInput = prompt(
-      'Quantos meses de cortesia? (padrão: 1)',
+      'Combien de mois de courtoisie ? (défaut : 1)',
       '1'
     );
     if (mesesInput === null) return;
@@ -124,8 +125,8 @@ export default function AdminDashboard() {
     const meses = parseInt(mesesInput.trim(), 10);
     const mesesFinal = Number.isFinite(meses) && meses >= 1 ? meses : 1;
 
-    const verbo = currentTier && currentTier !== 'FREE' ? 'Renovar' : 'Ativar';
-    if (!confirm(`${verbo} ${plan} por ${mesesFinal} mês(es) para este usuário?`)) return;
+    const verbo = currentTier && currentTier !== 'FREE' ? 'Renouveler' : 'Activer';
+    if (!confirm(`${verbo} ${plan} pour ${mesesFinal} mois pour cet utilisateur ?`)) return;
 
     const res = await fetchResilient('/api/admin/users/grant-premium', {
       method: 'POST',
@@ -134,8 +135,8 @@ export default function AdminDashboard() {
     });
 
     if (res.ok) {
-      alert(`✅ ${plan} ativado por ${mesesFinal} mês(es) com sucesso!`);
-      // Recarregar users
+      alert(`✅ ${plan} activé pour ${mesesFinal} mois avec succès !`);
+      // Recharger les utilisateurs
       const usersRes = await fetchResilient(`/api/admin/users?page=${page}`);
       if (usersRes.ok) {
         const usersData = await usersRes.json();
@@ -143,7 +144,7 @@ export default function AdminDashboard() {
       }
     } else {
       const err = await res.json().catch(() => ({}));
-      alert(`❌ Erro: ${err.error || 'falha ao ativar premium'}`);
+      alert(`❌ Erreur : ${err.error || "Échec de l'activation du Premium"}`);
     }
   };
 
@@ -203,31 +204,31 @@ export default function AdminDashboard() {
             <div className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-zinc-400 text-sm">Total de Utilisateurs</p>
+                  <p className="text-zinc-400 text-sm">Total d'utilisateurs</p>
                   <p className="text-3xl font-bold text-white">{stats.totalUsers}</p>
                 </div>
                 <Users className="w-12 h-12 text-[#D4145A] opacity-50" />
               </div>
-              <p className="text-green-400 text-sm mt-2">+{stats.newUsersThisMonth} este mois</p>
+              <p className="text-green-400 text-sm mt-2">+{stats.newUsersThisMonth} ce mois</p>
             </div>
 
             {/* Online Users */}
             <div className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-zinc-400 text-sm">Online Agora</p>
+                  <p className="text-zinc-400 text-sm">En ligne maintenant</p>
                   <p className="text-3xl font-bold text-white">{stats.onlineUsers}</p>
                 </div>
                 <Zap className="w-12 h-12 text-green-400 opacity-50" />
               </div>
-              <p className="text-green-400 text-sm mt-2">Últimos 5 minutes</p>
+              <p className="text-green-400 text-sm mt-2">Dernières 5 minutes</p>
             </div>
 
             {/* Total Groups */}
             <div className="bg-[#1C102B] rounded-lg border border-[#2C1B3D] p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-zinc-400 text-sm">Groupes Ativos</p>
+                  <p className="text-zinc-400 text-sm">Groupes actifs</p>
                   <p className="text-3xl font-bold text-white">{stats.totalGroups}</p>
                 </div>
                 <TrendingUp className="w-12 h-12 text-blue-400 opacity-50" />
@@ -274,7 +275,7 @@ export default function AdminDashboard() {
           {/* Search */}
           <input
             type="text"
-            placeholder="Rechercher por username ou email..."
+            placeholder="Rechercher par username ou email..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             className="w-full mb-4 px-4 py-2 bg-[#2C1B3D] border border-[#3C2B4D] rounded-lg text-white focus:outline-none focus:border-[#D4145A]"
@@ -288,7 +289,7 @@ export default function AdminDashboard() {
                   <th className="text-left py-3 px-4 text-zinc-400">Username</th>
                   <th className="text-left py-3 px-4 text-zinc-400">Email</th>
                   <th className="text-left py-3 px-4 text-zinc-400">Abonnement</th>
-                  <th className="text-left py-3 px-4 text-zinc-400">Status</th>
+                  <th className="text-left py-3 px-4 text-zinc-400">Statut</th>
                   <th className="text-left py-3 px-4 text-zinc-400">Actions</th>
                 </tr>
               </thead>
@@ -310,11 +311,11 @@ export default function AdminDashboard() {
                     <td className="py-3 px-4">
                       {u.isBanned ? (
                         <span className="px-2 py-1 rounded text-xs font-semibold bg-red-600 text-red-100">
-                          BANIDO
+                          BANNI
                         </span>
                       ) : (
                         <span className="px-2 py-1 rounded text-xs font-semibold bg-green-600 text-green-100">
-                          ATIVO
+                          ACTIF
                         </span>
                       )}
                     </td>
@@ -325,7 +326,7 @@ export default function AdminDashboard() {
                             onClick={() => unbanUser(u.id)}
                             className="text-green-400 hover:text-green-300 text-xs font-semibold"
                           >
-                            Desbannir
+                            Débannir
                           </button>
                         ) : (
                           <>
@@ -334,7 +335,7 @@ export default function AdminDashboard() {
                               className="text-yellow-400 hover:text-yellow-300 text-xs font-semibold flex items-center gap-1"
                             >
                               <Crown className="w-4 h-4" />
-                              {u.subscriptionTier && u.subscriptionTier !== 'FREE' ? 'Renovar Premium' : 'Ativar Premium'}
+                              {u.subscriptionTier && u.subscriptionTier !== 'FREE' ? 'Renouveler Premium' : 'Activer Premium'}
                             </button>
                             <button
                               onClick={() => banUser(u.id, 'Violation des conditions')}
@@ -352,7 +353,7 @@ export default function AdminDashboard() {
             </table>
           </div>
 
-          {/* Paginaction */}
+          {/* Pagination */}
           <div className="flex justify-center gap-2 mt-6">
             <button
               onClick={() => setPage(Math.max(1, page - 1))}

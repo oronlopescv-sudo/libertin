@@ -126,7 +126,7 @@ export function ResetPasswordForm() {
               </div>
             )}
 
-            {/* Nova Mot de passe */}
+            {/* Nouveau mot de passe */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-[#F5F0F8]">Nouveau mot de passe</label>
               <div className="relative">

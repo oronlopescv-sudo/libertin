@@ -3,9 +3,9 @@ import { createServerSupabaseClient } from '@/lib/supabase-server';
 import { utilisateurActuel } from '@/lib/auth-serveur';
 
 /**
- * GET /api/profiles/[id] — perfil público de um membro.
+ * GET /api/profiles/[id] — profil public d'un membre.
  *
- * Aberto a tout membre connecté (Premium ou non). Ne renvoie que les champs
+ * Ouvert à tout membre connecté (Premium ou non). Ne renvoie que les champs
  * publics (jamais email, phone, stripe_customer_id, etc.). Inclut les photos
  * de l'album et un indicateur "likedByMe" pour le bouton Like.
  */

@@ -287,7 +287,7 @@ export default function RegisterPage() {
                 type="submit"
                 className="w-full py-3 rounded-xl bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white font-bold text-xs hover:opacity-95 shadow-lg shadow-[#D4145A]/25 flex items-center justify-center gap-2 mt-4"
               >
-                <span>Étape Suivante (Profil & Interêts)</span>
+                <span>Étape Suivante (Profil & Intérêts)</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
@@ -356,7 +356,7 @@ export default function RegisterPage() {
                   <span>Photo de Vérification (Recommandée)</span>
                 </div>
                 <p className="text-[11px] text-zinc-400">
-                  Transmettez un selfie avec mot manuscrit pour obtenir le badge Profil Vérifié imméjourtement après inscription.
+                  Transmettez un selfie avec mot manuscrit pour obtenir le badge Profil Vérifié immédiatement après inscription.
                 </p>
 
                 <div className="space-y-2 pt-1">
