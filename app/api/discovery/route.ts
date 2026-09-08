@@ -2,14 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { utilisateurActuel } from '@/lib/auth-serveur';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
 
-interface FilterParams {
-  location?: string;
-  ageMin?: number;
-  ageMax?: number;
-  gender?: string;
-  sexualOrientation?: string;
-  page?: number;
-}
 
 export async function GET(req: NextRequest) {
   try {

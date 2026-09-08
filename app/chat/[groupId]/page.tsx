@@ -111,7 +111,9 @@ export default function ChatPage() {
         <ChatBox
           groupId={groupId}
           groupName={groupe?.name ?? `Groupe ${groupId}`}
-          memberCount={groupe?.memberCount}
+          {...(groupe?.memberCount !== undefined
+            ? { memberCount: groupe.memberCount }
+            : {})}
         />
       </div>
     </div>

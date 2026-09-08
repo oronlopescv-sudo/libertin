@@ -10,14 +10,10 @@ import { GenderType, SexualOrientationType } from '@/lib/types';
 import { CITIES, COUNTRIES } from '@/lib/geo';
 import {
   Flame,
-  ShieldCheck,
-  Lock,
   ArrowRight,
   ArrowLeft,
   CheckCircle2,
   Camera,
-  Heart,
-  MapPin,
   Upload,
 } from 'lucide-react';
 

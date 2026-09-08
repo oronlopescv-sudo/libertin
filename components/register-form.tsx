@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, User, Calendar, MapPin, Heart } from 'lucide-react';
+import { Mail, Lock, User, Calendar, MapPin } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { validateDateOfBirth } from '@/lib/validation';
 

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { User, AbonnementTier } from '@/lib/types';
+import { User } from '@/lib/types';
 import { isPremium as isPremiumFn, isAdmin as isAdminFn } from '@/lib/premium';
 import {
   supabase,
@@ -12,7 +12,6 @@ import {
   getSupabaseUserByEmail,
   creerProfilManquant,
   getSupabaseUsersList,
-  updateSupabaseProfile,
 } from '@/lib/supabase';
 
 interface AuthContextType {

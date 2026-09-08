@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
 }
 
 // GET /api/likes — mes likes (ouvert à tout membre connecté)
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const auth = await utilisateurActuel();
     if (!auth.ok) return auth.reponse;

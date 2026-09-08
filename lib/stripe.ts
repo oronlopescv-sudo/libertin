@@ -199,7 +199,7 @@ export async function getOrCreateStripeCustomer(
   // Create new customer
   const customer = await stripe.customers.create({
     email,
-    name,
+    ...(name ? { name } : {}),
     metadata: {
       userId,
     },

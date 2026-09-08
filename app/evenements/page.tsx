@@ -9,7 +9,7 @@ import { getEvents } from '@/lib/events';
 import { fetchResilient } from '@/lib/fetch-resilient';
 import type { Event } from '@/lib/types';
 import Link from 'next/link';
-import { Lock, Plus, X, Calendar, MapPin, Filter } from 'lucide-react';
+import { Lock, Plus, X, Calendar, Filter } from 'lucide-react';
 
 export default function ÉvénementsPage() {
   const { user, isPremium, isLoading } = useAuth();

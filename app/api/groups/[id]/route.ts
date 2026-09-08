@@ -9,7 +9,7 @@ import { utilisateurActuel } from '@/lib/auth-serveur';
  * Pour une conversation privée (category='private_dm'), affiche le nom de
  * l'autre membre plutôt que le nom générique du groupe.
  */
-export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
 

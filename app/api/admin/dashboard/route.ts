@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { utilisateurAdmin } from '@/lib/auth-serveur';
 import { createServiceRoleClient } from '@/lib/supabase';
 
@@ -10,7 +10,7 @@ import { createServiceRoleClient } from '@/lib/supabase';
  * au lieu de tomber en erreur 500. Lit `profiles` (snake_case) via la clé de
  * service, après vérification que l'appelant est administrateur.
  */
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const auth = await utilisateurAdmin();
     if (!auth.ok) return auth.reponse;

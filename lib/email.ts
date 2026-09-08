@@ -72,7 +72,7 @@ function stripHtml(html: string): string {
  */
 export async function sendWelcomeEmail(
   email: string,
-  username: string,
+  _username: string,
   verificationToken: string
 ): Promise<boolean> {
   const verifyUrl = `${APP_URL}/verify-email?token=${verificationToken}`;
@@ -97,7 +97,7 @@ export async function sendWelcomeEmail(
           </div>
           
           <div class="content">
-            <p>Bonjour ${username},</p>
+            <p>Bonjour ${_username},</p>
             <p>Merci d'avoir créé votre compte sur xlibertine!</p>
             <p>Pour accéder complètement à votre profil, veuillez vérifier votre email en cliquant sur le bouton ci-dessous:</p>
             <a href="${verifyUrl}" class="button">Vérifier mon email</a>
@@ -186,7 +186,7 @@ export async function sendPasswordResetEmail(
  */
 export async function sendAbonnementConfirmationEmail(
   email: string,
-  username: string,
+  _username: string,
   planId: string,
   subscriptionEnd: Date
 ): Promise<boolean> {
@@ -227,7 +227,7 @@ export async function sendAbonnementConfirmationEmail(
             <strong>✓ Abonnement confirmé!</strong> Votre paiement a été traité avec succès.
           </div>
           
-          <p>Bonjour ${username},</p>
+          <p>Bonjour ${_username},</p>
           
           <div class="plan-details">
             <h3>Détails de votre subscription:</h3>
@@ -321,7 +321,7 @@ export async function sendPhotoApprovedEmail(
  */
 export async function sendPhotoRejectedEmail(
   email: string,
-  username: string,
+  _username: string,
   reason: string
 ): Promise<boolean> {
   const html = `
@@ -347,7 +347,7 @@ export async function sendPhotoRejectedEmail(
             Votre photo n'a pas pu être approuvée pour la raison suivante:
           </div>
           
-          <p>Bonjour ${username},</p>
+          <p>Bonjour ${_username},</p>
           <p><strong>Raison:</strong> ${reason}</p>
           <p>Veuillez soumettre une nouvelle photo respectant les critères suivants:</p>
           <ul>
@@ -381,7 +381,7 @@ export async function sendPhotoRejectedEmail(
  */
 export async function sendGroupInvitationEmail(
   email: string,
-  username: string,
+  _username: string,
   groupName: string,
   inviterName: string
 ): Promise<boolean> {

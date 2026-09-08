@@ -68,8 +68,14 @@ export async function POST(req: NextRequest) {
       : null;
 
     if (!customerId) {
+      if (!auth.user.email) {
+        return NextResponse.json(
+          { error: 'Email requis pour le paiement' },
+          { status: 400 }
+        );
+      }
       const customer = await stripe.customers.create({
-        email: auth.user.email ?? undefined,
+        email: auth.user.email,
         metadata: { userId: auth.user.id },
       });
       customerId = customer.id;

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { stripe, verifyWebhookSignature } from '@/lib/stripe';
+import { verifyWebhookSignature } from '@/lib/stripe';
 import { sendAbonnementConfirmationEmail } from '@/lib/email';
 
 // Client privilégié (clé de service) : le webhook arrive depuis Stripe, sans

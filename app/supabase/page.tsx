@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
+
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { supabase, SUPABASE_SQL_SCHEMA, getSupabaseUsersList, getSupabaseGroups, getSupabaseMessages } from '@/lib/supabase';
@@ -19,8 +19,6 @@ import {
   Code,
   ExternalLink,
   Layers,
-  Lock,
-  Play,
   Eye,
   EyeOff,
   CheckCircle2,
@@ -66,7 +64,7 @@ export default function SupabaseDataPage() {
   const [groupsCount, setGroupsCount] = useState<number>(0);
   const [messagesCount, setMessagesCount] = useState<number>(0);
   const [liveUsers, setLiveUsers] = useState<User[]>([]);
-  const [liveGroups, setLiveGroups] = useState<Group[]>([]);
+  const [, setLiveGroups] = useState<Group[]>([]);
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';

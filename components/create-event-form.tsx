@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { fetchResilient } from '@/lib/fetch-resilient';
 import { useRouter } from 'next/navigation';
-import { Loader, Heart, Zap, Crown } from 'lucide-react';
+import { Loader, Heart } from 'lucide-react';
 import { createEvent, EVENT_PLANS } from '@/lib/events';
 import type { EventType, EventPlanType } from '@/lib/types';
 
@@ -12,7 +12,7 @@ interface CreateEventFormProps {
   onSuccess?: () => void;
 }
 
-export function CreateEventForm({ userId, onSuccess }: CreateEventFormProps) {
+export function CreateEventForm({ userId }: CreateEventFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

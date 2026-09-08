@@ -13,7 +13,7 @@ import { apiError, apiSuccess } from '@/lib/api-response';
  * suppression.
  */
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const auth = await utilisateurActuel();
     if (!auth.ok) return auth.reponse;
