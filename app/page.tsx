@@ -13,7 +13,6 @@ import {
   Flame,
   ShieldCheck,
   Lock,
-  Heart,
   Users,
   Sparkles,
   ArrowRight,

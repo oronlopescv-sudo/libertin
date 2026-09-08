@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
 import { utilisateurPremium } from '@/lib/auth-serveur';
 
@@ -6,7 +6,7 @@ import { utilisateurPremium } from '@/lib/auth-serveur';
  * GET /api/admirers — voir qui vous a liké (réservé aux membres Premium).
  * Table `likes` : user_id / liked_user_id (uuid, référencent profiles).
  */
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const auth = await utilisateurPremium('voir leurs admirateurs');
     if (!auth.ok) return auth.reponse;

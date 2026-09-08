@@ -9,7 +9,7 @@ import { utilisateurActuel } from '@/lib/auth-serveur';
  * publics (jamais email, phone, stripe_customer_id, etc.). Inclut les photos
  * de l'album et un indicateur "likedByMe" pour le bouton Like.
  */
-export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
 

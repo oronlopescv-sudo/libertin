@@ -8,7 +8,7 @@ import { utilisateurPremium } from '@/lib/auth-serveur';
  * Réservé aux membres Premium. L'identité et l'abonnement viennent de la
  * session, jamais du corps de la requête.
  */
-export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: groupId } = await params;
 

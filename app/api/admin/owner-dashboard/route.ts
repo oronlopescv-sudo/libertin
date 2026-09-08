@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { utilisateurAdmin } from '@/lib/auth-serveur';
 import { createServiceRoleClient } from '@/lib/supabase';
 
@@ -25,7 +25,7 @@ const PRIX_PAR_OFFRE: Record<string, number> = {
   PASS_VIP: 25,
 };
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const auth = await utilisateurAdmin();
     if (!auth.ok) return auth.reponse;

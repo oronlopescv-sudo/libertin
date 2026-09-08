@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { createBrowserClient } from '@supabase/ssr';
-import { User, GenderType, SexualOrientationType, AbonnementTier, Group, Message } from './types';
+import { User, GenderType, SexualOrientationType, Group, Message } from './types';
 import { validateDateOfBirth } from './validation';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';

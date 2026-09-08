@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Group } from '@/lib/types';
-import { Users, Lock, MessageSquare, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Users, Lock, MessageSquare, ShieldCheck } from 'lucide-react';
 
 interface GroupCardProps {
   group: Group;
@@ -11,7 +11,7 @@ interface GroupCardProps {
   isMember?: boolean;
 }
 
-export function GroupCard({ group, onJoin, isMember }: GroupCardProps) {
+export function GroupCard({ group }: GroupCardProps) {
   const categoryLabels: Record<string, string> = {
     clubs: 'Clubs & Soirées',
     soirees: 'Soirées Privées',

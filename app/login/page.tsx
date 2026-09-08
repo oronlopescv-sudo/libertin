@@ -7,6 +7,8 @@ import { Navbar } from '@/components/navbar';
 import { LoginForm } from '@/components/login-form';
 
 import { useAuth } from '@/context/auth-context';
+
+export default function LoginPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
 

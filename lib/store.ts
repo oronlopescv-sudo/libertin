@@ -1,4 +1,3 @@
-import { User, Group, Message, VerificationPhoto, AbonnementTier } from './types';
 import { calculateAbonnementEndDate } from './stripe';
 
 // NOTE: legacy localStorage data store.
@@ -39,7 +38,7 @@ export const Store = {
     setItem(STORAGE_KEYS.BLOCKED_IDS, ids);
   },
 
-  blockUser(currentUserId: string, targetUserId: string): string[] {
+  blockUser(_userId: string, targetUserId: string): string[] {
     const blocked = this.getBlockedIds();
     if (!blocked.includes(targetUserId)) {
       const updated = [...blocked, targetUserId];
@@ -49,13 +48,13 @@ export const Store = {
     return blocked;
   },
 
-  unblockUser(currentUserId: string, targetUserId: string): string[] {
+  unblockUser(_userId: string, targetUserId: string): string[] {
     const blocked = this.getBlockedIds().filter((id) => id !== targetUserId);
     this.setBlockedIds(blocked);
     return blocked;
   },
 
-  isBlocked(currentUserId: string, targetUserId: string): boolean {
+  isBlocked(_userId: string, targetUserId: string): boolean {
     return this.getBlockedIds().includes(targetUserId);
   },
 

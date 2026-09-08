@@ -14,7 +14,6 @@ import {
   LogOut,
   Menu,
   X,
-  Database,
 } from 'lucide-react';
 import { NotificationBell } from '@/components/notification-bell';
 

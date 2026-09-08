@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
 
 /**
@@ -11,7 +11,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server';
  * schéma snake_case : ils échouaient silencieusement et doublonnaient les
  * nouvelles routes. Supprimés.
  */
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const supabase = await createServerSupabaseClient();
 

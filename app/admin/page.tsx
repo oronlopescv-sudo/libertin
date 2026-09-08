@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { fetchResilient } from '@/lib/fetch-resilient';
 import { Navbar } from '@/components/navbar';
 import { VerificationQueuePanel } from '@/components/admin-verification-queue';
-import { Users, Zap, MessageSquare, Heart, TrendingUp, Ban, Lock, Crown, ShieldCheck } from 'lucide-react';
+import { Users, Zap, Heart, TrendingUp, Ban, Lock, Crown, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/auth-context';
 
@@ -34,7 +34,7 @@ export default function AdminDashboard() {
   // L'ancienne version lisait `localStorage.auth_token` (base64 + Buffer) :
   // jeton mort, jamais écrit, et Buffer indéfini dans le navigateur — un admin
   // connecté voyait donc « Accès refusé ».
-  const { user, isAdmin, isLoading: authLoading } = useAuth();
+  const { isAdmin, isLoading: authLoading } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);

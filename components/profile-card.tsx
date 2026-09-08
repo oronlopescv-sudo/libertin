@@ -16,7 +16,6 @@ import {
   Flame,
   X,
   UserX,
-  ShieldAlert,
   Loader,
 } from 'lucide-react';
 import { fetchResilient } from '@/lib/fetch-resilient';

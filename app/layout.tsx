@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/context/auth-context';
-import { ErrorBoundary } from '@/components/error-boundary';
+import ErrorBoundary from '@/components/error-boundary';
 
 export const metadata: Metadata = {
   title: 'xlibertine - Rencontres Libertines, Couples & Célibataires',

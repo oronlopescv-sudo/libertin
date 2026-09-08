@@ -44,7 +44,7 @@ function mapMessage(row: any) {
 }
 
 // GET — lire les messages du groupe
-export async function GET(req: NextRequest, { params }: { params: Promise<{ groupId: string }> }) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ groupId: string }> }) {
   try {
     const { groupId } = await params;
 
