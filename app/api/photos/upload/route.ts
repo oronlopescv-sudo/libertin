@@ -83,7 +83,16 @@ export async function POST(req: NextRequest) {
 
     if (insertError) {
       console.error('Photo insert error:', insertError);
-      // Le fichier est stocké même si l'insert échoue ; on renvoie l'URL.
+      // L'insert a échoué : on supprime le fichier du Storage pour ne pas
+      // laisser une photo « orpheline » invisible sur le profil.
+      await supabaseAdmin.storage.from(bucket).remove([uploadData.path]);
+      return NextResponse.json(
+        {
+          error: "Échec de l'enregistrement de la photo",
+          message: insertError.message,
+        },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ success: true, url });
