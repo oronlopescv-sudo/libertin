@@ -15,7 +15,10 @@ import { createServerSupabaseClient } from '@/lib/supabase-server';
 export async function POST(req: NextRequest) {
   if (!stripe) {
     return NextResponse.json(
-      { error: 'Stripe non configuré sur le serveur.' },
+      {
+        error: 'Configuration manquante',
+        message: 'Le portail de facturation est temporairement indisponible. Veuillez contacter le support.'
+      },
       { status: 501 }
     );
   }

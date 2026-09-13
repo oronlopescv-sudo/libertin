@@ -31,6 +31,7 @@ export function AbonnementPlans() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [portalError, setPortalError] = useState<string | null>(null);
   const [statutFacturation, setStatutFacturation] = useState<StatutFacturation | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
 
@@ -104,16 +105,17 @@ export function AbonnementPlans() {
       const data = await res.json();
 
       if (!res.ok || !data.url) {
-        alert(data.message || data.error || "Le paiement n'est pas disponible pour le moment.");
+        setErrorMessage(data.message || data.error || "Le paiement n'est pas disponible pour le moment.");
         return;
       }
+
 
       // Redirige vers la page de paiement Stripe. L'abonnement n'est activé
       // qu'après confirmation réelle du paiement, côté serveur (webhook) —
       // jamais directement depuis le navigateur.
       window.location.href = data.url;
     } catch {
-      alert("Erreur réseau. Vérifiez votre connexion et réessayez.");
+      setErrorMessage("Erreur réseau. Vérifiez votre connexion et réessayez.");
     } finally {
       setIsProcessing(false);
       setConfirmModalOpen(false);
@@ -122,6 +124,7 @@ export function AbonnementPlans() {
 
   const handleOuvrirPortail = async () => {
     setPortalLoading(true);
+    setPortalError(null);
     try {
       const res = await fetchResilient('/api/payments/portal', {
         method: 'POST',
@@ -132,10 +135,10 @@ export function AbonnementPlans() {
       if (res.ok && data.url) {
         window.location.href = data.url;
       } else {
-        alert(data.error || data.message || "Impossible d'ouvrir le portail de facturation.");
+        setPortalError(data.message || data.error || "Impossible d'ouvrir le portail de facturation.");
       }
     } catch {
-      alert("Erreur réseau. Vérifiez votre connexion et réessayez.");
+      setPortalError("Erreur réseau. Vérifiez votre connexion et réessayez.");
     } finally {
       setPortalLoading(false);
     }
@@ -200,6 +203,22 @@ export function AbonnementPlans() {
           </div>
           <button
             onClick={() => setErrorMessage(null)}
+            className="p-1 hover:text-white"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Portal Error Notification */}
+      {portalError && (
+        <div className="p-4 rounded-xl bg-red-950/60 border border-red-700/50 text-red-200 text-sm flex items-center justify-between animate-fade-in">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 text-red-400" />
+            <span>{portalError}</span>
+          </div>
+          <button
+            onClick={() => setPortalError(null)}
             className="p-1 hover:text-white"
           >
             <X className="w-4 h-4" />
