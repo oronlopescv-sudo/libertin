@@ -9,15 +9,20 @@ import { getEvents } from '@/lib/events';
 import { fetchResilient } from '@/lib/fetch-resilient';
 import type { Event } from '@/lib/types';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Lock, Plus, X, Calendar, Filter } from 'lucide-react';
 
 export default function ÉvénementsPage() {
   const { user, isPremium, isLoading } = useAuth();
+  const router = useRouter();
   const [events, setEvents] = useState<Event[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [filterType, setFilterType] = useState<string>('all');
   const [filterCity, setFilterCity] = useState<string>('');
+  const [joinedIds, setJoinedIds] = useState<Set<string>>(new Set());
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [erreurJoin, setErreurJoin] = useState('');
 
   const loadEvents = useCallback(async () => {
     setLoadingEvents(true);
@@ -34,22 +39,79 @@ export default function ÉvénementsPage() {
     }
   }, [filterType, filterCity]);
 
+  // Charge les événements où le membre s'est déjà manifesté, pour afficher
+  // l'état « Intéressé ✓ » et permettre de se retirer d'un clic.
+  const loadJoined = useCallback(async () => {
+    try {
+      const res = await fetchResilient('/api/events/join');
+      if (res.ok) {
+        const data = await res.json();
+        setJoinedIds(new Set(data.eventIds ?? []));
+      }
+    } catch {
+      /* silencieux : les cartes s'affichent simplement non inscrites */
+    }
+  }, []);
+
   useEffect(() => {
     if (user && isPremium) {
       loadEvents();
+      loadJoined();
     }
-  }, [user, isPremium, loadEvents]);
+  }, [user, isPremium, loadEvents, loadJoined]);
+
+  const traiterReponseInscription = async (res: Response, messageDefaut: string) => {
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) return true;
+    if (data.premiumRequired) {
+      router.push('/abonnements');
+      return false;
+    }
+    if (res.status === 401) {
+      router.push('/login');
+      return false;
+    }
+    setErreurJoin(data.error ?? messageDefaut);
+    return false;
+  };
 
   const handleJoinEvent = async (eventId: string) => {
+    setBusyId(eventId);
+    setErreurJoin('');
     try {
-      await fetchResilient('/api/events/join', {
+      const res = await fetchResilient('/api/events/join', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ eventId }),
       });
-      loadEvents();
-    } catch (err) {
-      console.error('Erreur lors de la participation:', err);
+      if (await traiterReponseInscription(res, 'Impossible de rejoindre cet événement')) {
+        await loadEvents();
+        await loadJoined();
+      }
+    } catch {
+      setErreurJoin('Erreur réseau. Vérifiez votre connexion et réessayez.');
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleLeaveEvent = async (eventId: string) => {
+    setBusyId(eventId);
+    setErreurJoin('');
+    try {
+      const res = await fetchResilient('/api/events/join', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId }),
+      });
+      if (await traiterReponseInscription(res, "Impossible de se retirer de l'événement")) {
+        await loadEvents();
+        await loadJoined();
+      }
+    } catch {
+      setErreurJoin('Erreur réseau. Vérifiez votre connexion et réessayez.');
+    } finally {
+      setBusyId(null);
     }
   };
 
@@ -149,6 +211,20 @@ export default function ÉvénementsPage() {
           />
         </div>
 
+        {/* Erreur d'inscription / retrait */}
+        {erreurJoin && (
+          <div className="mb-6 p-3 rounded-xl bg-rose-950/60 border border-rose-800/40 text-rose-300 text-sm flex items-center justify-between gap-3">
+            <span>{erreurJoin}</span>
+            <button
+              onClick={() => setErreurJoin('')}
+              className="p-1 hover:text-white shrink-0"
+              aria-label="Fermer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
         {/* Events List */}
         {loadingEvents ? (
           <div className="text-center py-12 text-zinc-400">
@@ -179,7 +255,10 @@ export default function ÉvénementsPage() {
               <EventCard
                 key={event.id}
                 event={event}
+                isJoined={joinedIds.has(event.id)}
+                busy={busyId === event.id}
                 onJoin={handleJoinEvent}
+                onLeave={handleLeaveEvent}
               />
             ))}
           </div>

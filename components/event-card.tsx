@@ -1,16 +1,18 @@
 'use client';
 
 import React from 'react';
-import { Calendar, MapPin, Users, Heart, Eye } from 'lucide-react';
+import { Calendar, MapPin, Users, Heart, Eye, Loader2 } from 'lucide-react';
 import { Event } from '@/lib/types';
 
 interface EventCardProps {
   event: Event;
   onJoin?: (eventId: string) => void;
+  onLeave?: (eventId: string) => void;
   isJoined?: boolean;
+  busy?: boolean;
 }
 
-export function EventCard({ event, onJoin, isJoined }: EventCardProps) {
+export function EventCard({ event, onJoin, onLeave, isJoined, busy }: EventCardProps) {
   const eventTypes: Record<string, string> = {
     festa: '🎉 Fête Privée',
     gang_bang: '🔥 Gang Bang',
@@ -90,17 +92,32 @@ export function EventCard({ event, onJoin, isJoined }: EventCardProps) {
 
       {/* Footer */}
       <div className="p-4 bg-[#160B21] border-t border-[#2C1B3D] flex gap-2">
+        {/* Toggle : cliquer s'inscrit (ou retire l'inscription si déjà fait). */}
         <button
-          onClick={() => onJoin?.(event.id)}
-          disabled={isJoined}
-          className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1 ${
+          onClick={() => (isJoined ? onLeave?.(event.id) : onJoin?.(event.id))}
+          disabled={busy}
+          className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1 disabled:opacity-50 ${
             isJoined
-              ? 'bg-emerald-950/50 text-emerald-300 border border-emerald-800/40'
+              ? 'bg-emerald-950/50 text-emerald-300 border border-emerald-800/40 hover:text-emerald-200'
               : 'bg-[#D4145A] text-white hover:bg-[#B50E4A]'
           }`}
         >
-          <Heart className={`w-4 h-4 ${isJoined ? 'fill-emerald-300' : ''}`} />
-          {isJoined ? 'Intéressé' : 'Intéressé'}
+          {busy ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Modification…</span>
+            </>
+          ) : isJoined ? (
+            <>
+              <Heart className="w-4 h-4 fill-emerald-300" />
+              <span>Intéressé ✓ — retirer</span>
+            </>
+          ) : (
+            <>
+              <Heart className="w-4 h-4" />
+              <span>Intéressé</span>
+            </>
+          )}
         </button>
       </div>
     </div>
