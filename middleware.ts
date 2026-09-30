@@ -10,9 +10,14 @@ export async function middleware(request: NextRequest) {
 
   // Client serveur qui lit ET rafraîchit la session depuis les cookies.
   // Construit sur la requête + la réponse pour propager les cookies rafraîchis.
+  // URL/key de secours : sans variables d'environnement (build sur l'hébergeur),
+  // createServerClient lève « Your project's URL and Key are required » et fait
+  // échouer TOUTES les pages en 500 — le middleware tourne sur chaque page.
+  // Avec des valeurs de secours, getUser() retourne une erreur (sans lever),
+  // les pages publiques s'affichent et les pages protégées demandent /login.
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://example.supabase.co',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy-key',
     {
       cookies: {
         getAll() {
