@@ -2,13 +2,29 @@
 
 import React, { useEffect, useState } from 'react';
 import { fetchResilient } from '@/lib/fetch-resilient';
+import { supabase } from '@/lib/supabase';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Lock, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Lock, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+
+/**
+ * Deux voies d'arrivée sur /reset-password :
+ *
+ * 1. Flux natif Supabase — le lien e-mail ramène avec une session de
+ *    récupération (fragment #access_token, type=recovery). Le client
+ *    Supabase la détecte automatiquement ; on propose alors la nouvelle
+ *    clé via supabase.auth.updateUser — SANS clé de service.
+ * 2. Flux custom historique — ?token=&email= (jeton hashé côté serveur).
+ *    Conservé car il ne dépend pas de « Redirect URLs » dans le tableau
+ *    de bord Supabase.
+ */
+
+type Modo = 'verificar' | 'token-custom' | 'sessao-nativa' | 'invalido';
 
 export function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
+  const [modo, setModo] = useState<Modo>('verificar');
   const [token, setToken] = useState('');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -16,18 +32,44 @@ export function ResetPasswordForm() {
   const [success, setSuccess] = useState(false);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [monstrar, setMonstrar] = useState(false);
 
   useEffect(() => {
+    // 1. Fluxo custom ?token=&email= (histórico)
     const t = searchParams.get('token');
     const e = searchParams.get('email');
-
-    if (!t || !e) {
-      setError('Lien de réinitialisation invalide ou expiré');
+    if (t && e) {
+      setToken(t);
+      setEmail(decodeURIComponent(e));
+      setModo('token-custom');
       return;
     }
 
-    setToken(t);
-    setEmail(decodeURIComponent(e));
+    // 2. Fluxo nativo :
+    let cancelado = false;
+    const detetarSessao = async () => {
+      // criaBrowserClient processa o fragmento #access_token da
+      // recuperação automaticamente (detectSessionInUrl).
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (!cancelado && data.session) {
+          setEmail(data.session.user?.email ?? '');
+          setModo('sessao-nativa');
+          return;
+        }
+      } catch {
+        /* sem sessão */
+      }
+      if (!cancelado) setModo('invalido');
+    };
+    // A sessão pode levantar um instante depois do primeiro render
+    // (processo do fragmento) : tenta já, e de novo após 700 ms.
+    detetarSessao();
+    const espera = setTimeout(detetarSessao, 700);
+    return () => {
+      cancelado = true;
+      clearTimeout(espera);
+    };
   }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,6 +90,28 @@ export function ResetPasswordForm() {
         throw new Error('Les mots de passe ne correspondent pas');
       }
 
+      if (modo === 'sessao-nativa') {
+        // A chave de serviço não é necessária : a própria sessão de
+        // recuperação autoriza a troca. O falha de sessão expirada
+        // devolve erro explícito.
+        const { error: erroUpdate } = await supabase.auth.updateUser({
+          password,
+        });
+        if (erroUpdate) {
+          throw new Error(
+            erroUpdate.message.includes('session')
+              ? 'Le lien a expiré : refaites « Mot de passe oublié » depuis la connexion.'
+              : erroUpdate.message
+          );
+        }
+        // Fecha a sessão de recuperação: o membro volta a ligar-se com a nova chave.
+        await supabase.auth.signOut().catch(() => {});
+        setSuccess(true);
+        setTimeout(() => router.push('/login'), 2500);
+        return;
+      }
+
+      // Modo token custom : mesma API de antes.
       const res = await fetchResilient('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -74,7 +138,17 @@ export function ResetPasswordForm() {
     }
   };
 
-  if (!token || !email) {
+  if (modo === 'verificar') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#12091A] to-[#1C102B] flex items-center justify-center px-4">
+        <div className="w-full max-w-md text-center">
+          <p className="text-zinc-400">Vérification du lien de réinitialisation…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (modo === 'invalido') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#12091A] to-[#1C102B] flex items-center justify-center px-4">
         <div className="w-full max-w-md text-center space-y-4">
@@ -110,13 +184,23 @@ export function ResetPasswordForm() {
     );
   }
 
+  const eFluxoNativo = modo === 'sessao-nativa';
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#12091A] to-[#1C102B] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="space-y-6">
           <div className="text-center space-y-2">
             <h1 className="text-3xl font-bold text-white">Réinitialiser le mot de passe</h1>
-            <p className="text-zinc-400">Créez un nouveau mot de passe sécurisé</p>
+            <p className="text-zinc-400">
+              {eFluxoNativo && email ? (
+                <>
+                  Nouveau mot de passe pour <span className="text-white font-semibold">{email}</span>
+                </>
+              ) : (
+                'Créez un nouveau mot de passe sécurisé'
+              )}
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -132,12 +216,21 @@ export function ResetPasswordForm() {
               <div className="relative">
                 <Lock className="absolute left-3 top-3 w-5 h-5 text-[#D4145A]/50" />
                 <input
-                  type="password"
+                  type={monstrar ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Minimum 8 caractères"
-                  className="w-full pl-10 pr-4 py-2 bg-[#1C102B] border border-[#2C1B3D] rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-[#D4145A]"
+                  autoComplete="new-password"
+                  className="w-full pl-10 pr-11 py-2 bg-[#1C102B] border border-[#2C1B3D] rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-[#D4145A]"
                 />
+                <button
+                  type="button"
+                  onClick={() => setMonstrar(v => !v)}
+                  aria-label={monstrar ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                  className="absolute right-2 top-1 text-zinc-500 hover:text-white transition-colors"
+                >
+                  {monstrar ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
             </div>
 
@@ -147,10 +240,11 @@ export function ResetPasswordForm() {
               <div className="relative">
                 <Lock className="absolute left-3 top-3 w-5 h-5 text-[#D4145A]/50" />
                 <input
-                  type="password"
+                  type={monstrar ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Répétez le mot de passe"
+                  autoComplete="new-password"
                   className="w-full pl-10 pr-4 py-2 bg-[#1C102B] border border-[#2C1B3D] rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-[#D4145A]"
                 />
               </div>

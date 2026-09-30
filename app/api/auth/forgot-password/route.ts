@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceRoleClient } from '@/lib/supabase';
 import crypto from 'crypto';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/supabase-env';
+import { createClient } from '@supabase/supabase-js';
 
 // Resend n'est chargé qu'en runtime si la clé est présente
 let resend: any = null;
@@ -9,15 +11,63 @@ if (process.env.RESEND_API_KEY) {
   resend = new Resend(process.env.RESEND_API_KEY);
 }
 
+/**
+ * POST /api/auth/forgot-password
+ *
+ * Deux voies, testées dans l'ordre :
+ *
+ * 1. VOIE NATIVE (principale) — `resetPasswordForEmail` n'a besoin QUE de la
+ *    clé anon : c'est Supabase Auth qui envoie l'e-mail de récupération, et
+ *    le lien ramène le membre sur /reset-password avec une session de
+ *    récupération (la nouvelle clé est fixée via updateUser côté client,
+ *    sans clé de service). Résilient : fonctionne même si la clé de service
+ *    est morte, comme c'a été le cas en production en septembre 2026.
+ *    Supabase répond un succès même pour un e-mail inconnu : pas
+ *    d'énumération d'adresses.
+ *
+ * 2. VOIE CUSTOM (repli) — jeton maison hashé dans `password_resets` + e-mail
+ *    via Resend + changement via updateUserById (clé de service requise).
+ *    Conservée car elle ne dépend pas de la liste « Redirect URLs » du
+ *    tableau de bord Supabase.
+ *
+ * La réponse reste identique dans les deux voies : un succès neutre, jamais
+ * d'information sur l'existence d'un compte.
+ */
 export async function POST(req: NextRequest) {
   try {
     const { email } = await req.json();
 
-    if (!email) {
+    if (!email || typeof email !== 'string') {
       return NextResponse.json({ error: 'Email obligatoire' }, { status: 400 });
     }
 
-    // Clé de service : lecture du profil + écriture du jeton (pas de session).
+    // ─── Voie 1 : e-mail de récupération natif de Supabase ───
+    const urlBase = process.env.NEXT_PUBLIC_APP_URL || 'https://xlibertine.com';
+    const redirection = `${urlBase}/reset-password`;
+
+    let nativeOk = false;
+    try {
+      const anon = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      const { error } = await anon.auth.resetPasswordForEmail(email, {
+        redirectTo: redirection,
+      });
+      nativeOk = !error;
+      if (error) {
+        console.warn('[forgot-password] voie native indisponible :', error.message);
+      }
+    } catch (e: any) {
+      nativeOk = false;
+      console.warn('[forgot-password] voie native exception :', e?.message);
+    }
+
+    if (nativeOk) {
+      return NextResponse.json(
+        { success: true, message: "Si l'email existe, un lien de réinitialisation sera envoyé" },
+        { status: 200 }
+      );
+    }
+
+    // ─── Voie 2 : jeton maison (clé de service + Resend) ───
     const supabase = createServiceRoleClient();
 
     // Récupère le profil par email (table `profiles`, snake_case)
@@ -121,7 +171,9 @@ export async function POST(req: NextRequest) {
       { success: true, message: "Si l'email existe, un lien de réinitialisation sera envoyé" },
       { status: 200 }
     );
-  } catch (error) {
+  } catch (error: any) {
+    // La voie native n'exige rien d'exotique ; les vraies erreurs viennent
+    // de la voie custom (clé de service). On reste neutre côté client.
     console.error('Request error:', error);
     return NextResponse.json({ error: 'Erreur interne' }, { status: 500 });
   }
