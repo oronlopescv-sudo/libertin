@@ -77,6 +77,9 @@ export default function Decouvrir() {
   const [gender, setGender] = useState('');
   const [orientation, setOrientation] = useState('');
   const [page, setPage] = useState(1);
+  // Total de páginas devolvido pela API: sem isto, "Suivant" permitia paginar
+  // indefinidamente para além da última página (grelhas vazias).
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     const loadData = async () => {
@@ -97,6 +100,7 @@ export default function Decouvrir() {
           const data = await res.json();
           if (res.ok) {
             setProfiles(data.profiles);
+            setTotalPages(Math.max(1, data.pagination?.pages ?? 1));
           }
 
           // Charger mes likes
@@ -390,7 +394,8 @@ export default function Decouvrir() {
             <span className="px-4 py-2 text-white">Page {page}</span>
             <button
               onClick={() => setPage(page + 1)}
-              className="px-4 py-2 bg-[#2C1B3D] rounded-lg text-white hover:bg-[#3C2B4D]"
+              disabled={page >= totalPages}
+              className="px-4 py-2 bg-[#2C1B3D] rounded-lg text-white hover:bg-[#3C2B4D] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Suivant
             </button>

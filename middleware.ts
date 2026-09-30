@@ -1,7 +1,9 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 
-const PROTECTED_ROUTES = ['/profil', '/admin', '/chat'];
+// /supabase et /debug sont des pages de diagnostic : protégées comme le
+// reste, un visiteur non connecté n'a rien à y faire en production.
+const PROTECTED_ROUTES = ['/profil', '/admin', '/chat', '/supabase', '/debug'];
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next({ request });

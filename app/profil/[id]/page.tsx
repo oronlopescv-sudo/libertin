@@ -22,7 +22,8 @@ interface ProfileDetail {
   sexualOrientation: string;
   location: string;
   bio: string | null;
-  interests: string | null;
+  // `interests` é TEXT[] na base de dados: o Supabase devolve um array.
+  interests: string[] | null;
   isVerified: boolean;
   isNsfw: boolean;
   createdAt: string;
@@ -295,11 +296,20 @@ export default function ProfileDetailPage() {
               </div>
             )}
 
-            {/* Intérêts */}
-            {profil.interests && (
+            {/* Intérêts — TEXT[] da base de dados, renderizado como tags. */}
+            {profil.interests && profil.interests.length > 0 && (
               <div>
                 <h2 className="text-sm font-semibold text-zinc-300 mb-1">Centres d'intérêt</h2>
-                <p className="text-sm text-zinc-400">{profil.interests}</p>
+                <div className="flex flex-wrap gap-2">
+                  {profil.interests.map((tag) => (
+                    <span
+                      key={tag}
+                      className="text-xs bg-[#2C1B3D] text-[#E86B7A] border border-[#3D2654] px-2 py-1 rounded"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
             )}
 

@@ -195,7 +195,11 @@ export async function POST(req: NextRequest) {
     ]);
 
     if (membresError) {
+      // Si l'ajout des membres échoue, supprimer le groupe fraîchement créé :
+      // sinon il reste en base un groupe `private_dm` avec une seule personne,
+      // invisible de la messagerie mais comptant dans les stats.
       console.error('[conversations POST] ajout des membres', membresError);
+      await supabase.from('groups').delete().eq('id', nouveauGroupe.id);
       return NextResponse.json({ error: 'Erreur lors de la création de la conversation' }, { status: 500 });
     }
 

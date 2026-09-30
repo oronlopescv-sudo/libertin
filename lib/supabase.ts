@@ -326,13 +326,24 @@ export async function getSupabaseUserByEmail(email: string): Promise<User | null
 
 export async function getSupabaseUsersList(limit = 50): Promise<User[]> {
   try {
+    // Colonnes publiques uniquement : ce résultat part vers TOUT navigateur
+    // (grille de la page d'accueil). Pas d'email ni de stripe_customer_id —
+    // ces champs peuvent être récupérés par getCurrentSupabaseUser() quand
+    // l'utilisateur lit SON propre profil.
     const { data, error } = await supabase
       .from('profiles')
-      .select('*')
+      .select(
+        'id, username, date_of_birth, gender, sexual_orientation, location, lat, lng, subscription_tier, subscription_start, subscription_end, bio, interests, is_verified, is_active, is_nsfw, role, created_at, updated_at'
+      )
       .eq('is_active', true)
       .limit(limit);
     if (error || !data) return [];
-    return data.map(snakeToCamelProfile);
+    return data.map((row: any) => ({
+      ...snakeToCamelProfile(row),
+      // Non exposé : colonnes sensibles volontairement non sélectionnées.
+      email: '',
+      stripeCustomerId: undefined,
+    }));
   } catch (e) {
     return [];
   }

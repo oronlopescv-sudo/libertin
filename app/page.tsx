@@ -67,7 +67,7 @@ export default function HomePage() {
     {
       icon: Users,
       title: 'Groupes & Soirées Privées',
-      desc: 'Rejoignez des cercles d&apos;épicuriens sur Paris, Lyon, PACA, Bordeaux pour organiser vos sorties en clubs et villas.',
+      desc: "Rejoignez des cercles d'épicuriens sur Paris, Lyon, PACA, Bordeaux pour organiser vos sorties en clubs et villas.",
     },
   ];
 
