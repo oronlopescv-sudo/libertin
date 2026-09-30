@@ -15,7 +15,13 @@ import {
   CheckCircle2,
   Camera,
   Upload,
+  MailCheck,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
+
+/** Mot de passe minimal demandé par Supabase Auth (6 caractères). */
+const MOT_DE_PASSE_MIN = 6;
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -31,26 +37,30 @@ export default function RegisterPage() {
     }
   }, [authLoading, user, router]);
 
-  // Form State
+  // Form State — AUCUN champ pré-rempli : l'ancienne version partait de
+  // données fictives (naissance « 1994-05-15 », bio rédigée, 3 goûts
+  // déjà cochés, ville Paris) avec lesquelles la personne pouvait s'inscrire
+  // sans se rendre compte qu'elle publiait un faux profil.
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
-  const [dateOfBirth, setDateOfBirth] = useState('1994-05-15');
+  const [dateOfBirth, setDateOfBirth] = useState('');
   const [gender, setGender] = useState<GenderType>('couple');
   const [sexualOrientation, setSexualOrientation] = useState<SexualOrientationType>('libertin');
 
   // Step 2 State
-  const [location, setLocation] = useState('Paris');
-  const [bio, setBio] = useState('Couple ouvert d\'esprit, respectueux et chaleureux. Nous aimons l\'élégance des sorties nocturnes et la complicité des discussions intimes.');
-  const [selectedInterests, setSelectedInterests] = useState<string[]>([
-    'Clubs libertins',
-    'Soirées privées',
-    'Échangisme soft',
-  ]);
+  const [location, setLocation] = useState('');
+  const [bio, setBio] = useState('');
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [photoUrl, setPhotoUrl] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [photoErreur, setPhotoErreur] = useState('');
+  // Inscription aboutie avec e-mail de confirmation à valider : on remplace
+  // le formulaire par un écran de réussite vert, jamais une « erreur ».
+  const [inscriptionValidee, setInscriptionValidee] = useState('');
+  const [montrerMotDePasse, setMontrerMotDePasse] = useState(false);
+  const [processando, setProcessando] = useState(false);
   const topoRef = useRef<HTMLDivElement>(null);
 
   const afficherErreur = (msg: string) => {
@@ -90,7 +100,20 @@ export default function RegisterPage() {
       return;
     }
 
+    // Mot de passe : signaler la règle AVANT le serveur (Supabase refuse
+    // sous 6 caractères avec un message en anglais peu compréhensible).
+    if (password.length < MOT_DE_PASSE_MIN) {
+      afficherErreur(
+        `Votre mot de passe doit contenir au moins ${MOT_DE_PASSE_MIN} caractères.`
+      );
+      return;
+    }
+
     // Age check: must be 18+
+    if (!dateOfBirth) {
+      afficherErreur('Indiquez votre date de naissance pour certifier vos 18 ans.');
+      return;
+    }
     const birth = new Date(dateOfBirth);
     const today = new Date();
     let age = today.getFullYear() - birth.getFullYear();
@@ -110,19 +133,25 @@ export default function RegisterPage() {
   const handleCompleteRegistration = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!termsAccepted) {
-      afficherErreur("Vous devez accepter les conditions d'utilisation et certifier avoir plus de 18 ans.");
+      afficherErreur('Cochez la case pour certifier vos 18 ans et accepter les conditions.');
       return;
     }
-    // A promessa do formulário (bio mínima) também tem de ser verificada —
-    // sem isto, uma apresentação vazia era aceite tal como uma completa.
+    // Une présentation complète est obligatoire : un profil vide n'a aucune
+    // valeur pour les autres membres.
     if (bio.trim().length < 50) {
       afficherErreur('Votre présentation doit contenir au moins 50 caractères.');
       return;
     }
+    // La ville doit être un choix explicite — plus de repli caché sur Paris.
+    if (!location || !CITIES[location]) {
+      afficherErreur('Choisissez votre ville dans la liste.');
+      return;
+    }
 
-    const cityCoords = CITIES[location] || { lat: 48.8566, lng: 2.3522 };
+    const cityCoords = CITIES[location];
 
     setErrorMsg('');
+    setProcessando(true);
     try {
       await register({
         email,
@@ -142,7 +171,17 @@ export default function RegisterPage() {
       });
       router.push('/decouvrir');
     } catch (err: any) {
+      // Inscription réussie mais e-mail de confirmation attendu : le contexte
+      // marque cette erreur `infoNotification` — on l'affiche comme une
+      // réussite (vert), pas comme un échec (rouge).
+      if (err?.infoNotification) {
+        setErrorMsg('');
+        setInscriptionValidee(err.message);
+        return;
+      }
       afficherErreur(err?.message || "Erreur lors de l'inscription. Veuillez réessayer.");
+    } finally {
+      setProcessando(false);
     }
   };
 
@@ -172,19 +211,21 @@ export default function RegisterPage() {
               Inscription en 2 étapes — 100% Confidentielle et Sécurisée
             </p>
 
-            {/* Step Indicator */}
-            <div className="flex items-center justify-center gap-2 pt-2">
-              <div
-                className={`w-8 h-2 rounded-full transition-all ${
-                  step === 1 ? 'bg-[#D4145A]' : 'bg-[#2C1B3D]'
-                }`}
-              />
-              <div
-                className={`w-8 h-2 rounded-full transition-all ${
-                  step === 2 ? 'bg-[#D4145A]' : 'bg-[#2C1B3D]'
-                }`}
-              />
-            </div>
+            {/* Step Indicator — masqué sur l'écran de réussite */}
+            {!inscriptionValidee && (
+              <div className="flex items-center justify-center gap-2 pt-2">
+                <div
+                  className={`w-8 h-2 rounded-full transition-all ${
+                    step === 1 ? 'bg-[#D4145A]' : 'bg-[#2C1B3D]'
+                  }`}
+                />
+                <div
+                  className={`w-8 h-2 rounded-full transition-all ${
+                    step === 2 ? 'bg-[#D4145A]' : 'bg-[#2C1B3D]'
+                  }`}
+                />
+              </div>
+            )}
           </div>
 
           <div ref={topoRef} />
@@ -195,7 +236,29 @@ export default function RegisterPage() {
             </div>
           )}
 
-          {step === 1 ? (
+          {inscriptionValidee ? (
+            // Écran de réussite : le compte est créé, reste à confirmer
+            // l'e-mail. Un formulaire affiché à ce stade ferait croire que
+            // l'inscription n'a pas « pris ».
+            <div className="rounded-2xl bg-emerald-950/50 border border-emerald-700/50 p-6 space-y-4 text-center">
+              <div className="w-14 h-14 rounded-full bg-emerald-900/60 border border-emerald-600/60 flex items-center justify-center mx-auto">
+                <MailCheck className="w-7 h-7 text-emerald-300" />
+              </div>
+              <div className="space-y-2">
+                <p className="text-emerald-200 font-extrabold text-lg">Inscription réussie !</p>
+                <p className="text-xs text-zinc-300 leading-relaxed">{inscriptionValidee}</p>
+                <p className="text-[11px] text-zinc-500">
+                  Rien reçu sous quelques minutes ? Regardez le dossier spam / indésirables.
+                </p>
+              </div>
+              <Link
+                href="/login"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white font-bold text-xs hover:opacity-95 shadow-lg shadow-[#D4145A]/25"
+              >
+                Aller à la connexion
+              </Link>
+            </div>
+          ) : step === 1 ? (
             /* STEP 1 FORM */
             <form onSubmit={handleNextStep} className="space-y-4 text-xs">
               <div className="space-y-1">
@@ -240,6 +303,7 @@ export default function RegisterPage() {
                   <input
                     type="date"
                     required
+                    max={new Date().toISOString().split('T')[0]}
                     value={dateOfBirth}
                     onChange={(e) => setDateOfBirth(e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-[#12091A] border border-[#3D2654] text-white focus:outline-none focus:border-[#D4145A]"
@@ -248,27 +312,45 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-zinc-300 font-medium mb-1">Adresse E-mail confidentielle</label>
+                <label className="block text-zinc-300 font-medium mb-1">Adresse e-mail confidentielle</label>
                 <input
                   type="email"
                   required
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="votre.email@exemple.fr"
                   className="w-full px-3.5 py-2.5 rounded-xl bg-[#12091A] border border-[#3D2654] text-white focus:outline-none focus:border-[#D4145A]"
                 />
+                <p className="text-zinc-500 mt-1">
+                  Jamais affichée sur le site : elle sert uniquement à vous connecter et à récupérer votre compte.
+                </p>
               </div>
 
               <div>
-                <label className="block text-zinc-300 font-medium mb-1">Mot de passe fort</label>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#12091A] border border-[#3D2654] text-white focus:outline-none focus:border-[#D4145A]"
-                />
+                <label className="block text-zinc-300 font-medium mb-1">Mot de passe</label>
+                <div className="relative">
+                  <input
+                    type={montrerMotDePasse ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    autoComplete="new-password"
+                    className="w-full px-3.5 py-2.5 pr-11 rounded-xl bg-[#12091A] border border-[#3D2654] text-white focus:outline-none focus:border-[#D4145A]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setMontrerMotDePasse(v => !v)}
+                    aria-label={montrerMotDePasse ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                    className="absolute right-2 top-1.5 p-1 text-zinc-500 hover:text-white transition-colors"
+                  >
+                    {montrerMotDePasse ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+                <p className="text-zinc-500 mt-1">
+                  {MOT_DE_PASSE_MIN} caractères minimum. C&apos;est la clé de votre compte : mémorisez-la.
+                </p>
               </div>
 
               <div>
@@ -303,6 +385,9 @@ export default function RegisterPage() {
                   onChange={(e) => setLocation(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-[#12091A] border border-[#3D2654] text-white focus:outline-none focus:border-[#D4145A]"
                 >
+                  <option value="" disabled>
+                    Sélectionnez votre ville…
+                  </option>
                   {COUNTRIES.filter((c) => c.code !== 'ALL').map((c) => (
                     <optgroup key={c.code} label={`${c.flag} ${c.name}`}>
                       {Object.values(CITIES)
@@ -319,7 +404,7 @@ export default function RegisterPage() {
 
               <div>
                 <label className="block text-zinc-300 font-medium mb-1">
-                  Présentation / Bio <span className="text-zinc-500">({bio.trim().length}/50 caractères minimum)</span>
+                  Présentation <span className="text-zinc-500">({bio.trim().length}/50 caractères minimum)</span>
                 </label>
                 <textarea
                   rows={3}
@@ -353,14 +438,19 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* Photo Verification Upload Optional Preview */}
+              {/* Photo optionnelle : le badge passe par une vraie modération,
+                  pas par la simple présence d'un selfie. On ne promet plus un
+                  « badge immédiat » qui n'a jamais existé. */}
               <div className="p-3.5 rounded-2xl bg-[#2C1B3D] border border-[#3D2654] space-y-2">
                 <div className="font-semibold text-white flex items-center gap-1.5">
                   <Camera className="w-4 h-4 text-emerald-400" />
-                  <span>Photo de Vérification (Recommandée)</span>
+                  <span>Photo de vérification (optionnelle)</span>
                 </div>
-                <p className="text-[11px] text-zinc-400">
-                  Transmettez un selfie avec mot manuscrit pour obtenir le badge Profil Vérifié immédiatement après inscription.
+                <p className="text-[11px] text-zinc-400 leading-snug">
+                  Un selfie vous permet de demander le badge « Profil vérifié » : votre demande est
+                  ensuite examinée par notre équipe de modération. Votre selfie reste strictement
+                  confidentiel — visible uniquement par la modération et détruit après examen.
+                  Vous pouvez aussi l&apos;envoyer plus tard depuis votre profil.
                 </p>
 
                 <div className="space-y-2 pt-1">
@@ -413,7 +503,9 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* Terms Checkbox */}
+              {/* Terms Checkbox — les deux textes doivent être lisibles AVANT
+                  de cocher, avec lien : une simple mention sans lien n'est
+                  pas une information. */}
               <div className="flex items-start gap-2 pt-2">
                 <input
                   type="checkbox"
@@ -423,7 +515,15 @@ export default function RegisterPage() {
                   className="mt-0.5 rounded border-[#3D2654] bg-[#12091A] text-[#D4145A] focus:ring-0"
                 />
                 <label htmlFor="terms" className="text-[11px] text-zinc-400 leading-snug">
-                  Je certifie avoir plus de 18 ans, j&apos;accepte la charte de respect & discrétion et les Conditions Générales d&apos;Utilisation de xlibertine.
+                  Je certifie avoir plus de 18 ans et j&apos;accepte les{' '}
+                  <Link href="/conditions-generales" target="_blank" className="text-[#E86B7A] underline hover:text-white">
+                    Conditions Générales d&apos;Utilisation
+                  </Link>{' '}
+                  et la{' '}
+                  <Link href="/politique-confidentialite" target="_blank" className="text-[#E86B7A] underline hover:text-white">
+                    Politique de confidentialité
+                  </Link>{' '}
+                  de xlibertine.
                 </label>
               </div>
 
@@ -431,7 +531,8 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="px-4 py-3 rounded-xl bg-[#2C1B3D] text-zinc-300 font-bold hover:text-white flex items-center gap-1"
+                  disabled={processando}
+                  className="px-4 py-3 rounded-xl bg-[#2C1B3D] text-zinc-300 font-bold hover:text-white flex items-center gap-1 disabled:opacity-50"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   <span>Retour</span>
@@ -439,10 +540,11 @@ export default function RegisterPage() {
 
                 <button
                   type="submit"
-                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white font-bold text-xs hover:opacity-95 shadow-lg shadow-[#D4145A]/25 flex items-center justify-center gap-2"
+                  disabled={processando}
+                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white font-bold text-xs hover:opacity-95 shadow-lg shadow-[#D4145A]/25 flex items-center justify-center gap-2 disabled:opacity-60"
                 >
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>Finaliser mon Inscription Gratuitement</span>
+                  <span>{processando ? 'Création du compte…' : 'Finaliser mon inscription'}</span>
                 </button>
               </div>
             </form>

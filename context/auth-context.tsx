@@ -102,8 +102,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password?: string): Promise<boolean> => {
     const result = await signInWithSupabase(email, password);
 
-    // Mot de passe refusé par Supabase Auth : identifiants réellement invalides.
-    if (!result.success || !result.user) return false;
+    // On ne se contente plus de renvoyer `false` : l'ancien comportement
+    // affichait « Email ou mot de passe incorrect » même quand le vrai motif
+    // était autre (e-mail non confirmé, trop de tentatives, panne). On
+    // traduit l'erreur réelle de Supabase en un message clair.
+    if (!result.success || !result.user) {
+      const brut = (result.error ?? '').toLowerCase();
+      if (brut.includes('not confirmed') || brut.includes('confirm')) {
+        throw new Error(
+          "Connectez-vous seulement après avoir confirmé votre adresse : ouvrez l'e-mail reçu lors de l'inscription et cliquez sur le lien de confirmation."
+        );
+      }
+      if (brut.includes('rate limit') || brut.includes('too many')) {
+        throw new Error('Trop de tentatives. Attendez quelques minutes et réessayez.');
+      }
+      throw new Error('Email ou mot de passe incorrect.');
+    }
 
     const profile = await getSupabaseUserByEmail(email);
     if (profile) {
@@ -123,7 +137,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return true;
     }
 
-    return false;
+    throw new Error('Connexion impossible pour le moment. Réessayez dans quelques minutes.');
   };
 
   const logout = () => {
@@ -155,11 +169,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Compte créé mais Supabase exige une confirmation par e-mail : aucune
       // session n'est encore ouverte. Rediriger vers /decouvrir ferait croire
       // que l'utilisateur est connecté alors qu'il serait déconnecté au
-      // prochain chargement (aucune session à lire). On l'informe clairement.
+      // prochain chargement (aucune session à lire). On l'informe clairement
+      // via une erreur marquée `infoNotification` : ce n'est PAS un échec,
+      // le formulaire d'inscription doit l'afficher comme une réussite.
       if (sbResult.needsEmailConfirmation) {
-        throw new Error(
-          "Compte créé ! Vérifiez votre boîte mail et cliquez sur le lien de confirmation, puis connectez-vous."
+        const info = new Error(
+          "Compte créé ! Ouvrez l'e-mail de confirmation qui vient d'être envoyé, cliquez sur le lien, puis connectez-vous."
         );
+        (info as any).infoNotification = true;
+        throw info;
       }
 
       const profile = await getSupabaseUserByEmail(userData.email);
