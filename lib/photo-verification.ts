@@ -1,14 +1,17 @@
 /**
  * Photo Verification Service
  * Handles photo uploads, NSFW detection, and admin verification workflow
+ *
+ * Toute opération passe par comRetomada() (voir lib/upload-fallback.ts) :
+ * écriture avec la clé de service si elle est exploitable, sinon (ou en cas
+ * de rejet d'authentification) avec la session du membre. Avant ce refactor,
+ * une clé de service morte/vide (« Invalid Compact JWS », « Unregistered »)
+ * faisait échouer silencieusement tous les uploads et la file admin.
  */
 
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
+import { SupabaseClient } from '@supabase/supabase-js';
+import { comRetomada, mensagensDeErroUpload } from '@/lib/upload-fallback';
+import { clienteDeEscrita } from '@/lib/upload-fallback';
 
 export interface VerificationPhotoResult {
   success: boolean;
@@ -17,13 +20,24 @@ export interface VerificationPhotoResult {
   nsfw?: boolean;
 }
 
+export type ResultadoUploadFotografia = { url: string; path: string } | { erro: string };
+
+/** Exécute l'opération et lève si elle échoue (comme l'ancien code en ligne). */
+async function viaFallback<T = any>(
+  operacao: (cliente: SupabaseClient) => PromiseLike<unknown>
+): Promise<T> {
+  const { data, error } = await comRetomada<T>(operacao);
+  if (error) throw new Error(error.message || 'Erreur de stockage');
+  return data as T;
+}
+
 /**
- * Upload photo to Supabase Storage
+ * Upload photo to Supabase Storage (bucket `verification-photos`)
  */
 export async function uploadVerificationPhoto(
   userId: string,
   file: File
-): Promise<{ url: string; path: string } | null> {
+): Promise<ResultadoUploadFotografia> {
   try {
     // Validate file
     if (file.size > 5 * 1024 * 1024) {
@@ -38,20 +52,21 @@ export async function uploadVerificationPhoto(
     const timestamp = Date.now();
     const filename = `verification/${userId}/${timestamp}-${file.name}`;
 
-    // Upload to Supabase Storage
-    const { data, error } = await supabase.storage
-      .from('verification-photos')
-      .upload(filename, file, {
+    const { data, error } = await comRetomada<{ path: string }>((c) =>
+      c.storage.from('verification-photos').upload(filename, file, {
         cacheControl: '3600',
         upsert: false,
-      });
+      })
+    );
 
-    if (error) throw error;
+    if (error || !data) {
+      console.error('Failed to upload photo:', error);
+      return { erro: mensagensDeErroUpload(error) };
+    }
 
     // Get public URL
-    const { data: urlData } = supabase.storage
-      .from('verification-photos')
-      .getPublicUrl(data.path);
+    const { cliente } = await clienteDeEscrita();
+    const { data: urlData } = cliente.storage.from('verification-photos').getPublicUrl(data.path);
 
     return {
       url: urlData.publicUrl,
@@ -59,7 +74,7 @@ export async function uploadVerificationPhoto(
     };
   } catch (error) {
     console.error('Failed to upload photo:', error);
-    return null;
+    return { erro: mensagensDeErroUpload(error) };
   }
 }
 
@@ -108,8 +123,8 @@ export async function checkNSFWContent(imageUrl: string): Promise<boolean> {
     const isNSFW =
       safeSearch.adult === 'LIKELY' ||
       safeSearch.adult === 'VERY_LIKELY' ||
-      safeSearch.racy === 'LIKELY' ||
-      safeSearch.racy === 'VERY_LIKELY';
+      safeSearch.porn === 'LIKELY' ||
+      safeSearch.porn === 'VERY_LIKELY';
 
     return isNSFW;
   } catch (error) {
@@ -127,25 +142,25 @@ export async function saveVerificationPhoto(
   photoUrl: string,
   photoPath: string
 ): Promise<VerificationPhotoResult> {
-  try {
-    // Check for NSFW content
-    const isNSFW = await checkNSFWContent(photoUrl);
+  // Check for NSFW content
+  const isNSFW = await checkNSFWContent(photoUrl);
 
-    if (isNSFW) {
-      // Delete the uploaded photo (uniquement si elle a été stockée : le mode
-      // « URL directe » n'a rien dans Storage, photoPath est alors vide).
-      if (photoPath) {
-        await supabase.storage.from('verification-photos').remove([photoPath]);
-      }
-      return {
-        success: false,
-        error: 'Photo contient du contenu non approprié',
-        nsfw: true,
-      };
+  if (isNSFW) {
+    // Delete the uploaded photo (uniquement si elle a été stockée : le mode
+    // « URL directe » n'a rien dans Storage, photoPath est alors vide).
+    if (photoPath) {
+      await comRetomada((c) => c.storage.from('verification-photos').remove([photoPath]));
     }
+    return {
+      success: false,
+      error: 'Photo contient du contenu non approprié',
+      nsfw: true,
+    };
+  }
 
-    // Insert into verification_photos table
-    const { data, error } = await supabase
+  // Insert into verification_photos table
+  const { data, error } = await comRetomada<{ id: string }>((c) =>
+    c
       .from('verification_photos')
       .insert({
         user_id: userId,
@@ -153,21 +168,21 @@ export async function saveVerificationPhoto(
         status: 'pending',
       })
       .select()
-      .single();
+      .single()
+  );
 
-    if (error) throw error;
-
-    return {
-      success: true,
-      photoId: data.id,
-    };
-  } catch (error) {
+  if (error || !data) {
     console.error('Failed to save verification photo:', error);
     return {
       success: false,
       error: 'Erreur lors de l\'enregistrement de la photo',
     };
   }
+
+  return {
+    success: true,
+    photoId: data.id,
+  };
 }
 
 /**
@@ -176,19 +191,19 @@ export async function saveVerificationPhoto(
 export async function getUserVerificationPhotos(
   userId: string
 ): Promise<any[] | null> {
-  try {
-    const { data, error } = await supabase
+  const { data, error } = await comRetomada<any[]>((c) =>
+    c
       .from('verification_photos')
       .select('*')
       .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+  );
 
-    if (error) throw error;
-    return data;
-  } catch (error) {
+  if (error) {
     console.error('Failed to get verification photos:', error);
     return null;
   }
+  return data;
 }
 
 /**
@@ -198,13 +213,14 @@ export async function getPendingVerifications(
   limit: number = 50,
   offset: number = 0
 ): Promise<any[] | null> {
-  try {
-    // La FK verification_photos.user_id → profiles(id) (Supabase Auth), et NON
-    // vers l'ancienne table `users`. L'ancienne jointure `users!...` échouait
-    // à l'exécution sur le schéma live → la file d'attente admin était vide.
-    const { data, error } = await supabase
+  // La FK verification_photos.user_id → profiles(id) (Supabase Auth), et NON
+  // vers l'ancienne table `users`. L'ancienne jointure `users!...` échouait
+  // à l'exécution sur le schéma live → la file d'attente admin était vide.
+  const { data, error } = await comRetomada<any[]>((c) =>
+    c
       .from('verification_photos')
-      .select(`
+      .select(
+        `
         *,
         profiles!verification_photos_user_id_fkey (
           username,
@@ -213,17 +229,18 @@ export async function getPendingVerifications(
           gender,
           location
         )
-      `)
+      `
+      )
       .eq('status', 'pending')
       .order('created_at', { ascending: true })
-      .range(offset, offset + limit - 1);
+      .range(offset, offset + limit - 1)
+  );
 
-    if (error) throw error;
-    return data;
-  } catch (error) {
+  if (error) {
     console.error('Failed to get pending verifications:', error);
     return null;
   }
+  return data;
 }
 
 /**
@@ -235,47 +252,49 @@ export async function approveVerification(
 ): Promise<boolean> {
   try {
     // Get photo to find user
-    const { data: photo, error: photoError } = await supabase
-      .from('verification_photos')
-      .select('user_id')
-      .eq('id', photoId)
-      .single();
-
-    if (photoError) throw photoError;
+    const photo = await viaFallback<{ user_id: string }>((c) =>
+      c
+        .from('verification_photos')
+        .select('user_id')
+        .eq('id', photoId)
+        .single()
+    );
 
     // Update photo status
-    const { error: updateError } = await supabase
-      .from('verification_photos')
-      .update({
-        status: 'approved',
-        reviewed_by: adminId,
-        reviewed_at: new Date().toISOString(),
-      })
-      .eq('id', photoId);
-
-    if (updateError) throw updateError;
+    await viaFallback((c) =>
+      c
+        .from('verification_photos')
+        .update({
+          status: 'approved',
+          reviewed_by: adminId,
+          reviewed_at: new Date().toISOString(),
+        })
+        .eq('id', photoId)
+    );
 
     // Update verification status dans `profiles` (Supabase Auth) — et NON dans
     // l'ancienne table `users`. C'est profiles.is_verified que lit tout le
     // reste de l'app (badge vérifié, /api/profiles/[id], /api/admin/users).
     // Avant, l'admin approuvait → users.is_verified=true, mais le badge
     // (profiles.is_verified) restait false à jamais.
-    const { error: userError } = await supabase
-      .from('profiles')
-      .update({
-        is_verified: true,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', photo.user_id);
-
-    if (userError) throw userError;
+    await viaFallback((c) =>
+      c
+        .from('profiles')
+        .update({
+          is_verified: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', photo.user_id)
+    );
 
     // Send approval email
-    const { data: userData } = await supabase
-      .from('profiles')
-      .select('email, username')
-      .eq('id', photo.user_id)
-      .single();
+    const userData = await viaFallback<{ email: string; username: string }>((c) =>
+      c
+        .from('profiles')
+        .select('email, username')
+        .eq('id', photo.user_id)
+        .single()
+    );
 
     if (userData?.email) {
       try {
@@ -303,44 +322,43 @@ export async function rejectVerification(
 ): Promise<boolean> {
   try {
     // Get photo to find user
-    const { data: photo, error: photoError } = await supabase
-      .from('verification_photos')
-      .select('user_id, url')
-      .eq('id', photoId)
-      .single();
-
-    if (photoError) throw photoError;
+    const photo = await viaFallback<{ user_id: string; url: string }>((c) =>
+      c
+        .from('verification_photos')
+        .select('user_id, url')
+        .eq('id', photoId)
+        .single()
+    );
 
     // Delete from storage
     const pathMatch = photo.url.match(/verification\/[^?]+/);
     if (pathMatch) {
-      await supabase.storage
-        .from('verification-photos')
-        .remove([pathMatch[0]])
-        .catch(() => {
-          /* Ignore deletion errors */
-        });
+      await comRetomada((c) =>
+        c.storage.from('verification-photos').remove([pathMatch[0]])
+      );
     }
 
     // Update photo status
-    const { error: updateError } = await supabase
-      .from('verification_photos')
-      .update({
-        status: 'rejected',
-        reviewed_by: adminId,
-        reviewed_at: new Date().toISOString(),
-        rejection_reason: reason,
-      })
-      .eq('id', photoId);
-
-    if (updateError) throw updateError;
+    await viaFallback((c) =>
+      c
+        .from('verification_photos')
+        .update({
+          status: 'rejected',
+          reviewed_by: adminId,
+          reviewed_at: new Date().toISOString(),
+          rejection_reason: reason,
+        })
+        .eq('id', photoId)
+    );
 
     // Send rejection email — profil lu dans `profiles` (Supabase Auth).
-    const { data: userData } = await supabase
-      .from('profiles')
-      .select('email, username')
-      .eq('id', photo.user_id)
-      .single();
+    const userData = await viaFallback<{ email: string; username: string }>((c) =>
+      c
+        .from('profiles')
+        .select('email, username')
+        .eq('id', photo.user_id)
+        .single()
+    );
 
     if (userData?.email) {
       try {
@@ -367,32 +385,30 @@ export async function getVerificationStats(): Promise<{
   rejected: number;
   approvalRate: number;
 } | null> {
-  try {
-    const { data, error } = await supabase
-      .from('verification_photos')
-      .select('status');
+  const { data, error } = await comRetomada<{ status: string }[]>((c) =>
+    c.from('verification_photos').select('status')
+  );
 
-    if (error) throw error;
-
-    const stats = {
-      pending: 0,
-      approved: 0,
-      rejected: 0,
-    };
-
-    data?.forEach((item: any) => {
-      stats[item.status as keyof typeof stats]++;
-    });
-
-    const total = stats.pending + stats.approved + stats.rejected;
-    const approvalRate = total > 0 ? (stats.approved / total) * 100 : 0;
-
-    return {
-      ...stats,
-      approvalRate: Math.round(approvalRate),
-    };
-  } catch (error) {
+  if (error) {
     console.error('Failed to get verification stats:', error);
     return null;
   }
+
+  const stats: { pending: number; approved: number; rejected: number } = {
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+  };
+
+  (data ?? []).forEach((item) => {
+    if (item?.status in stats) stats[item.status as keyof typeof stats]++;
+  });
+
+  const total = stats.pending + stats.approved + stats.rejected;
+  const approvalRate = total > 0 ? (stats.approved / total) * 100 : 0;
+
+  return {
+    ...stats,
+    approvalRate: Math.round(approvalRate),
+  };
 }
