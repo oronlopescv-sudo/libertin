@@ -106,9 +106,19 @@ export function Footer() {
           <div className="flex items-center gap-4 text-[11px]">
             <span>Réservé aux personnes majeures (+18 ans)</span>
             <span>•</span>
-            <span>Conditions Générales</span>
+            <Link
+              href="/conditions-generales"
+              className="hover:text-zinc-300 hover:underline transition-colors"
+            >
+              Conditions Générales
+            </Link>
             <span>•</span>
-            <span>Politique de Confidentialité</span>
+            <Link
+              href="/politique-confidentialite"
+              className="hover:text-zinc-300 hover:underline transition-colors"
+            >
+              Politique de Confidentialité
+            </Link>
           </div>
         </div>
       </div>

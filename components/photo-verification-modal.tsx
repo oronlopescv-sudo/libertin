@@ -174,8 +174,8 @@ export function PhotoVerificationModal({ isOpen, onClose }: PhotoVerificationMod
             <div className="p-2.5 rounded-lg bg-amber-950/40 border border-amber-800/40 text-[11px] text-amber-200 flex items-start gap-2">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>
-                Le stockage de fichiers (Supabase Storage) n&apos;est pas encore configuré.
-                Pour tester, utilisez un lien URL direct ou convertissez l&apos;image en base64.
+                Votre selfie reste strictement confidentiel : il n&apos;est visible que par notre
+                équipe de modération et supprimé après examen.
               </span>
             </div>
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
-import { utilisateurPremium } from '@/lib/auth-serveur';
+import { utilisateurActuel, utilisateurPremium } from '@/lib/auth-serveur';
 
 /**
  * Rejoindre / manifester son intérêt pour un événement.
@@ -68,6 +68,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    await recalculerCompteur(supabase, eventId);
+
     return NextResponse.json(
       { success: true, eventId, status: 'interested' },
       { status: 201 }
@@ -79,4 +81,87 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+/**
+ * GET — liste des identifiants d'événements pour lesquels le membre connecté
+ * s'est déjà manifesté. Utilisée par la page événements pour afficher l'état
+ * « Intéressé ✓ » sur les cartes.
+ */
+export async function GET() {
+  try {
+    const auth = await utilisateurActuel();
+    if (!auth.ok) return auth.reponse;
+
+    const supabase = await createServerSupabaseClient();
+    const { data, error } = await supabase
+      .from('event_participants')
+      .select('event_id')
+      .eq('user_id', auth.user.id);
+
+    if (error) {
+      console.error('[events join GET]', error);
+      return NextResponse.json({ error: 'Erreur interne' }, { status: 500 });
+    }
+
+    return NextResponse.json({ eventIds: (data ?? []).map((p: any) => p.event_id) });
+  } catch (err) {
+    console.error('[events join GET]', err);
+    return NextResponse.json({ error: 'Erreur interne' }, { status: 500 });
+  }
+}
+
+/**
+ * DELETE — se retire d'un événement (annule sa manifestation d'intérêt).
+ * L'identité vient de la session ; on ne supprime que SA propre participation.
+ */
+export async function DELETE(req: NextRequest) {
+  try {
+    const auth = await utilisateurPremium('participer aux événements');
+    if (!auth.ok) return auth.reponse;
+
+    const { eventId } = await req.json().catch(() => ({}));
+    if (!eventId || typeof eventId !== 'string') {
+      return NextResponse.json({ error: 'Identifiant d’événement manquant' }, { status: 400 });
+    }
+
+    const supabase = await createServerSupabaseClient();
+    const { error } = await supabase
+      .from('event_participants')
+      .delete()
+      .eq('event_id', eventId)
+      .eq('user_id', auth.user.id);
+
+    if (error) {
+      console.error('[events leave]', error);
+      return NextResponse.json(
+        { error: "Erreur lors du retrait de l'événement" },
+        { status: 500 }
+      );
+    }
+
+    await recalculerCompteur(supabase, eventId);
+
+    return NextResponse.json({ success: true, eventId });
+  } catch (err) {
+    console.error('[events leave]', err);
+    return NextResponse.json(
+      { error: "Erreur lors du retrait de l'événement" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * Recalcule le compteur « confirmés » affiché sur la carte : les insertions/
+ * suppressions de l'API ne passent pas par la fonction RPC d'origine, on
+ * remet donc le compteur à jour depuis le nombre réel de participants.
+ */
+async function recalculerCompteur(supabase: any, eventId: string) {
+  const { count } = await supabase
+    .from('event_participants')
+    .select('id', { count: 'exact', head: true })
+    .eq('event_id', eventId);
+
+  await supabase.from('events').update({ confirmed_count: count ?? 0 }).eq('id', eventId);
 }
