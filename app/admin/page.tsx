@@ -4,9 +4,15 @@ import React, { useEffect, useState } from 'react';
 import { fetchResilient } from '@/lib/fetch-resilient';
 import { Navbar } from '@/components/navbar';
 import { VerificationQueuePanel } from '@/components/admin-verification-queue';
-import { Users, Zap, Heart, TrendingUp, Ban, Lock, Crown, ShieldCheck } from 'lucide-react';
+import { Users, Zap, Heart, TrendingUp, Ban, Lock, Crown, ShieldCheck, X } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/auth-context';
+
+const PLANOS_PREMIUM = [
+  { id: 'PASS_EPICURIEN', nome: 'Pass Épicurien', preco: '9 € / mois' },
+  { id: 'PASS_PRIVILEGE', nome: 'Pass Privilège', preco: '15 € / mois' },
+  { id: 'PASS_VIP', nome: 'Pass VIP Elite', preco: '25 € / mois' },
+] as const;
 
 interface DashboardStats {
   totalUsers: number;
@@ -69,33 +75,33 @@ export default function AdminDashboard() {
     loadDashboard();
   }, [page, search]);
 
-  const banUser = async (userId: string, reason: string) => {
-    if (!confirm('Êtes-vous sûr de vouloir bannir cet utilisateur ?')) return;
+  // Confirmations via un modal intégré à la page. Remplacent les confirm()/
+  // prompt()/alert() natifs (laids, bloquants et incohérents avec l'interface).
+  const [acao, setAcao] = useState<null | {
+    tipo: 'ban' | 'unban' | 'grant';
+    userId: string;
+    username: string;
+    tierAtual: string;
+  }>(null);
+  const [motivo, setMotivo] = useState('Violation des conditions');
+  const [plano, setPlano] = useState<'PASS_EPICURIEN' | 'PASS_PRIVILEGE' | 'PASS_VIP'>(
+    'PASS_PRIVILEGE'
+  );
+  const [meses, setMeses] = useState(1);
+  const [processando, setProcessando] = useState(false);
+  const [feedback, setFeedback] = useState<{ tipo: 'ok' | 'erro'; texto: string } | null>(null);
 
-    const res = await fetchResilient('/api/admin/users', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, reason }),
-    });
-
-    if (res.ok) {
-      // Recharger les utilisateurs
-      const usersRes = await fetchResilient(`/api/admin/users?page=${page}`);
-      const usersData = await usersRes.json();
-      setUsers(usersData.users);
-    }
+  const prepararAcao = (tipo: 'ban' | 'unban' | 'grant', u: AdminUser) => {
+    setFeedback(null);
+    setMotivo('Violation des conditions');
+    setPlano('PASS_PRIVILEGE');
+    setMeses(1);
+    setAcao({ tipo, userId: u.id, username: u.username, tierAtual: u.subscriptionTier });
   };
 
-  const unbanUser = async (userId: string) => {
-    if (!confirm('Débannir cet utilisateur ?')) return;
-
-    const res = await fetchResilient(`/api/admin/users?userId=${userId}`, {
-      method: 'DELETE',
-    });
-
-    if (res.ok) {
-      // Recharger les utilisateurs
-      const usersRes = await fetchResilient(`/api/admin/users?page=${page}`);
+  const recarregarUsuarios = async () => {
+    const usersRes = await fetchResilient(`/api/admin/users?page=${page}`);
+    if (usersRes.ok) {
       const usersData = await usersRes.json();
       setUsers(usersData.users);
     }
@@ -103,48 +109,56 @@ export default function AdminDashboard() {
 
   // Activer (ou renouveler) un forfait mensuel Premium pour un utilisateur,
   // sans passer par Stripe. L'admin choisit le forfait et la durée de la
-  // courtoisie en mois.
-  const grantPremium = async (userId: string, currentTier: string) => {
-    const pacote = prompt(
-      'Activer Premium — quel forfait ?\n1 = Pass Épicurien (9€/mois)\n2 = Pass Privilège (15€/mois)\n3 = Pass VIP Elite (25€/mois)\n(défaut : 2)',
-      '2'
-    );
-    if (pacote === null) return;
-
-    const plan =
-      pacote.trim() === '1' ? 'PASS_EPICURIEN' :
-      pacote.trim() === '3' ? 'PASS_VIP' :
-      'PASS_PRIVILEGE';
-
-    const mesesInput = prompt(
-      'Combien de mois de courtoisie ? (défaut : 1)',
-      '1'
-    );
-    if (mesesInput === null) return;
-
-    const meses = parseInt(mesesInput.trim(), 10);
-    const mesesFinal = Number.isFinite(meses) && meses >= 1 ? meses : 1;
-
-    const verbo = currentTier && currentTier !== 'FREE' ? 'Renouveler' : 'Activer';
-    if (!confirm(`${verbo} ${plan} pour ${mesesFinal} mois pour cet utilisateur ?`)) return;
-
-    const res = await fetchResilient('/api/admin/users/grant-premium', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, plan, months: mesesFinal }),
-    });
-
-    if (res.ok) {
-      alert(`✅ ${plan} activé pour ${mesesFinal} mois avec succès !`);
-      // Recharger les utilisateurs
-      const usersRes = await fetchResilient(`/api/admin/users?page=${page}`);
-      if (usersRes.ok) {
-        const usersData = await usersRes.json();
-        setUsers(usersData.users);
+  // courtoisie en mois depuis le modal.
+  const executarAcao = async () => {
+    if (!acao) return;
+    setProcessando(true);
+    try {
+      let res: Response;
+      if (acao.tipo === 'ban') {
+        res = await fetchResilient('/api/admin/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: acao.userId,
+            reason: motivo.trim() || 'Violation des conditions',
+          }),
+        });
+      } else if (acao.tipo === 'unban') {
+        res = await fetchResilient(`/api/admin/users?userId=${acao.userId}`, {
+          method: 'DELETE',
+        });
+      } else {
+        res = await fetchResilient('/api/admin/users/grant-premium', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: acao.userId, plan: plano, months: meses }),
+        });
       }
-    } else {
-      const err = await res.json().catch(() => ({}));
-      alert(`❌ Erreur : ${err.error || "Échec de l'activation du Premium"}`);
+
+      if (res.ok) {
+        const textos = {
+          ban: `${acao.username} a été banni.`,
+          unban: `${acao.username} a été réactivé.`,
+          grant: `${plano} activé pour ${meses} mois — ${acao.username}.`,
+        };
+        setFeedback({ tipo: 'ok', texto: textos[acao.tipo] });
+        setAcao(null);
+        await recarregarUsuarios();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setFeedback({
+          tipo: 'erro',
+          texto: err.error ?? "Échec de l'action — réessayez.",
+        });
+      }
+    } catch {
+      setFeedback({
+        tipo: 'erro',
+        texto: 'Erreur réseau. Vérifiez votre connexion et réessayez.',
+      });
+    } finally {
+      setProcessando(false);
     }
   };
 
@@ -323,7 +337,7 @@ export default function AdminDashboard() {
                       <div className="flex flex-col gap-1">
                         {u.isBanned ? (
                           <button
-                            onClick={() => unbanUser(u.id)}
+                            onClick={() => prepararAcao('unban', u)}
                             className="text-green-400 hover:text-green-300 text-xs font-semibold"
                           >
                             Débannir
@@ -331,14 +345,14 @@ export default function AdminDashboard() {
                         ) : (
                           <>
                             <button
-                              onClick={() => grantPremium(u.id, u.subscriptionTier)}
+                              onClick={() => prepararAcao('grant', u)}
                               className="text-yellow-400 hover:text-yellow-300 text-xs font-semibold flex items-center gap-1"
                             >
                               <Crown className="w-4 h-4" />
                               {u.subscriptionTier && u.subscriptionTier !== 'FREE' ? 'Renouveler Premium' : 'Activer Premium'}
                             </button>
                             <button
-                              onClick={() => banUser(u.id, 'Violation des conditions')}
+                              onClick={() => prepararAcao('ban', u)}
                               className="text-red-400 hover:text-red-300 text-xs font-semibold flex items-center gap-1"
                             >
                               <Ban className="w-4 h-4" /> Bannir
@@ -386,6 +400,160 @@ export default function AdminDashboard() {
           <VerificationQueuePanel />
         </div>
       </div>
+
+      {/* Toast de succès / erreur (remplace les alert() natifs) */}
+      {feedback && (
+        <div
+          className={`fixed bottom-6 right-6 z-50 max-w-sm p-4 rounded-xl text-sm shadow-xl flex items-start justify-between gap-3 backdrop-blur-sm ${
+            feedback.tipo === 'ok'
+              ? 'bg-emerald-950/90 border border-emerald-800/50 text-emerald-200'
+              : 'bg-rose-950/90 border border-rose-800/50 text-rose-200'
+          }`}
+        >
+          <span>{feedback.texto}</span>
+          <button
+            onClick={() => setFeedback(null)}
+            className="p-1 hover:text-white shrink-0"
+            aria-label="Fermer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Modal de confirmation — bannissement, réactivation, Premium */}
+      {acao && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="w-full max-w-md bg-[#1C102B] border border-[#3D2654] rounded-2xl shadow-2xl p-6 text-white space-y-5">
+            <div className="flex items-start justify-between gap-3">
+              <h3 className="text-lg font-bold leading-snug">
+                {acao.tipo === 'ban' && (
+                  <>
+                    Bannir « {acao.username} »
+                  </>
+                )}
+                {acao.tipo === 'unban' && (
+                  <>
+                    Débannir « {acao.username} »
+                  </>
+                )}
+                {acao.tipo === 'grant' && (
+                  <>
+                    {acao.tierAtual && acao.tierAtual !== 'FREE'
+                      ? 'Renouveler Premium — '
+                      : 'Activer Premium — '}
+                    {acao.username}
+                  </>
+                )}
+              </h3>
+              <button
+                onClick={() => setAcao(null)}
+                disabled={processando}
+                className="p-2 rounded-full bg-[#2C1B3D] text-zinc-400 hover:text-white disabled:opacity-50"
+                aria-label="Fermer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {acao.tipo === 'ban' && (
+              <div className="space-y-2">
+                <p className="text-sm text-zinc-400">
+                  L&apos;utilisateur perdra immédiatement l&apos;accès à la plateforme.
+                </p>
+                <label className="text-xs text-zinc-400 block">
+                  Motif du bannissement (consigné pour la modération)
+                </label>
+                <textarea
+                  value={motivo}
+                  onChange={(e) => setMotivo(e.target.value)}
+                  rows={3}
+                  placeholder="Ex: Harcèlement signalé par 3 membres..."
+                  className="w-full p-3 bg-[#12091A] border border-[#2C1B3D] rounded-lg text-white placeholder-zinc-600 focus:outline-none focus:border-[#D4145A] text-sm"
+                />
+              </div>
+            )}
+
+            {acao.tipo === 'unban' && (
+              <p className="text-sm text-zinc-400">
+                L&apos;utilisateur retrouvera l&apos;accès à la plateforme. Confirmer ?
+              </p>
+            )}
+
+            {acao.tipo === 'grant' && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs text-zinc-400 block">Forfait de courtoisie</label>
+                  {PLANOS_PREMIUM.map((p) => (
+                    <label
+                      key={p.id}
+                      className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                        plano === p.id
+                          ? 'border-[#D4145A] bg-[#D4145A]/10'
+                          : 'border-[#2C1B3D] bg-[#12091A] hover:border-[#D4145A]/40'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="plano"
+                        value={p.id}
+                        checked={plano === p.id}
+                        onChange={() => setPlano(p.id)}
+                        className="w-4 h-4"
+                      />
+                      <span className="flex-1 text-sm font-semibold text-white">{p.nome}</span>
+                      <span className="text-xs text-zinc-400">{p.preco}</span>
+                    </label>
+                  ))}
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs text-zinc-400 block">
+                    Durée de la courtoisie (en mois)
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={24}
+                    value={meses}
+                    onChange={(e) => setMeses(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                    className="w-28 px-3 py-2 bg-[#12091A] border border-[#2C1B3D] rounded-lg text-white focus:outline-none focus:border-[#D4145A] text-sm"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setAcao(null)}
+                disabled={processando}
+                className="flex-1 py-2.5 px-3 bg-[#2C1B3D] text-white rounded-lg font-bold text-sm hover:bg-[#3D2654] disabled:opacity-50 transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={executarAcao}
+                disabled={processando || (acao.tipo === 'ban' && !motivo.trim())}
+                className={`flex-1 py-2.5 px-3 rounded-lg font-bold text-sm disabled:opacity-50 transition-all flex items-center justify-center gap-2 ${
+                  acao.tipo === 'ban'
+                    ? 'bg-red-950/80 border border-red-800/40 text-red-300 hover:bg-red-950'
+                    : 'bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white hover:opacity-95'
+                }`}
+              >
+                {processando ? (
+                  'Traitement…'
+                ) : acao.tipo === 'ban' ? (
+                  'Confirmer le bannissement'
+                ) : acao.tipo === 'unban' ? (
+                  'Confirmer la réactivation'
+                ) : (
+                  `Confirmer — ${meses} mois`
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
