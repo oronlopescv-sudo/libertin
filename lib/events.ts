@@ -6,10 +6,12 @@
 import { createClient } from '@supabase/supabase-js';
 import { Event, EventParticipant, EventPlanType } from './types';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-);
+const criaSessaoEventos = () =>
+  createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://example.supabase.co',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy-key'
+  );
+const supabase = criaSessaoEventos();
 
 /**
  * Event pricing

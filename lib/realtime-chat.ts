@@ -4,10 +4,12 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { Message } from './types';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-);
+const criaSessaoChat = () =>
+  createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://example.supabase.co',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy-key'
+  );
+const supabase = criaSessaoChat();
 
 /**
  * Hook pour les messages de chat en temps réel.

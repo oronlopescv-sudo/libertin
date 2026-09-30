@@ -6,11 +6,13 @@ import { sendAbonnementConfirmationEmail } from '@/lib/email';
 // Client privilégié (clé de service) : le webhook arrive depuis Stripe, sans
 // session utilisateur. Il doit pouvoir écrire dans `profiles` en contournant
 // le RLS. À n'utiliser qu'ici — jamais côté client.
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || '',
-  { auth: { persistSession: false } }
-);
+const criaSessaoStripe = () =>
+  createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://example.supabase.co',
+    process.env.SUPABASE_SERVICE_ROLE_KEY || 'dummy-key',
+    { auth: { persistSession: false } }
+  );
+const supabase = criaSessaoStripe();
 
 /**
  * Gestionnaire du webhook Stripe. À monter sur la route de paiement :
