@@ -20,8 +20,8 @@ import {
   EyeOff,
 } from 'lucide-react';
 
-/** Mot de passe minimal demandé par Supabase Auth (6 caractères). */
-const MOT_DE_PASSE_MIN = 6;
+/** Mot de passe mínimo (o fluxo "password esquecida" exige 8 — alinhados). */
+const MOT_DE_PASSE_MIN = 8;
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -61,7 +61,44 @@ export default function RegisterPage() {
   const [inscriptionValidee, setInscriptionValidee] = useState('');
   const [montrerMotDePasse, setMontrerMotDePasse] = useState(false);
   const [processando, setProcessando] = useState(false);
+
+  // Pseudo public : disponibilité vérifiée EN DIRECT à la frappe. Sans
+  // cela, un pseudo déjà pris n'apparaissait qu'à la toute dernière étape
+  // — tout le formulaire perdu pour rien.
+  type EstadoPseudo = 'nada' | 'verificando' | 'livre' | 'ocupado';
+  const [estadoPseudo, setEstadoPseudo] = useState<EstadoPseudo>('nada');
+  const [sugestaoPseudo, setSugestaoPseudo] = useState('');
+  const [reenvioEmail, setReenvioEmail] = useState<'parado' | 'a-enviar' | 'enviado'>('parado');
+  const [contagemEmail, setContagemEmail] = useState(0);
   const topoRef = useRef<HTMLDivElement>(null);
+
+  const verificarPseudo = React.useCallback(async (candidato: string): Promise<EstadoPseudo> => {
+    if (candidato.trim().length < 2 || candidato.trim().length > 24) return 'nada';
+    try {
+      const resposta = await fetch(`/api/auth/check-username?username=${encodeURIComponent(candidato.trim())}`);
+      const dados = await resposta.json();
+      if (dados.sugestao) setSugestaoPseudo(dados.sugestao);
+      else setSugestaoPseudo('');
+      return dados.disponivel ? 'livre' : 'ocupado';
+    } catch {
+      return 'nada'; // panne : ne pas punir, le serveur revalidera
+    }
+  }, []);
+
+  useEffect(() => {
+    if (step !== 1) return;
+    if (username.trim().length < 2 || username.trim().length > 24) {
+      setEstadoPseudo('nada');
+      setSugestaoPseudo('');
+      return;
+    }
+    setEstadoPseudo('verificando');
+    const tempo = setTimeout(async () => {
+      const estado = await verificarPseudo(username);
+      setEstadoPseudo(estado);
+    }, 450);
+    return () => clearTimeout(tempo);
+  }, [username, step, verificarPseudo]);
 
   const afficherErreur = (msg: string) => {
     setErrorMsg(msg);
@@ -100,8 +137,14 @@ export default function RegisterPage() {
       return;
     }
 
-    // Mot de passe : signaler la règle AVANT le serveur (Supabase refuse
-    // sous 6 caractères avec un message en anglais peu compréhensible).
+    // Pseudo já tomado: recusar já na etapa 1 em vez de no final.
+    if (estadoPseudo === 'ocupado') {
+      afficherErreur(`Le pseudo « ${username} » est déjà pris.${sugestaoPseudo ? ` Suggestion libre : ${sugestaoPseudo}` : ''}`);
+      return;
+    }
+
+    // Mot de passe : signaler a regra ANTES do servidor (Supabase recusa
+    // com uma mensagem inglesa pouco compreensível).
     if (password.length < MOT_DE_PASSE_MIN) {
       afficherErreur(
         `Votre mot de passe doit contenir au moins ${MOT_DE_PASSE_MIN} caractères.`
@@ -185,6 +228,39 @@ export default function RegisterPage() {
     }
   };
 
+  // Renvoi de l'e-mail de confirmation depuis l'écran de réussite.
+  const reenviarEmailConfirmacao = async () => {
+    setReenvioEmail('a-enviar');
+    try {
+      const res = await fetch('/api/auth/resend-confirmation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const dados = await res.json();
+      if (res.ok) {
+        setReenvioEmail('enviado');
+        setContagemEmail(60);
+        const horario = setInterval(() => {
+          setContagemEmail(c => {
+            if (c <= 1) {
+              clearInterval(horario);
+              setReenvioEmail('parado');
+              return 0;
+            }
+            return c - 1;
+          });
+        }, 1000);
+      } else {
+        setReenvioEmail('parado');
+        afficherErreur(dados.error || "Le renvoi de l'e-mail a échoué.");
+      }
+    } catch {
+      setReenvioEmail('parado');
+      afficherErreur("Le renvoi de l'e-mail a échoué.");
+    }
+  };
+
   // Pendant la vérification de session, ou si une session existe déjà (la
   // redirection ci-dessus est en cours), on n'affiche pas le formulaire.
   if (authLoading || user) {
@@ -250,6 +326,23 @@ export default function RegisterPage() {
                 <p className="text-[11px] text-zinc-500">
                   Rien reçu sous quelques minutes ? Regardez le dossier spam / indésirables.
                 </p>
+                {inscriptionValidee && (
+                  <div className="pt-1">
+                    <button
+                      type="button"
+                      onClick={reenviarEmailConfirmacao}
+                      disabled={reenvioEmail === 'a-enviar' || (reenvioEmail === 'enviado' && contagemEmail > 0)}
+                      className="text-[11px] text-emerald-300 underline hover:text-white transition-colors disabled:opacity-60"
+                    >
+                      {reenvioEmail === 'a-enviar' && "Renvoi en cours…"}
+                      {reenvioEmail === 'enviado' &&
+                        (contagemEmail > 0
+                          ? `E-mail renvoyé (nouveau renvoi dans ${contagemEmail}s)`
+                          : 'E-mail renvoyé')}
+                      {reenvioEmail === 'parado' && "Pas d'e-mail reçu ? Renvoyer l'e-mail de confirmation"}
+                    </button>
+                  </div>
+                )}
               </div>
               <Link
                 href="/login"
@@ -288,14 +381,53 @@ export default function RegisterPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-zinc-300 font-medium mb-1">Pseudo public</label>
-                  <input
-                    type="text"
-                    required
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="ex: DuoInsolite_75"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#12091A] border border-[#3D2654] text-white focus:outline-none focus:border-[#D4145A]"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      required
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="ex: DuoInsolite_75"
+                      maxLength={24}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-[#12091A] border border-[#3D2654] text-white focus:outline-none focus:border-[#D4145A]"
+                    />
+                    {/* Verificação em tempo real da disponibilidade */}
+                    <span
+                      className={`absolute right-3 top-3 w-2.5 h-2.5 rounded-full transition-all ${
+                        estadoPseudo === 'verificando'
+                          ? 'animate-pulse bg-zinc-400'
+                          : estadoPseudo === 'livre'
+                            ? 'bg-emerald-400'
+                            : estadoPseudo === 'ocupado'
+                              ? 'bg-rose-500'
+                              : 'bg-[#3D2654]'
+                      }`}
+                      aria-label={
+                        estadoPseudo === 'livre'
+                          ? 'Pseudo disponible'
+                          : estadoPseudo === 'ocupado'
+                            ? 'Pseudo déjà pris'
+                            : undefined
+                      }
+                    />
+                  </div>
+                  {estadoPseudo === 'ocupado' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (sugestaoPseudo) setUsername(sugestaoPseudo);
+                        setEstadoPseudo('nada');
+                      }}
+                      className="text-rose-400 mt-1 hover:text-white transition-colors text-left"
+                    >
+                      {sugestaoPseudo
+                        ? `Déjà pris — ${sugestaoPseudo} est libre — cliquez pour l'utiliser`
+                        : 'Déjà pris — essayez un autre'}
+                    </button>
+                  )}
+                  {estadoPseudo === 'livre' && (
+                    <p className="text-emerald-400 mt-1 text-left">Pseudo disponible ✓</p>
+                  )}
                 </div>
 
                 <div>
@@ -351,6 +483,41 @@ export default function RegisterPage() {
                 <p className="text-zinc-500 mt-1">
                   {MOT_DE_PASSE_MIN} caractères minimum. C&apos;est la clé de votre compte : mémorisez-la.
                 </p>
+                {/* Medidor de força — 4 níveis, sem biblioteca adicional */}
+                {password.length > 0 && (
+                  <div className="flex items-center gap-1.5 mt-2">
+                    {[0, 1, 2, 3].map((nivel) => {
+                      let pontos = 0;
+                      if (password.length >= MOT_DE_PASSE_MIN) pontos++;
+                      if (password.length >= 12) pontos++;
+                      if (/[A-Z]/.test(password) && /[a-z]/.test(password)) pontos++;
+                      if (/\d/.test(password)) pontos++;
+                      if (/[^\w\s]/.test(password)) pontos++;
+                      const nivelAtual = Math.min(4, Math.ceil(pontos / 1.25)) - 1;
+                      const cor =
+                        nivelAtual <= 0
+                          ? 'bg-rose-600'
+                          : nivelAtual === 1
+                            ? 'bg-amber-500'
+                            : nivelAtual === 2
+                              ? 'bg-yellow-400'
+                              : 'bg-emerald-400';
+                      return (
+                        <div
+                          key={nivel}
+                          className={`h-1 flex-1 rounded-full transition-all ${
+                            nivel <= nivelAtual ? cor : 'bg-[#2C1B3D]'
+                          }`}
+                        />
+                      );
+                    })}
+                    <span className="text-zinc-500 text-[10px] w-16 text-right">
+                      {password.length < MOT_DE_PASSE_MIN
+                        ? 'Trop courte'
+                        : 'Force'}
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div>

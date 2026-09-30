@@ -1,14 +1,20 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
+import { fetchResilient } from '@/lib/fetch-resilient';
 
 export function LoginForm() {
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [montrerMotDePasse, setMontrerMotDePasse] = useState(false);
+  // L'erreur parle-t-elle d'un e-mail non confirmé ? Alors on propose le
+  // renvoi de l'e-mail au lieu de laisser la personne bloquée sans issue.
+  const [erroConfirmacao, setErroConfirmacao] = useState(false);
+  const [reenvio, setReenvio] = useState<'parado' | 'a-enviar' | 'enviado'>('parado');
+  const [contagem, setContagem] = useState(0);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -18,6 +24,7 @@ export function LoginForm() {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setErroConfirmacao(false);
 
     try {
       if (!formData.email || !formData.password) {
@@ -34,9 +41,43 @@ export function LoginForm() {
 
       window.location.assign('/profil');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Connexion impossible. Réessayez.');
+      const mensagem = err instanceof Error ? err.message : 'Connexion impossible. Réessayez.';
+      setError(mensagem);
+      setErroConfirmacao(mensagem.toLowerCase().includes('confirm'));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const reenviarEmail = async () => {
+    setReenvio('a-enviar');
+    try {
+      const res = await fetchResilient('/api/auth/resend-confirmation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setReenvio('enviado');
+        setContagem(60);
+        const horario = setInterval(() => {
+          setContagem(c => {
+            if (c <= 1) {
+              clearInterval(horario);
+              setReenvio('parado');
+              return 0;
+            }
+            return c - 1;
+          });
+        }, 1000);
+      } else {
+        setError(data.error || "Le renvoi de l'e-mail a échoué.");
+        setReenvio('parado');
+      }
+    } catch {
+      setError("Le renvoi de l'e-mail a échoué.");
+      setReenvio('parado');
     }
   };
 
@@ -58,9 +99,25 @@ export function LoginForm() {
             {error && (
               <div
                 role="alert"
-                className="p-4 rounded-lg bg-red-500/20 border border-red-500/50 text-red-200 text-sm"
+                className="p-4 rounded-lg bg-red-500/20 border border-red-500/50 text-red-200 text-sm space-y-2"
               >
-                {error}
+                <p>{error}</p>
+                {erroConfirmacao && (
+                  <button
+                    type="button"
+                    onClick={reenviarEmail}
+                    disabled={reenvio !== 'parado'}
+                    className="inline-flex items-center gap-1.5 text-[#E86B7A] font-semibold hover:underline disabled:opacity-60"
+                  >
+                    <RefreshCw
+                      className={`w-3.5 h-3.5 ${reenvio === 'a-enviar' ? 'animate-spin' : ''}`}
+                    />
+                    {reenvio === 'a-enviar' && "Renvoi en cours…"}
+                    {reenvio === 'enviado' &&
+                      `Renvoyé — regardez vos e-mails${contagem > 0 ? ` (${contagem}s)` : ''}`}
+                    {reenvio === 'parado' && "Renvoyer l'e-mail de confirmation"}
+                  </button>
+                )}
               </div>
             )}
 

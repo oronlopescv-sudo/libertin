@@ -122,9 +122,25 @@ export async function signUpWithSupabase(userData: {
     });
 
     if (authError) {
+      // Les messages bruts de Supabase arrivent en anglais et perplexifient
+      // (« User already registered », « email rate limit exceeded »…).
+      // Traduits ici, à la seule source d'erreur d'inscription.
+      const brut = authError.message.toLowerCase();
+      let message = authError.message;
+      if (
+        brut.includes('already registered') ||
+        brut.includes('already exists') ||
+        brut.includes('user already')
+      ) {
+        message = 'Un compte existe déjà avec cet e-mail. Connectez-vous, ou utilisez « Mot de passe oublié » si vous avez perdu le mot de passe.';
+      } else if (brut.includes('rate limit') || brut.includes('too many')) {
+        message = 'Trop d\'inscriptions ou d\'e-mails envoyés dans la dernière heure. Attendez quelques minutes et réessayez.';
+      } else if (brut.includes('password')) {
+        message = 'Mot de passe refusé : utilisez au moins 8 caractères.';
+      }
       return {
         success: false,
-        error: authError.message,
+        error: message,
       };
     }
 
