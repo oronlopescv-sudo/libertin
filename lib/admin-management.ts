@@ -5,10 +5,12 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
+const criaSessaoAdmin = () =>
+  createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://example.supabase.co',
+    process.env.SUPABASE_SERVICE_ROLE_KEY || 'dummy-key'
+  );
+const supabase = criaSessaoAdmin();
 
 // Admin check middleware
 async function checkAdminAccess(userId: string): Promise<boolean> {
