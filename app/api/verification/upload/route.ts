@@ -86,12 +86,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
-    // Upload to storage
+    // Upload to storage — `uploadVerificationPhoto` retourne soit { url, path }
+    // soit { erro } avec un message présentable (voir lib/photo-verification.ts).
     const uploadResult = await uploadVerificationPhoto(userId, file);
 
-    if (!uploadResult) {
+    if ('erro' in uploadResult || !uploadResult.url) {
       return NextResponse.json(
-        { error: "Échec de l'envoi de la photo" },
+        { error: 'erro' in uploadResult ? uploadResult.erro : "Échec de l'envoi de la photo" },
         { status: 500 }
       );
     }

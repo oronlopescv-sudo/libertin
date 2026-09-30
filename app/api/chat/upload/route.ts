@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { utilisateurPremium } from '@/lib/auth-serveur';
-import { createServiceRoleClient } from '@/lib/supabase';
+import { comRetomada, clienteDeEscrita, mensagensDeErroUpload } from '@/lib/upload-fallback';
 import { validateFileUpload } from '@/lib/validation';
 
 /**
@@ -16,8 +16,9 @@ import { validateFileUpload } from '@/lib/validation';
  * moment de l'envoi du message par /api/messages/[groupId].
  *
  * L'identité est vérifiée avec le client de session. L'écriture dans Storage
- * utilise le client de service (service_role) pour éviter que des politiques
- * RLS mal configurées ne fassent échouer silencieusement l'envoi.
+ * passe par la clé de service, avec reprise par la session du membre si la
+ * clé est morte/malformée (lib/upload-fallback.ts) — avant ce refactor, une
+ * clé de service indisponible faisait échouer silencieusement l'envoi.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -39,33 +40,36 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
-    const supabase = createServiceRoleClient();
+    // L'identité est vérifiée avec le client de session. L'écriture dans
+    // Storage passe par la clé de service tant qu'elle est exploitable, avec
+    // reprise par la session du membre sinon (lib/upload-fallback.ts).
 
     const bucket = process.env.SUPABASE_CHAT_BUCKET || 'chat-media';
     const ext = file.name.split('.').pop() || 'jpg';
     const filename = `chat/${auth.user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
     const arrayBuffer = await file.arrayBuffer();
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from(bucket)
-      .upload(filename, arrayBuffer, {
+    const { data: uploadData, error: uploadError } = await comRetomada<{ path: string }>((c) =>
+      c.storage.from(bucket).upload(filename, arrayBuffer, {
         contentType: file.type,
         cacheControl: '3600',
         upsert: false,
-      });
+      })
+    );
 
     if (uploadError || !uploadData) {
       console.error('Chat media upload error:', uploadError);
       return NextResponse.json(
         {
           error: "Échec de l'envoi de l'image",
-          message: uploadError?.message ?? 'Erreur de stockage inconnue',
+          message: mensagensDeErroUpload(uploadError) ?? 'Erreur de stockage inconnue',
         },
         { status: 500 }
       );
     }
 
-    const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(uploadData.path);
+    const { cliente } = await clienteDeEscrita();
+    const { data: urlData } = cliente.storage.from(bucket).getPublicUrl(uploadData.path);
     const url = urlData.publicUrl;
 
     return NextResponse.json({ success: true, url });

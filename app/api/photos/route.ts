@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { utilisateurActuel } from '@/lib/auth-serveur';
-import { createServiceRoleClient } from '@/lib/supabase';
+import { comRetomada } from '@/lib/upload-fallback';
 import { apiError, apiSuccess } from '@/lib/api-response';
 
 /**
@@ -8,9 +8,10 @@ import { apiError, apiSuccess } from '@/lib/api-response';
  * DELETE /api/photos?id=... — supprime une de ses photos (fichier + ligne).
  *
  * L'identité est vérifiée via la session Supabase Auth. Les opérations sur
- * Storage et la table `photos` utilisent le client de service pour éviter
- * que des politiques RLS mal configurées ne bloquent la lecture ou la
- * suppression.
+ * Storage et la table `photos` passent par comRetomada (lib/upload-fallback.ts)
+ * : clé de service tant qu'elle est exploitable, reprise par la session du
+ * membre sinon — plutôt que d'échouer silencieusement quand seule la clé de
+ * service est cassée.
  */
 
 export async function GET() {
@@ -18,12 +19,15 @@ export async function GET() {
     const auth = await utilisateurActuel();
     if (!auth.ok) return auth.reponse;
 
-    const supabase = createServiceRoleClient();
-    const { data: photos, error } = await supabase
-      .from('photos')
-      .select('id, url, is_cover, display_order, uploaded_at')
-      .eq('user_id', auth.user.id)
-      .order('display_order', { ascending: true });
+    const { data: photos, error } = await comRetomada<
+      { id: string; url: string; is_cover: boolean; display_order: number; uploaded_at: string }[]
+    >((c) =>
+      c
+        .from('photos')
+        .select('id, url, is_cover, display_order, uploaded_at')
+        .eq('user_id', auth.user.id)
+        .order('display_order', { ascending: true })
+    );
 
     if (error) {
       console.error('[photos GET]', error);
@@ -47,16 +51,21 @@ export async function DELETE(req: NextRequest) {
       return apiError("L'identifiant de la photo est requis", 400);
     }
 
-    const supabase = createServiceRoleClient();
-
     // Vérifie que la photo appartient bien à la personne qui la supprime.
-    const { data: photo, error: fetchError } = await supabase
-      .from('photos')
-      .select('id, url, user_id, is_cover')
-      .eq('id', photoId)
-      .single();
+    const { data: photo } = await comRetomada<{
+      id: string;
+      url: string;
+      user_id: string;
+      is_cover: boolean;
+    }>((c) =>
+      c
+        .from('photos')
+        .select('id, url, user_id, is_cover')
+        .eq('id', photoId)
+        .single()
+    );
 
-    if (fetchError || !photo) {
+    if (!photo) {
       return apiError('Photo introuvable', 404);
     }
     if (photo.user_id !== auth.user.id) {
@@ -70,14 +79,18 @@ export async function DELETE(req: NextRequest) {
     const idx = photo.url.indexOf(marker);
     if (idx !== -1) {
       const path = photo.url.slice(idx + marker.length);
-      const { error: storageError } = await supabase.storage.from(bucket).remove([path]);
+      const { error: storageError } = await comRetomada((c) =>
+        c.storage.from(bucket).remove([path])
+      );
       if (storageError) {
         console.error('[photos DELETE] storage', storageError);
         // On continue : mieux vaut une ligne DB propre qu'un fichier orphelin bloquant.
       }
     }
 
-    const { error: deleteError } = await supabase.from('photos').delete().eq('id', photoId);
+    const { error: deleteError } = await comRetomada((c) =>
+      c.from('photos').delete().eq('id', photoId)
+    );
     if (deleteError) {
       console.error('[photos DELETE]', deleteError);
       return apiError('Erreur lors de la suppression', 500);
@@ -85,15 +98,17 @@ export async function DELETE(req: NextRequest) {
 
     // Si la photo supprimée était la couverture, promouvoir la suivante.
     if (photo.is_cover) {
-      const { data: next } = await supabase
-        .from('photos')
-        .select('id')
-        .eq('user_id', auth.user.id)
-        .order('display_order', { ascending: true })
-        .limit(1)
-        .maybeSingle();
+      const { data: next } = await comRetomada<{ id: string }>((c) =>
+        c
+          .from('photos')
+          .select('id')
+          .eq('user_id', auth.user.id)
+          .order('display_order', { ascending: true })
+          .limit(1)
+          .maybeSingle()
+      );
       if (next) {
-        await supabase.from('photos').update({ is_cover: true }).eq('id', next.id);
+        await comRetomada((c) => c.from('photos').update({ is_cover: true }).eq('id', next.id));
       }
     }
 
