@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
@@ -20,11 +20,13 @@ import {
   Star,
   Compass,
   Crown,
+  X,
 } from 'lucide-react';
 
 export default function HomePage() {
   const { user, usersList, isPremium } = useAuth();
   const router = useRouter();
+  const [mensagemErro, setMensagemErro] = useState<string | null>(null);
 
   const handleOpenMessage = async (profile: { id: string }) => {
     try {
@@ -47,9 +49,9 @@ export default function HomePage() {
         router.push('/login');
         return;
       }
-      alert(data.error ?? "Impossible d'ouvrir la conversation");
+      setMensagemErro(data.error ?? "Impossible d'ouvrir la conversation");
     } catch {
-      alert('Erreur réseau. Vérifiez votre connexion et réessayez.');
+      setMensagemErro('Erreur réseau. Vérifiez votre connexion et réessayez.');
     }
   };
 
@@ -98,6 +100,20 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-[#12091A] text-[#F5F0F8]">
       <Navbar />
+
+      {/* Toast d'erreur — remplace les anciens alert() natifs */}
+      {mensagemErro && (
+        <div className="fixed bottom-6 right-6 z-50 max-w-sm p-4 rounded-xl bg-rose-950/90 border border-rose-800/50 text-rose-200 text-sm shadow-xl flex items-start justify-between gap-3 backdrop-blur-sm">
+          <span>{mensagemErro}</span>
+          <button
+            onClick={() => setMensagemErro(null)}
+            className="p-1 hover:text-white shrink-0"
+            aria-label="Fermer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       <main className="flex-1">
         {/* Hero Section */}
