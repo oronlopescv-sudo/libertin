@@ -6,6 +6,7 @@ import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { supabase, SUPABASE_SQL_SCHEMA, getSupabaseUsersList, getSupabaseGroups, getSupabaseMessages } from '@/lib/supabase';
 import { User, Group } from '@/lib/types';
+import { useAuth } from '@/context/auth-context';
 import {
   Database,
   Copy,
@@ -13,6 +14,7 @@ import {
   RefreshCw,
   ShieldCheck,
   Key,
+  Lock,
   Server,
   Table,
   FileCode,
@@ -48,7 +50,7 @@ interface TableDef {
   columns: TableColumn[];
 }
 
-export default function SupabaseDataPage() {
+function SupabaseDataContent() {
   const [copiedSql, setCopiedSql] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [copiedKey, setCopiedKey] = useState(false);
@@ -653,4 +655,31 @@ export default function SupabaseDataPage() {
       <Footer />
     </div>
   );
+}
+
+/**
+ * Page de diagnostic (comptes BD, messages, clé anon affichable) :
+ * réservée aux administrateurs. Le gate vit dans un wrapper, APRÈS que le
+ * composant de contenu a monté tous ses hooks — un retour anticipé avant
+ * les `useState` de SupabaseDataContent violerait les règles des hooks.
+ */
+export default function SupabaseDataPage() {
+  const { isAdmin, isLoading: authLoading } = useAuth();
+
+  if (authLoading || !isAdmin) {
+    return (
+      <div className="min-h-screen flex flex-col bg-[#12091A] text-[#F5F0F8]">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center min-h-[80vh] px-4">
+          <div className="text-center space-y-4">
+            <Lock className="w-12 h-12 text-[#D4145A] mx-auto" />
+            <h1 className="text-3xl font-bold text-white">Accès refusé</h1>
+            <p className="text-zinc-400">Page de diagnostic réservée aux administrateurs.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return <SupabaseDataContent />;
 }

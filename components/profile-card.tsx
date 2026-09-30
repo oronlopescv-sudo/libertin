@@ -20,11 +20,14 @@ import {
 } from 'lucide-react';
 import { fetchResilient } from '@/lib/fetch-resilient';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface ProfileCardProps {
   profile: User;
   currentUser: User | null;
   isPremium: boolean;
+  /** Estado inicial do like, sincronizado com o servidor (se conhecido). */
+  likedByMe?: boolean;
   onOpenMessageModal?: (profile: User) => void;
   onBlockStatusChange?: () => void;
 }
@@ -33,11 +36,13 @@ export function ProfileCard({
   profile,
   currentUser,
   isPremium,
+  likedByMe = false,
   onOpenMessageModal,
   onBlockStatusChange,
 }: ProfileCardProps) {
   const { refreshUser } = useAuth();
-  const [liked, setLiked] = useState(false);
+  const router = useRouter();
+  const [liked, setLiked] = useState(likedByMe);
   const [likeLoading, setLikeLoading] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
 
@@ -72,22 +77,39 @@ export function ProfileCard({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, profile.interests, profile.isVerified, distanceKm]);
 
+  // Like sincronizado com o servidor: o resultado da API é a verdade (o
+  // gateway Premium 403 e a sessão 401 são tratados como nas outras páginas,
+  // em vez de deixar o botão otimisticamente "likado" com o servidor a
+  // rejeitar o pedido).
   const handleToggleLike = async (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     if (!currentUser || likeLoading) return;
 
     setLikeLoading(true);
-    const wasLiked = liked;
-    setLiked(!wasLiked);
-
     try {
-      await fetchResilient('/api/likes', {
+      const res = await fetchResilient('/api/likes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ likedUserId: profile.id }),
       });
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok) {
+        // O servidor devolve o estado real (like criado ou retirado).
+        setLiked(Boolean(data.liked));
+        if (onBlockStatusChange) onBlockStatusChange();
+        return;
+      }
+      if (data.premiumRequired) {
+        router.push('/abonnements');
+        return;
+      }
+      if (res.status === 401) {
+        router.push('/login');
+        return;
+      }
+      console.error('Erreur lors du like:', data.error ?? res.status);
     } catch (err) {
-      setLiked(wasLiked);
       console.error('Erreur lors du like:', err);
     } finally {
       setLikeLoading(false);

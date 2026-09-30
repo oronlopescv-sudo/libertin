@@ -110,7 +110,13 @@ export default function RegisterPage() {
   const handleCompleteRegistration = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!termsAccepted) {
-      afficherErreur('Vous devez accepter les conditions d\'utilisation et certifier avoir plus de 18 ans.');
+      afficherErreur("Vous devez accepter les conditions d'utilisation et certifier avoir plus de 18 ans.");
+      return;
+    }
+    // A promessa do formulário (bio mínima) também tem de ser verificada —
+    // sem isto, uma apresentação vazia era aceite tal como uma completa.
+    if (bio.trim().length < 50) {
+      afficherErreur('Votre présentation doit contenir au moins 50 caractères.');
       return;
     }
 
@@ -312,7 +318,9 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-zinc-300 font-medium mb-1">Présentation / Bio (minimum 50 caractères)</label>
+                <label className="block text-zinc-300 font-medium mb-1">
+                  Présentation / Bio <span className="text-zinc-500">({bio.trim().length}/50 caractères minimum)</span>
+                </label>
                 <textarea
                   rows={3}
                   value={bio}
