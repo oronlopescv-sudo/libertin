@@ -34,6 +34,41 @@ async function viaFallback<T = any>(
 /**
  * Upload photo to Supabase Storage (bucket `verification-photos`)
  */
+/**
+ * Converte o URL gravado na BD num URL assinado da Storage.
+ *
+ * O bucket `verification-photos` passou a PRIVADO (era público e expunha os
+ * documentos de identidade a quem tivesse o link). O URL público gravado no
+ * campo `url` das rows deixa de funcionar; a entrega da foto passa a ser em
+ * dois sítios, ambos pelo servidor:
+ *   * fila admin   → /api/admin/verifications assina aqui em cada leitura;
+ *   * análise NSFW → abaixo, saveVerificationPhoto assina antes de consultar
+ *     o Google Vision (a fotografia era pública e já não é).
+ *
+ * Entradas que não são do bucket (data: URL, link externo colado pelo
+ * utilizador) voltam intactas — o histórico de rows também guarda essas.
+ */
+export async function assinaUrlVerificacao(url: string | null | undefined): Promise<string> {
+  if (!url || !/^https?:\/\//i.test(url)) return url ?? '';
+  const pathMatch = url.match(/verification\/[^?]+/);
+  if (!pathMatch) return url;
+
+  try {
+    const { cliente } = await clienteDeEscrita();
+    const { data, error } = await cliente.storage
+      .from('verification-photos')
+      .createSignedUrl(pathMatch[0], 60 * 60); // 1h — só para a sessão de revisão
+    if (error || !data?.signedUrl) {
+      console.error('Falha ao assinar a foto de verificação:', error);
+      return url;
+    }
+    return data.signedUrl;
+  } catch (err) {
+    console.error('Falha ao assinar a foto de verificação:', err);
+    return url;
+  }
+}
+
 export async function uploadVerificationPhoto(
   userId: string,
   file: File
@@ -142,8 +177,10 @@ export async function saveVerificationPhoto(
   photoUrl: string,
   photoPath: string
 ): Promise<VerificationPhotoResult> {
-  // Check for NSFW content
-  const isNSFW = await checkNSFWContent(photoUrl);
+  // Check for NSFW content — com o bucket privado o URL público já não é
+  // buscável: analisa um URL ASSINADO (data:/externos passam como estão; o
+  // Google Vision não consegue buscar data: e a análise falha aberta, como hoje).
+  const isNSFW = await checkNSFWContent(await assinaUrlVerificacao(photoUrl));
 
   if (isNSFW) {
     // Delete the uploaded photo (uniquement si elle a été stockée : le mode

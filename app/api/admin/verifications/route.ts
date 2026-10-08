@@ -3,6 +3,7 @@ import { utilisateurAdmin } from '@/lib/auth-serveur';
 import {
   getPendingVerifications,
   getVerificationStats,
+  assinaUrlVerificacao,
 } from '@/lib/photo-verification';
 
 /**
@@ -39,19 +40,23 @@ export async function GET() {
     return age;
   };
 
-  const mapped = (photos ?? []).map((p: any) => ({
-    id: p.id,
-    url: p.url,
-    status: p.status,
-    created_at: p.created_at,
-    user: {
-      username: p.profiles?.username ?? '—',
-      email: p.profiles?.email ?? '—',
-      age: computeAge(p.profiles?.date_of_birth),
-      gender: p.profiles?.gender ?? null,
-      location: p.profiles?.location ?? null,
-    },
-  }));
+  // O bucket é privado: o URL público gravado em `url` já não abre — a fila
+  // recebe um URL ASSINADO (1h) gerado pelo servidor.
+  const mapped = await Promise.all(
+    (photos ?? []).map(async (p: any) => ({
+      id: p.id,
+      url: await assinaUrlVerificacao(p.url),
+      status: p.status,
+      created_at: p.created_at,
+      user: {
+        username: p.profiles?.username ?? '—',
+        email: p.profiles?.email ?? '—',
+        age: computeAge(p.profiles?.date_of_birth),
+        gender: p.profiles?.gender ?? null,
+        location: p.profiles?.location ?? null,
+      },
+    }))
+  );
 
   return NextResponse.json({ photos: mapped, stats }, { status: 200 });
 }
