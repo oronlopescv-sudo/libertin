@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { fetchResilient } from '@/lib/fetch-resilient';
 import Link from 'next/link';
 import { X, Lock } from 'lucide-react';
-import { isPremium as isPremiumFn } from '@/lib/premium';
+import { temNivelNoMinimo } from '@/lib/premium';
 
 interface CreateGroupModalProps {
   isOpen: boolean;
@@ -12,6 +12,10 @@ interface CreateGroupModalProps {
   userAbonnement: {
     tier: string;
     expiresAt: string | null;
+    // Email/role entram no cálculo de isAdmin: sem eles, um administrador
+    // (tier FREE) era falsamente negado na criação de grupos.
+    email: string | null;
+    role: string | null;
   };
 }
 
@@ -25,16 +29,23 @@ export function CreateGroupModal({ isOpen, onClose, userAbonnement }: CreateGrou
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  const isPremium = isPremiumFn({
-    subscriptionTier: userAbonnement.tier,
-    subscriptionEnd: userAbonnement.expiresAt,
-  });
+  // Os planos anunciam «Création illimitée de groupes» a partir do PASS
+  // PRIVILÈGE (não do Épicurien) — o servidor aplica o mesmo nível.
+  const podeCriarGrupos = temNivelNoMinimo(
+    {
+      subscriptionTier: userAbonnement.tier,
+      subscriptionEnd: userAbonnement.expiresAt,
+      email: userAbonnement.email,
+      role: userAbonnement.role,
+    },
+    'PASS_PRIVILEGE'
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!isPremium) {
-      setError('Seuls les utilisateurs Premium peuvent créer des groupes');
+    if (!podeCriarGrupos) {
+      setError('A criação de grupos está incluída nos Pass Privilège e Pass VIP');
       return;
     }
 
@@ -97,16 +108,17 @@ export function CreateGroupModal({ isOpen, onClose, userAbonnement }: CreateGrou
 
         {/* Content */}
         <div className="p-6">
-          {!isPremium ? (
+          {!podeCriarGrupos ? (
             // Premium Required
             <div className="text-center space-y-4">
               <div className="w-16 h-16 bg-[#D4145A]/20 rounded-full flex items-center justify-center mx-auto">
                 <Lock className="w-8 h-8 text-[#D4145A]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-2">Premium uniquement</h3>
+                <h3 className="text-lg font-bold text-white mb-2">Pass Privilège requis</h3>
                 <p className="text-zinc-400 text-sm mb-4">
-                  Seuls les utilisateurs avec un abonnement Premium peuvent créer des groupes.
+                  La création de groupes est incluse dans les Pass Privilège et Pass VIP
+                  (à partir de 15 €/mois).
                 </p>
               </div>
               <Link

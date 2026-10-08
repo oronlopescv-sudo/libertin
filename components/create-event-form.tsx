@@ -2,18 +2,15 @@
 
 import React, { useState } from 'react';
 import { fetchResilient } from '@/lib/fetch-resilient';
-import { useRouter } from 'next/navigation';
 import { Loader, Heart } from 'lucide-react';
-import { createEvent, EVENT_PLANS } from '@/lib/events';
+import { EVENT_PLANS } from '@/lib/events';
 import type { EventType, EventPlanType } from '@/lib/types';
 
 interface CreateEventFormProps {
-  userId: string;
   onSuccess?: () => void;
 }
 
-export function CreateEventForm({ userId }: CreateEventFormProps) {
-  const router = useRouter();
+export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [planType, setPlanType] = useState<EventPlanType>('basic');
@@ -58,12 +55,16 @@ export function CreateEventForm({ userId }: CreateEventFormProps) {
     setError(null);
 
     try {
-      const result = await createEvent(userId, {
-        ...formData,
-        plan_type: planType,
+      // Passa pela rota do servidor: o creator_id passa a vir da sessão
+      // (antes ia do browser com a chave anónima — falsificável).
+      const res = await fetchResilient('/api/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...formData, plan_type: planType }),
       });
+      const result = await res.json().catch(() => ({}) as { success?: boolean; eventId?: string; error?: string });
 
-      if (!result.success) {
+      if (!res.ok || !result.success || !result.eventId) {
         setError(result.error || 'Échec de la création de l\'annonce');
         setIsLoading(false);
         return;
@@ -87,7 +88,12 @@ export function CreateEventForm({ userId }: CreateEventFormProps) {
       }
 
       const { checkoutUrl } = await response.json();
-      router.push(checkoutUrl);
+      // O anúncio JÁ está criado (pendente de pagamento): fecha o modal e
+      // refresca a lista por baixo — a callback estava morta e nunca chamada.
+      onSuccess?.();
+      // URL externa do Stripe — router.push do Next trata-a como rota
+      // interna e não navega. window.location é o correto.
+      window.location.href = checkoutUrl;
     } catch (err) {
       setError('Erreur lors de la création de l\'annonce');
       console.error(err);

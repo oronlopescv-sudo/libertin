@@ -17,6 +17,14 @@ export default function ChatPage() {
   const [groupe, setGroupe] = useState<{ name: string; memberCount?: number } | null>(null);
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState('');
+  // O /chat/[groupId] serve conversas privadas (ligadas pela /messagerie) e
+  // salões de grupo. «Retour» muda conforme a origem (?orig=messagerie).
+  const [voltarPara, setVoltarPara] = useState('/groupes');
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('orig') === 'messagerie') {
+      setVoltarPara('/messagerie');
+    }
+  }, []);
 
   useEffect(() => {
     if (!user) {
@@ -103,10 +111,12 @@ export default function ChatPage() {
       <Navbar />
       <div className="max-w-4xl mx-auto px-4 py-8">
         <Link
-          href="/groupes"
+          href={voltarPara}
           className="inline-block mb-4 text-sm text-zinc-400 hover:text-white transition"
         >
-          ← Retour aux groupes
+          {voltarPara === '/messagerie'
+            ? '← Retour aux conversations'
+            : '← Retour aux groupes'}
         </Link>
         <ChatBox
           groupId={groupId}

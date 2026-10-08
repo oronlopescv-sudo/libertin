@@ -98,7 +98,7 @@ export function getPlanDetails(tier: AbonnementTier): AbonnementPlan {
 }
 
 /**
- * Calculates end date based on duration in months
+ * Calculate... — end date based on duration in months
  */
 export function calculateAbonnementEndDate(startDate: Date, durationMonths: number): Date {
   const endDate = new Date(startDate);
@@ -106,55 +106,10 @@ export function calculateAbonnementEndDate(startDate: Date, durationMonths: numb
   return endDate;
 }
 
-/**
- * Create a Stripe Checkout session for abonnement upgrade
- * @param userId - User's unique identifier
- * @param planId - Abonnement tier ID
- * @param userEmail - User's email
- * @param successUrl - URL to redirect on success
- * @param cancelUrl - URL to redirect on cancel
- */
-export async function createCheckoutSession(
-  userId: string,
-  planId: AbonnementTier,
-  userEmail: string,
-  successUrl: string,
-  cancelUrl: string
-) {
-  if (!stripe) {
-    throw new Error('Stripe not configured. Set STRIPE_SECRET_KEY in environment.');
-  }
-
-  if (planId === 'FREE') {
-    throw new Error('Cannot checkout FREE tier. This should be automatic.');
-  }
-
-  const priceId = STRIPE_PRODUCT_IDS[planId];
-  if (!priceId || priceId.includes('placeholder')) {
-    throw new Error(`Stripe price ID not configured for ${planId}`);
-  }
-
-  const session = await stripe.checkout.sessions.create({
-    payment_method_types: ['card'],
-    line_items: [
-      {
-        price: priceId,
-        quantity: 1,
-      },
-    ],
-    mode: 'payment',
-    success_url: successUrl,
-    cancel_url: cancelUrl,
-    customer_email: userEmail,
-    client_reference_id: userId,
-    metadata: {
-      userId,
-      planId,
-    },
-  });
-
-  return session;
-}
+// N.B.: a antiga createCheckoutSession (mode 'payment' 1-vez + price IDs de
+// placeholder) foi removida — era código morto e confundia com o fluxo real
+// de ASSINATURA mensal (price_data + recurring), que vive na rota
+// /api/payments/create-checkout e nos Payment Links STRIPE_LINK_*.
 
 /**
  * Verify Stripe webhook signature

@@ -27,6 +27,18 @@ export async function POST(req: NextRequest) {
 
     const supabase = await createServerSupabaseClient();
 
+    // Bloqueio persistente: se o dono do perfil me bloqueou, o like não passa
+    // (o «Bloquer» deixou de ser cosmético — ver /api/blocks).
+    const { data: bloqueMe } = await supabase
+      .from('blocked_users')
+      .select('id')
+      .eq('user_id', likedUserId)
+      .eq('blocked_id', auth.user.id)
+      .limit(1);
+    if (bloqueMe && bloqueMe.length > 0) {
+      return NextResponse.json({ error: "Ce membre ne peut pas être liké" }, { status: 403 });
+    }
+
     const { data: existingLike } = await supabase
       .from('likes')
       .select('id')

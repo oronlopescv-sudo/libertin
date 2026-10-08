@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
 import { utilisateurPremium } from '@/lib/auth-serveur';
+import { temNivelNoMinimo } from '@/lib/premium';
 
 /**
  * Créer un groupe.
@@ -12,6 +13,25 @@ export async function POST(req: NextRequest) {
   try {
     const auth = await utilisateurPremium('créer des groupes');
     if (!auth.ok) return auth.reponse;
+
+    // «Création illimitée de groupes» é anunciada a partir do Pass Privilège:
+    // um Épicurien que chame a rota diretamente NÃO deve conseguir (a UI
+    // também bloqueia, mas a rota é a verdade — a UI não pode ser a barreira).
+    const nivelOk = temNivelNoMinimo(
+      {
+        email: auth.user.email,
+        role: auth.user.role,
+        subscriptionTier: auth.user.subscriptionTier,
+        subscriptionEnd: auth.user.subscriptionEnd,
+      },
+      'PASS_PRIVILEGE'
+    );
+    if (!nivelOk) {
+      return NextResponse.json(
+        { error: 'La création de groupes nécessite le Pass Privilège (ou Pass VIP)', premiumRequired: true },
+        { status: 403 }
+      );
+    }
 
     const supabase = await createServerSupabaseClient();
 

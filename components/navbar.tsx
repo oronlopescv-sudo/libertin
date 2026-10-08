@@ -9,6 +9,7 @@ import {
   Flame,
   Users,
   MessageSquare,
+  Calendar,
   Crown,
   ShieldCheck,
   LogOut,
@@ -22,9 +23,12 @@ export function Navbar() {
   const { user, isPremium, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // «Événements» estava ausente: só se chegava à página digitando a URL.
+  // A própria página mostra a resposta com o gate Premium («Passer à Premium»).
   const navLinks = [
-    { href: '/decouvrir', label: 'Découvrir', icon: Flame, badge: isPremium ? null : 'Premium' },
+    { href: '/decouvrir', label: 'Découvrir', icon: Flame },
     { href: '/groupes', label: 'Groupes', icon: Users },
+    { href: '/evenements', label: 'Événements', icon: Calendar },
     { href: '/messagerie', label: 'Messages', icon: MessageSquare },
     { href: '/abonnements', label: 'Abonnements', icon: Crown, highlight: true },
     { href: '/admin', label: 'Modération', icon: ShieldCheck, adminOnly: true },
@@ -72,11 +76,6 @@ export function Navbar() {
                 >
                   <Icon className="w-4 h-4" />
                   <span>{link.label}</span>
-                  {link.badge && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#D4145A] text-white font-semibold">
-                      {link.badge}
-                    </span>
-                  )}
                 </Link>
               );
             })}
@@ -189,11 +188,6 @@ export function Navbar() {
                 >
                   <Icon className="w-5 h-5 text-[#E86B7A]" />
                   <span>{link.label}</span>
-                  {link.badge && (
-                    <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-[#D4145A] text-white font-semibold">
-                      {link.badge}
-                    </span>
-                  )}
                 </Link>
               );
             })}

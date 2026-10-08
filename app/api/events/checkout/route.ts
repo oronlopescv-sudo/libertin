@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { utilisateurActuel } from '@/lib/auth-serveur';
+import { EVENT_PLANS } from '@/lib/events';
+import type { EventPlanType } from '@/lib/types';
 
 /**
  * POST /api/events/checkout
@@ -30,17 +32,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const eventPrices: Record<string, string> = {
-      basic: process.env.STRIPE_PRODUCT_EVENT_BASIC || 'price_event_basic',
-      featured: process.env.STRIPE_PRODUCT_EVENT_FEATURED || 'price_event_featured',
-      vip_gold: process.env.STRIPE_PRODUCT_EVENT_VIP || 'price_event_vip',
-    };
-
-    const priceId = eventPrices[planType];
-    if (!priceId || priceId.includes('price_event')) {
+    // Cobrança por price_data: o valor cobrado é SEMPRE o EVENT_PLANS.price
+    // daqui — nada de env STRIPE_PRODUCT_EVENT_* nem de price IDs que possam
+    // divergir do preço mostrado no formulário (€ = euros, x100 = cêntimos).
+    const plan = EVENT_PLANS[planType as EventPlanType];
+    if (!plan) {
       return NextResponse.json(
-        { error: 'Event plan not configured' },
-        { status: 500 }
+        { error: 'Plano de anúncio desconhecido' },
+        { status: 400 }
       );
     }
 
@@ -55,7 +54,9 @@ export async function POST(request: NextRequest) {
       },
       body: new URLSearchParams({
         'payment_method_types[]': 'card',
-        'line_items[0][price]': priceId,
+        'line_items[0][price_data][currency]': 'eur',
+        'line_items[0][price_data][product_data][name]': `Annonce xlibertine — ${plan.name}`,
+        'line_items[0][price_data][unit_amount]': String(Math.round(plan.price * 100)),
         'line_items[0][quantity]': '1',
         mode: 'payment',
         // As respetivas páginas vivem em /evenements (não /events — essa
