@@ -78,3 +78,33 @@ export function isPremium(user: UserLike): boolean {
 
   return true
 }
+
+/** Hierarquia dos passes: rank maior = mais direitos. */
+const TIER_RANK: Record<string, number> = {
+  FREE: 0,
+  PASS_EPICURIEN: 1,
+  PASS_PRIVILEGE: 2,
+  PASS_VIP: 3,
+}
+
+export type NivelMinimo = keyof typeof TIER_RANK
+
+/**
+ * True se o membro tem, no mínimo, o passe indicado — ou é administrador, ou
+ * é Premium à vida (benefício integral para ambos).
+ *
+ * Os planos anunciam «Création illimitée de groupes» só a partir do Pass
+ * Privilège: um Épicurien NÃO deve conseguir criar grupos (a rota e a UI
+ * passam ambas por aqui).
+ */
+export function temNivelNoMinimo(user: UserLike, minimo: NivelMinimo): boolean {
+  if (!user) return false
+
+  const email = user.email?.toLowerCase().trim()
+  if (email && LIFETIME_PREMIUM_EMAILS.has(email)) return true
+  if (isAdmin(user)) return true
+  if (!isPremium(user)) return false
+
+  const rank = TIER_RANK[user.subscriptionTier ?? ''] ?? 0
+  return rank >= TIER_RANK[minimo]
+}

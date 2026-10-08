@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, User, Calendar, MapPin } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
+import { fetchResilient } from '@/lib/fetch-resilient';
 import { validateDateOfBirth } from '@/lib/validation';
 
 export function RegisterForm() {
@@ -22,6 +23,30 @@ export function RegisterForm() {
     sexualOrientation: 'heterosexuelle',
     location: '',
   });
+
+  // Verificação de pseudo em BLUR (rota /api/auth/check-username): antes só
+  // falhava no final — causa de abandono do formulário.
+  const [avisoUtilizador, setAvisoUtilizador] = useState('');
+  const [sugestaoUtilizador, setSugestaoUtilizador] = useState('');
+
+  const verificarUtilizador = async () => {
+    const pseudo = formData.username.trim();
+    setAvisoUtilizador('');
+    setSugestaoUtilizador('');
+    if (pseudo.length < 2) return;
+    try {
+      const res = await fetchResilient(
+        `/api/auth/check-username?username=${encodeURIComponent(pseudo)}`
+      );
+      const data = await res.json().catch(() => ({}));
+      if (data?.disponivel === false && data?.motivo !== 'longueur') {
+        setAvisoUtilizador("Ce nom d'utilisateur est déjà pris");
+        if (data.sugestao) setSugestaoUtilizador(data.sugestao);
+      }
+    } catch {
+      /* silencioso: o servidor revalida no envio */
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +85,15 @@ export function RegisterForm() {
       // Redirection vers la connexion après succès
       setTimeout(() => router.push('/login'), 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
+      // O contexto marca «infoNotification» quando a conta FOI criada e só
+      // falta confirmar o e-mail (caminho normal do registo). Mostrar isso
+      // no bloco vermelho de erro enganava — a inscrição tinha FUNCIONADO.
+      if ((err as any)?.infoNotification) {
+        setSuccess(true);
+        setTimeout(() => router.push('/login'), 2000);
+      } else {
+        setError(err instanceof Error ? err.message : 'Une erreur est survenue');
+      }
     } finally {
       setLoading(false);
     }
@@ -68,6 +101,10 @@ export function RegisterForm() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    if (name === 'username') {
+      setAvisoUtilizador('');
+      setSugestaoUtilizador('');
+    }
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -129,10 +166,30 @@ export function RegisterForm() {
                   name="username"
                   value={formData.username}
                   onChange={handleChange}
+                  onBlur={verificarUtilizador}
                   placeholder="Votre nom d'utilisateur"
                   className="w-full pl-10 pr-4 py-2 bg-[#1C102B] border border-[#2C1B3D] rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-[#D4145A]"
                 />
               </div>
+              {/* Verificação ANTES de submeter: um pseudo já usado só falhava
+                  no final do formulário. A rota devolve uma sugestão. */}
+              {avisoUtilizador && (
+                <p className="text-xs text-amber-400">
+                  {avisoUtilizador}
+                  {sugestaoUtilizador && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData((prev) => ({ ...prev, username: sugestaoUtilizador }));
+                        setAvisoUtilizador('');
+                      }}
+                      className="ml-2 underline hover:text-white"
+                    >
+                      Usar « {sugestaoUtilizador} »
+                    </button>
+                  )}
+                </p>
+              )}
             </div>
 
             {/* Mot de passe */}

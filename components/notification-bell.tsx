@@ -103,15 +103,23 @@ export function NotificationBell() {
     }
   }, [unread]);
 
+  // Marca como LIDAS ao FECHAR (não ao abrir): abrir o menu e só espiar
+  // sumia logo com o contador de não-lidas antes de o utilizador ver algo.
+  const montagemInicial = useRef(true);
+  useEffect(() => {
+    if (montagemInicial.current) {
+      montagemInicial.current = false;
+      return;
+    }
+    if (!ouvert) marquerLus();
+  }, [ouvert, marquerLus]);
+
   if (!user) return null;
 
   return (
     <div className="relative" ref={ref}>
       <button
-        onClick={() => {
-          setOuvert((v) => !v);
-          if (!ouvert) marquerLus();
-        }}
+        onClick={() => setOuvert((v) => !v)}
         className="relative p-2 rounded-lg text-zinc-300 hover:text-white hover:bg-[#2C1B3D] transition-colors"
         title="Notifications"
         aria-label="Notifications"

@@ -79,13 +79,13 @@ export function VerificationQueuePanel() {
   const currentPhoto = photos[currentIndex];
 
   const removeCurrentAndAdvance = () => {
-    setPhotos((prev) => {
-      const next = prev.filter((_, i) => i !== currentIndex);
-      if (currentIndex >= next.length) {
-        setCurrentIndex(Math.max(0, next.length - 1));
-      }
-      return next;
-    });
+    // Efeito colateral dentro do updater de state dispara 2× no React
+    // StrictMode — o índice novo é calculado fora, no valor corrente.
+    const novaLista = photos.filter((_, i) => i !== currentIndex);
+    setPhotos(novaLista);
+    if (currentIndex >= novaLista.length) {
+      setCurrentIndex(Math.max(0, novaLista.length - 1));
+    }
   };
 
   const handleApprove = async () => {

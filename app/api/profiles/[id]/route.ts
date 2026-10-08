@@ -18,6 +18,18 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
     const supabase = await createServerSupabaseClient();
 
+    // Bloqueio persistente: se o dono deste perfil ME bloqueou, para mim o
+    // perfil «não existe» (404 genérico — sem revelar o bloqueio).
+    const { data: bloqueMe } = await supabase
+      .from('blocked_users')
+      .select('id')
+      .eq('user_id', id)
+      .eq('blocked_id', auth.user.id)
+      .limit(1);
+    if (bloqueMe && bloqueMe.length > 0) {
+      return NextResponse.json({ error: 'Profil introuvable' }, { status: 404 });
+    }
+
     // Profil public (champs publics uniquement).
     const { data: profil, error: profilError } = await supabase
       .from('profiles')

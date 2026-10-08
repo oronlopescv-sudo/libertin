@@ -12,6 +12,14 @@ export async function GET(req: NextRequest) {
 
     const supabase = await createServerSupabaseClient();
 
+    // Oculta do descobrimento os membros que EU bloqueei (lista do servidor,
+    // persistente — antes o bloqueio era só localStorage e não filtrava nada).
+    const { data: meusBlocos } = await supabase
+      .from('blocked_users')
+      .select('blocked_id')
+      .eq('user_id', auth.user.id);
+    const idsBloqueados = (meusBlocos ?? []).map((b: { blocked_id: string }) => b.blocked_id);
+
     // Parse filtros dos query params
     const searchParams = req.nextUrl.searchParams;
     const location = searchParams.get('location');
@@ -33,6 +41,11 @@ export async function GET(req: NextRequest) {
       .neq('id', auth.user.id) // Non mostrar own profile
       .eq('is_active', true)
       .order('created_at', { ascending: false });
+
+    // A lista «Bloqueados» do servidor esconde estes perfis no descobrimento.
+    if (idsBloqueados.length > 0) {
+      query = query.not('id', 'in', `(${idsBloqueados.join(',')})`);
+    }
 
     // Appliquer les filtres
     if (location) {

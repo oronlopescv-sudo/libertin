@@ -80,7 +80,9 @@ export function EventCard({ event, onJoin, onLeave, isJoined, busy }: EventCardP
         <div className="pt-2 flex items-center justify-between text-xs text-zinc-400 border-t border-[#2C1B3D]">
           <span className="flex items-center gap-1">
             <Eye className="w-3 h-3" />
-            {event.confirmed_count} confirmé{event.confirmed_count !== 1 ? 's' : ''}
+            {/* O contador é de INSCRIÇÕES (status interested) — não eram
+                "confirmados"; chamava-se confirmé e enganava. */}
+            {event.confirmed_count} intéressé{event.confirmed_count !== 1 ? 's' : ''}
           </span>
           {daysUntilExpiry > 0 && (
             <span className={daysUntilExpiry < 7 ? 'text-amber-400' : 'text-zinc-400'}>

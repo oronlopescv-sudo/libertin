@@ -216,6 +216,8 @@ export default function GroupesPage() {
           userAbonnement={{
             tier: user.subscriptionTier,
             expiresAt: user.subscriptionEnd ?? null,
+            email: user.email,
+            role: user.role ?? null,
           }}
         />
       )}

@@ -188,7 +188,7 @@ export default function MessageriePage() {
             {conversationsFiltrees.map((c) => (
               <li key={c.groupId}>
                 <Link
-                  href={`/chat/${c.groupId}`}
+                  href={`/chat/${c.groupId}?orig=messagerie`}
                   className="flex items-center gap-3 p-3 rounded-2xl bg-[#1C102B] border border-[#2C1B3D] hover:border-[#D4145A]/50 transition-colors group"
                 >
                   <img

@@ -125,6 +125,8 @@ export default function ProfileDetailPage() {
         router.push('/abonnements');
       } else if (res.status === 401) {
         router.push('/login');
+      } else {
+        setErreur(data.error ?? "Erreur lors de l'envoi du like");
       }
     } finally {
       setEnvoiLike(false);

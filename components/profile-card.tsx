@@ -1,9 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User } from '@/lib/types';
-import { Store } from '@/lib/store';
-import { useAuth } from '@/context/auth-context';
 import { getDistance, resolveLocationCoords, CITIES } from '@/lib/geo';
 import {
   ShieldCheck,
@@ -21,6 +19,23 @@ import {
 import { fetchResilient } from '@/lib/fetch-resilient';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+
+// Cache de nível de módulo: UMA chamada a /api/blocks serve todas as cartas
+// presentes no ecrã; invalidada quando uma carta bloqueia/desbloqueia.
+let listaBloqueadosCache: string[] | null = null;
+async function carregarBloqueados(): Promise<string[]> {
+  if (listaBloqueadosCache) return listaBloqueadosCache;
+  try {
+    const res = await fetchResilient('/api/blocks');
+    if (res.ok) {
+      const data = await res.json();
+      listaBloqueadosCache = data.blockedIds ?? [];
+    }
+  } catch {
+    /* fallback: lista vazia — o botão continua utilizável */
+  }
+  return listaBloqueadosCache ?? [];
+}
 
 interface ProfileCardProps {
   profile: User;
@@ -40,13 +55,25 @@ export function ProfileCard({
   onOpenMessageModal,
   onBlockStatusChange,
 }: ProfileCardProps) {
-  const { refreshUser } = useAuth();
   const router = useRouter();
   const [liked, setLiked] = useState(likedByMe);
   const [likeLoading, setLikeLoading] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
+  // Bloqueio PERSISTENTE (tabela blocked_users no servidor) — antes vivia em
+  // localStorage e não protegia nada noutra sessão/dispositivo.
+  const [isUserBlocked, setIsUserBlocked] = useState(false);
+  const [bloqueioEmCurso, setBloqueioEmCurso] = useState(false);
+  const [erroLike, setErroLike] = useState('');
 
-  const isUserBlocked = currentUser ? Store.isBlocked(currentUser.id, profile.id) : false;
+  useEffect(() => {
+    if (!currentUser) return;
+    let vivo = true;
+    carregarBloqueados().then((lista) => {
+      if (!vivo) return;
+      setIsUserBlocked(lista.includes(profile.id));
+    });
+    return () => { vivo = false; };
+  }, [currentUser, profile.id]);
 
   // Compute distance in km from current user location
   const currentCoords = currentUser
@@ -97,6 +124,7 @@ export function ProfileCard({
       if (res.ok) {
         // O servidor devolve o estado real (like criado ou retirado).
         setLiked(Boolean(data.liked));
+        setErroLike('');
         if (onBlockStatusChange) onBlockStatusChange();
         return;
       }
@@ -108,25 +136,45 @@ export function ProfileCard({
         router.push('/login');
         return;
       }
-      console.error('Erreur lors du like:', data.error ?? res.status);
+      // Antes os erros genéricos ficavam só no console — o clique parecia
+      // «não fazer nada» para o utilizador.
+      setErroLike(data.error ?? 'Erreur lors du like. Réessayez.');
     } catch (err) {
       console.error('Erreur lors du like:', err);
+      setErroLike('Erreur réseau. Réessayez.');
     } finally {
       setLikeLoading(false);
     }
   };
 
-  const handleToggleBlock = (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
+  const handleToggleBlock = async (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     if (!currentUser) return;
 
-    if (isUserBlocked) {
-      Store.unblockUser(currentUser.id, profile.id);
-    } else {
-      Store.blockUser(currentUser.id, profile.id);
+    setBloqueioEmCurso(true);
+    try {
+      if (isUserBlocked) {
+        const res = await fetchResilient('/api/blocks', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ blockedId: profile.id }),
+        });
+        if (res.ok) setIsUserBlocked(false);
+      } else {
+        const res = await fetchResilient('/api/blocks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ blockedId: profile.id }),
+        });
+        if (res.ok) setIsUserBlocked(true);
+      }
+      listaBloqueadosCache = null; // a próxima carta recarrega do servidor
+      if (onBlockStatusChange) onBlockStatusChange();
+    } catch (err) {
+      console.error('Erreur lors du blocage:', err);
+    } finally {
+      setBloqueioEmCurso(false);
     }
-    refreshUser();
-    if (onBlockStatusChange) onBlockStatusChange();
   };
 
   const primaryPhoto =
@@ -261,27 +309,50 @@ export function ProfileCard({
                     ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40'
                     : 'bg-[#2C1B3D] text-zinc-400 hover:text-white'
                 }`}
-                title={liked ? "Coup de cœur" : "J'aime"}
+                title={liked
+                  ? 'Coup de cœur'
+                  : isPremium
+                  ? "J'aime"
+                  : 'J\'aime — réservé aux membres Premium (à partir de 9€/mois)'}
               >
-                {likeLoading ? <Loader className="w-3.5 h-3.5 animate-spin" /> : <Heart className={`w-3.5 h-3.5 ${liked ? 'fill-rose-400' : ''}`} />}
+                {likeLoading ? (
+                  <Loader className="w-3.5 h-3.5 animate-spin" />
+                ) : !isPremium && !liked ? (
+                  <Lock className="w-3.5 h-3.5" />
+                ) : (
+                  <Heart className={`w-3.5 h-3.5 ${liked ? 'fill-rose-400' : ''}`} />
+                )}
                 <span className="hidden sm:inline">{liked ? 'Coup de cœur' : 'J\'aime'}</span>
               </button>
 
               {currentUser && currentUser.id !== profile.id && (
                 <button
                   onClick={handleToggleBlock}
-                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  disabled={bloqueioEmCurso}
+                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-50 ${
                     isUserBlocked
                       ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
                       : 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20'
                   }`}
                   title={isUserBlocked ? 'Débloquer ce membre' : 'Bloquer ce membre'}
                 >
-                  <UserX className="w-3.5 h-3.5" />
+                  {bloqueioEmCurso
+                    ? <Loader className="w-3.5 h-3.5 animate-spin" />
+                    : <UserX className="w-3.5 h-3.5" />}
                   <span className="hidden sm:inline">{isUserBlocked ? 'Débloquer' : 'Bloquer'}</span>
                 </button>
               )}
             </div>
+
+            {isUserBlocked && (
+              <span className="text-[10px] text-rose-400">Bloqué — il ne voit plus ton profil</span>
+            )}
+
+            {erroLike && (
+              <span className="text-[10px] text-rose-400 truncate max-w-[140px]" title={erroLike}>
+                {erroLike}
+              </span>
+            )}
 
             <button
               onClick={() => setDetailModalOpen(true)}

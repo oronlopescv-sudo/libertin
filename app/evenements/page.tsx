@@ -5,7 +5,6 @@ import { Navbar } from '@/components/navbar';
 import { EventCard } from '@/components/event-card';
 import { CreateEventForm } from '@/components/create-event-form';
 import { useAuth } from '@/context/auth-context';
-import { getEvents } from '@/lib/events';
 import { fetchResilient } from '@/lib/fetch-resilient';
 import type { Event } from '@/lib/types';
 import Link from 'next/link';
@@ -23,15 +22,31 @@ export default function ÉvénementsPage() {
   const [joinedIds, setJoinedIds] = useState<Set<string>>(new Set());
   const [busyId, setBusyId] = useState<string | null>(null);
   const [erreurJoin, setErreurJoin] = useState('');
+  // Retorno do Stripe (?annonces=succes|annule) — antes o utilizador voltava
+  // da página de pagamento sem qualquer confirmação.
+  const [avisoPagamento, setAvisoPagamento] = useState('');
+
+  useEffect(() => {
+    const param = new URLSearchParams(window.location.search).get('annonces');
+    if (!param) return;
+    setAvisoPagamento(
+      param === 'succes'
+        ? '✅ Paiement confirmé — votre annonce est en ligne !'
+        : 'Paiement annulé — rien n\'a été prélevé.'
+    );
+    window.history.replaceState({}, '', '/evenements');
+  }, []);
 
   const loadEvents = useCallback(async () => {
     setLoadingEvents(true);
     try {
-      const filters: any = {};
-      if (filterType !== 'all') filters.type = filterType;
-      if (filterCity) filters.city = filterCity;
-      const data = await getEvents(filters);
-      setEvents(data);
+      // Pela rota do servidor (identidade + RLS), não pelo client anónimo.
+      const qs = new URLSearchParams();
+      if (filterType !== 'all') qs.set('type', filterType);
+      if (filterCity) qs.set('city', filterCity);
+      const res = await fetchResilient(`/api/events${qs.size ? `?${qs.toString()}` : ''}`);
+      const data = await res.json().catch(() => ({}) as { events?: Event[] });
+      if (res.ok) setEvents(data.events ?? []);
     } catch (err) {
       console.error('Erreur lors du chargement des événements:', err);
     } finally {
@@ -211,6 +226,22 @@ export default function ÉvénementsPage() {
           />
         </div>
 
+        {/* Retour de paiement Stripe */}
+        {avisoPagamento && (
+          <div className={`mb-6 p-3 rounded-xl text-sm flex items-center justify-between gap-3 ${avisoPagamento.startsWith('✅')
+            ? 'bg-emerald-950/60 border border-emerald-800/40 text-emerald-300'
+            : 'bg-rose-950/60 border border-rose-800/40 text-rose-300'}`}>
+            <span>{avisoPagamento}</span>
+            <button
+              onClick={() => setAvisoPagamento('')}
+              className="p-1 hover:text-white shrink-0"
+              aria-label="Fermer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
         {/* Erreur d'inscription / retrait */}
         {erreurJoin && (
           <div className="mb-6 p-3 rounded-xl bg-rose-950/60 border border-rose-800/40 text-rose-300 text-sm flex items-center justify-between gap-3">
@@ -279,7 +310,6 @@ export default function ÉvénementsPage() {
               </button>
             </div>
             <CreateEventForm
-              userId={user.id}
               onSuccess={() => {
                 setShowCreateForm(false);
                 loadEvents();

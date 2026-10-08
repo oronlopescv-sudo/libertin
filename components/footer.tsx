@@ -43,6 +43,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/evenements" className="hover:text-white transition-colors">
+                  Événements Libertins
+                </Link>
+              </li>
+              <li>
                 <Link href="/abonnements" className="hover:text-white transition-colors">
                   Formules & Tarifs
                 </Link>
