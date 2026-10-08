@@ -39,7 +39,9 @@ export function LoginForm() {
       // le vrai motif (identifiants, e-mail non confirmé, rate limit…).
       await login(formData.email, formData.password);
 
-      window.location.assign('/profil');
+      // Direct au /decouvrir après connexion — /profil demandait de
+      // "re-remplir" le profil à chaque connexion (cf. retour du propriétaire).
+      window.location.assign('/decouvrir');
     } catch (err) {
       const mensagem = err instanceof Error ? err.message : 'Connexion impossible. Réessayez.';
       setError(mensagem);
