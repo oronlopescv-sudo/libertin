@@ -103,12 +103,28 @@ async function handleCheckoutSessionCompleted(session: any) {
   const subscriptionEnd = new Date(now);
   subscriptionEnd.setMonth(subscriptionEnd.getMonth() + 1);
 
+  // Idempotence : Stripe re-envia el evento en caso de reintento — un replay
+  // de `checkout.session.completed` no debe NUNCA acortar una suscripción
+  // ya extendida por un `invoice.paid` posterior.
+  const { data: previo } = await supabase
+    .from('profiles')
+    .select('subscription_start, subscription_end')
+    .eq('id', userId)
+    .maybeSingle();
+
+  const fimAtual = previo?.subscription_end ? new Date(previo.subscription_end) : null;
+  if (Number.isFinite(fimAtual?.getTime()) && fimAtual && fimAtual > subscriptionEnd) {
+    subscriptionEnd.setTime(fimAtual.getTime());
+  }
+  // Preserva la fecha de inicio original del abono en los replays.
+  const inicio = previo?.subscription_start ?? now.toISOString();
+
   // Mise à jour du profil (snake_case) — pas la table `users`.
   const { data: profileData, error } = await supabase
     .from('profiles')
     .update({
       subscription_tier: planId,
-      subscription_start: now.toISOString(),
+      subscription_start: inicio,
       subscription_end: subscriptionEnd.toISOString(),
       stripe_customer_id: session.customer,
       updated_at: now.toISOString(),
@@ -157,6 +173,19 @@ async function handleInvoicePaid(invoice: any) {
 
   const subscriptionEnd = new Date(periodEnd * 1000);
 
+  // Idem potência: só estende. Se a assinatura já vai até depois desta
+  // fatura (ou o evento é replay de um mês antigo), não faz nada.
+  const { data: atual } = await supabase
+    .from('profiles')
+    .select('subscription_end')
+    .eq('stripe_customer_id', customerId)
+    .maybeSingle();
+  const fimAtual = atual?.subscription_end ? new Date(atual.subscription_end) : null;
+  if (Number.isFinite(fimAtual?.getTime()) && fimAtual && fimAtual >= subscriptionEnd) {
+    console.log('invoice.paid já refletido — sem alteração');
+    return;
+  }
+
   const { error } = await supabase
     .from('profiles')
     .update({
@@ -179,6 +208,15 @@ async function handleInvoicePaid(invoice: any) {
 async function handleChargeSucceeded(charge: any) {
   console.log(`💰 Charge succeeded: ${charge.id} for customer ${charge.customer}`);
   try {
+    // Idempotence: re-envoies do Stripe inseriam a mesma charge N vezes
+    // (sem unique na coluna). Salta se já registada.
+    const { data: jaLogada } = await supabase
+      .from('payment_logs')
+      .select('id')
+      .eq('stripe_charge_id', charge.id)
+      .limit(1);
+    if (jaLogada && jaLogada.length > 0) return;
+
     await supabase.from('payment_logs').insert({
       stripe_charge_id: charge.id,
       stripe_customer_id: charge.customer,
