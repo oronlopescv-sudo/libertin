@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
+import { createServiceRoleClient } from '@/lib/supabase';
 import { utilisateurActuel, utilisateurPremium } from '@/lib/auth-serveur';
 
 /**
@@ -156,12 +157,29 @@ export async function DELETE(req: NextRequest) {
  * Recalcule le compteur « confirmés » affiché sur la carte : les insertions/
  * suppressions de l'API ne passent pas par la fonction RPC d'origine, on
  * remet donc le compteur à jour depuis le nombre réel de participants.
+ *
+ * O UPDATE de `events` passou a ser só do criador com o RLS endurecido
+ * (migration 010) — um participante comum não pode atualizar a contagem do
+ * evento — por isso este recálculo usa a chave de serviço. Se a chave faltar
+ * no servidor, o join continua (apenas o contador pode ficar atrasado).
  */
-async function recalculerCompteur(supabase: any, eventId: string) {
-  const { count } = await supabase
-    .from('event_participants')
-    .select('id', { count: 'exact', head: true })
-    .eq('event_id', eventId);
+async function recalculerCompteur(_supabase: any, eventId: string) {
+  try {
+    const servico = createServiceRoleClient();
+    const { count } = await servico
+      .from('event_participants')
+      .select('id', { count: 'exact', head: true })
+      .eq('event_id', eventId);
 
-  await supabase.from('events').update({ confirmed_count: count ?? 0 }).eq('id', eventId);
+    const { error } = await servico
+      .from('events')
+      .update({ confirmed_count: count ?? 0 })
+      .eq('id', eventId);
+    if (error) console.warn('[events/join] recálculo do contador:', error.message);
+  } catch (e) {
+    console.warn(
+      '[events/join] recálculo do contador indisponível:',
+      e instanceof Error ? e.message : e
+    );
+  }
 }

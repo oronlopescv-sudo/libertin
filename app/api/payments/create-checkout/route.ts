@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe, SUBSCRIPTION_PLANS } from '@/lib/stripe';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
+import { createServiceRoleClient } from '@/lib/supabase';
 import { utilisateurActuel } from '@/lib/auth-serveur';
 
 /**
@@ -79,10 +80,25 @@ export async function POST(req: NextRequest) {
         metadata: { userId: auth.user.id },
       });
       customerId = customer.id;
-      await supabase
-        .from('profiles')
-        .update({ stripe_customer_id: customerId })
-        .eq('id', auth.user.id);
+      // Persistimos o id do customer com a chave de serviço: `stripe_customer_id`
+      // é coluna protegida pela migration 010 (trigger só service_role a muda) e
+      // deixá-la escrever com a sessão permitia reclamar o customer de outro
+      // utilizador. Se a chave de serviço faltar no servidor, seguimos sem
+      // persistir: o webhook checkout.session.completed grava o mesmo id depois.
+      try {
+        const { error: persistiuErro } = await createServiceRoleClient()
+          .from('profiles')
+          .update({ stripe_customer_id: customerId })
+          .eq('id', auth.user.id);
+        if (persistiuErro) {
+          console.warn('[create-checkout] persistiu falhou:', persistiuErro.message);
+        }
+      } catch (persistiuErr) {
+        console.warn(
+          '[create-checkout] persistiu stripe_customer_id indisponível:',
+          persistiuErr instanceof Error ? persistiuErr.message : persistiuErr
+        );
+      }
     }
 
     const session = await stripe.checkout.sessions.create({
