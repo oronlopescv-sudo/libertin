@@ -7,6 +7,19 @@ const PROTECTED_ROUTES = ['/profil', '/admin', '/chat', '/supabase', '/debug'];
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next({ request });
+  const pathname = request.nextUrl.pathname;
+  const isApi = pathname.startsWith('/api/');
+
+  // Rotas /api: respostas JSON autenticadas NUNCA em cache — sem isto não
+  // havia Cache-Control nenhuma (o matcher antigo excluí /api) e a resposta
+  // vazia antiga do GET /api/photos podia ficar servida em cache pelo
+  // browser/proxy: a foto subida «não aparecia» até limpar cache à mão.
+  // getUser()/refresh de cookies fica para as rotas que já o fazem —
+  // poupa um roundtrip Auth em cada chamada API.
+  if (isApi) {
+    response.headers.set('Cache-Control', 'no-store, private');
+    return response;
+  }
 
   // Client serveur qui lit ET rafraîchit la session depuis les cookies.
   // Construit sur la requête + la réponse pour propager les cookies rafraîchis.
@@ -38,7 +51,6 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const pathname = request.nextUrl.pathname;
   const isProtected = PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
 
   // Page protégée sans session valide -> connexion requise.
@@ -52,5 +64,6 @@ export async function middleware(request: NextRequest) {
 import { addSecurityHeaders } from '@/middleware/securityHeaders';
 
 export const config = {
-  matcher: ['/((?!api|_next|static|favicon).*)'],
+  // Inclui /api (para o Cache-Control) mas continua a excluir _next/static.
+  matcher: ['/((?!_next|static|favicon).*)'],
 };

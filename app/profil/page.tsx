@@ -65,6 +65,10 @@ export default function ProfilePage() {
     }
   }, []);
 
+  // Avatar do topo: a capa (is_cover) ou a primeira foto — undefined mostra
+  // o placeholder; nada de estado extra, derive do array que já existe.
+  const avatarUrl = photos.find((p) => p.is_cover)?.url ?? photos[0]?.url;
+
   useEffect(() => {
     if (user) chargerPhotos();
   }, [user, chargerPhotos]);
@@ -239,21 +243,29 @@ export default function ProfilePage() {
         <div className="bg-[#1C102B] border border-[#2C1B3D] rounded-2xl p-8 space-y-6">
           <h1 className="text-3xl font-bold text-white">Mon profil</h1>
 
-          <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <User className="w-5 h-5 text-[#D4145A]" />
-              <div>
-                <p className="text-zinc-400 text-sm">Nom d'utilisateur</p>
-                <p className="text-white font-semibold">{user.username}</p>
+          {/* Foto do perfil no topo — a capa (is_cover) ou a primeira foto.
+              Antes a foto subida só aparecia na grelha lá em baixo; o topo
+              da página nunca mostrava nada de visual, e com a resposta de
+              /api/photos em cache podia não aparecer sequer na grelha. */}
+          <div className="flex items-center gap-5">
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt="Photo de profil"
+                className="w-20 h-20 rounded-full object-cover border-2 border-[#D4145A]/60 flex-shrink-0"
+              />
+            ) : (
+              <div className="w-20 h-20 rounded-full bg-[#2C1B3D] border-2 border-[#3D2654] flex items-center justify-center flex-shrink-0">
+                <User className="w-9 h-9 text-zinc-500" />
               </div>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <Mail className="w-5 h-5 text-[#D4145A]" />
-              <div>
-                <p className="text-zinc-400 text-sm">Email</p>
-                <p className="text-white font-semibold">{user.email}</p>
-              </div>
+            )}
+            <div className="min-w-0">
+              <p className="text-zinc-400 text-xs">Nom d'utilisateur</p>
+              <p className="text-white font-semibold text-lg">{user.username?.trim() || '—'}</p>
+              <p className="text-sm text-zinc-400 flex items-center gap-1.5 mt-0.5">
+                <Mail className="w-4 h-4 text-[#D4145A] flex-shrink-0" />
+                <span className="truncate">{user.email}</span>
+              </p>
             </div>
           </div>
 
