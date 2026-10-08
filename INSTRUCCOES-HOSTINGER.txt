@@ -1,6 +1,6 @@
 ==============================================================================
-XLIBERTINE — INSTRUÇÕES DE DEPLOY + SEGURANÇA (atualizado 2026-10-08)
-Ler do topo ao fundo. Ordem importa: SECRETS → DEPLOY → SQL 010 → SQL 011.
+XLIBERTINE — INSTRUÇÕES DE DEPLOY + SEGURANÇA (atualizado 2026-10-08 tarde)
+Ler do topo ao fundo. Ordem importa: DEPLOY → SQL 010 → SQL 011.
 ==============================================================================
 
 O QUE JÁ ESTÁ FEITO (não precisas de fazer nada disto)
@@ -11,60 +11,50 @@ O QUE JÁ ESTÁ FEITO (não precisas de fazer nada disto)
 - ANÚNCIOS PAGOS: o webhook publica o anúncio ao receber o pagamento
   (metadata.eventId) — antes o anúncio ficava ativo para sempre falso.
 - ESCALADA DE PRIVÉLEGIOS: comprar VIP já não dá poderes admin.
-- MIGRATION 010 (fecha RLS aberto) e 011 (bucket de fotos privado) escritas
-  e pushadas, prontas a colar no SQL Editor (passo 4 e 5 abaixo).
 - FILA DE FOTOS DE VERIFICAÇÃO: o servidor entrega as fotos por URL ASSINADO
-  (commit 982e282) — preparado para o bucket passar a privado.
+  (commits 982e282/60c485e) — preparado para o bucket passar a privado.
+- CACHE DA FOTO DO PERFIL: respostas /api agora vêm com no-store (69b09f1) —
+  a foto nova aparece sem limpar cache.
+- MIGRATION 010 (fecha RLS aberto) e 011 (bucket privado) escritas e
+  pushadas — prontas a colar (passos 3 e 4 abaixo).
+- SEGREDOS: os 3 valores correctos (chave de serviço eyJ, chave restrita
+  rk_live com permissão de Checkout, whsec do endpoint criado) já estão na
+  pasta do deploy E no ficheiro estável .env-runtime (caminho que sobrevive
+  aos deploys). O código novo (3733593) sobrepõe esses valores às variáveis
+  ANTIGAS que o painel guarda — as antigas eram: chave de serviço rotacionada,
+  chave restrita sem permissão de Checkout, whsec de endpoint eliminado.
+  Não precisas de tocar no painel. NÃO HÁ PAYMENT LINKS nem PRICES a criar
+  (o checkout cria a sessão com price_data dinâmico — testado com 200).
 
 PASSO A PASSO (só a tua parte)
 ------------------------------
-1. Painel Hostinger → Websites → xlibertine.com → Deployment →
-   «Variables d'environnement». Cola lá ESTAS VARIÁVEIS (valores reais,
-   sem espaços):
+1. Clica DEPLOY e espera o build ficar VERDE (sobe o commit 3733593).
 
-   SUPABASE_SERVICE_ROLE_KEY   ← a chave LEGACY formato eyJ... (NÃO sb_...)
-                                 (Supabase → Settings → API Keys → Legacy)
-   STRIPE_SECRET_KEY           ← sk_live_... (a rk_live_... NÃO CHEGA: dá 403
-                                 em Prices/Payment Links/Checkout)
-   STRIPE_WEBHOOK_SECRET       ← whsec_... (cria primeiro o endpoint, ver (a))
-   STRIPE_LINK_PASS_EPICURIEN  ← buy.stripe.com/... Épicurien 9€/mês  — ver (b)
-   STRIPE_LINK_PASS_PRIVILEGE  ← buy.stripe.com/... Privilège 15€/mês — ver (b)
-   STRIPE_LINK_PASS_VIP        ← buy.stripe.com/... VIP Elite 25€/mês — ver (b)
-
-   As 3 públicas (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY,
-   NEXT_PUBLIC_APP_URL) já lá estão — deixa-as.
-
-   (a) WEBHOOK na Stripe: Dashboard → Developers → Webhooks → Add endpoint
-       URL: https://xlibertine.com/api/payments/webhook
-       Eventos: checkout.session.completed, invoice.paid,
-                customer.subscription.deleted, charge.succeeded
-       Copia o whsec_... para STRIPE_WEBHOOK_SECRET.
-   (b) PAYMENT LINKS: os que estão no .env.production apontam à conta ERRADA
-       («Test Business»). Na conta certa (xlibertine, acct_...51TvP6) os
-       produtos JÁ EXISTEM; cria os 3 PREÇOS mensais (9/15/25€) e os links;
-       ou dá à chave restricted as permissões «Prices read+write» +
-       «Payment Links read+write» e o Claude cria tudo e cola aqui os links.
-
-2. Clica DEPLOY e espera o build ficar VERDE (sobe o commit 982e282).
-
-3. Supabase → SQL Editor (https://supabase.com/dashboard/project/
+2. Supabase → SQL Editor (https://supabase.com/dashboard/project/
    mfchfnsekoluicxnguoh/sql/new):
    Cola TODO o ficheiro supabase/migrations/010_endurecer_rls.sql e Run.
    Fecha o «USING(true)» de todas as tabelas — hoje QUALQUER pessoa com a
    chave anon lê emails/telefones/password hashes da tabela legada users,
    mensagens, likes, notificações. URGENTE.
 
-4. Supabase → SQL Editor de novo:
+3. Supabase → SQL Editor de novo:
    Cola TODO o supabase/migrations/011_bucket_verificacao_privado.sql e Run.
-   ⚠️ SÓ DEPOIS do passo 2 (deploy verde). Sem a service key no servidor
-   (passo 1), a fila de fotos do admin fica SEM imagens.
+   ⚠️ SÓ DEPOIS do passo 1 (deploy verde). O servidor já tem a service key
+   e o código de URL assinado — a fila do admin continua a ver as fotos.
+
+OPCIONAL (se um dia mexeres no painel)
+---------------------------------------
+Em «Variables d'environnement» podes APAGAR as 3 antigas marcadas para
+especial atenção: SUPABASE_SERVICE_ROLE_KEY (a antiga está morta),
+STRIPE_SECRET_KEY (antiga, sem permissão de Checkout) e STRIPE_WEBHOOK_SECRET
+(whsec de um endpoint que já não existe). O código novo vence-as por cima
+(.env-runtime), mas deixá-las a zero evita confusões futuras.
 
 PORQUE NESTA ORDEM
 ------------------
-- 011 vira a bucket privado; o servidor precisa da service key (passo 1) para
-  assinar os URLs; deploy (passo 2) traz o código que assina. Sem essas duas
-  partes primeiro, as fotos da fila admin ficam partidas e o login de novos
-  utilizadores pode falhar.
+- O deploy (passo 1) traz o código que assina URLs e carrega os segredos do
+  .env-runtime. A 011 (passo 3) vira a bucket privado; vem DEPOIS do deploy,
+  senão a fila admin fica sem imagens.
 
 COMO VERIFICAR QUE FICOU BEM
 ----------------------------
@@ -74,8 +64,9 @@ COMO VERIFICAR QUE FICOU BEM
    https://mfchfnsekoluicxnguoh.supabase.co/rest/v1/users?select=id&limit=1
    com a anon key → 200 [] = RLS fechado.
 4. Fila de verificação no admin: fotos aparecem (URLs assinados).
-5. Compra de teste: checkout abre e paga — perfil fica Premium e o webhook
-   renova na próxima fatura.
+5. Compra de teste: a página de planos → clicar num pass → abre o checkout
+   Stripe → paga → o perfil fica Premium no /profil (o webhook renova na
+   próxima fatura).
 
 DÚVIDAS/ERROS
 -------------
