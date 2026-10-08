@@ -33,10 +33,13 @@ type UserLike = {
 /**
  * Renvoie true si l'utilisateur a les droits d'administration.
  *
- * Trois façons d'être administrateur :
+ * Deux façons d'être administrateur :
  *   1. Email présent dans ADMIN_EMAILS.
  *   2. Colonne `role` égale à 'admin'.
- *   3. Abonnement Pass VIP Elite (PASS_VIP).
+ *
+ * N.B. : « abonnement Pass VIP Elite » ne donne PAS l'administration —
+ * c'était une escalada de privilégios : qualquer subscritor podia banir
+ * contas e conceder Premium (grant-premium) via usuárioAdmin().
  */
 export function isAdmin(user: UserLike): boolean {
   if (!user) return false
@@ -44,9 +47,7 @@ export function isAdmin(user: UserLike): boolean {
   const email = user.email?.toLowerCase().trim()
   if (email && ADMIN_EMAILS.has(email)) return true
 
-  if (user.role === 'admin') return true
-
-  return user.subscriptionTier === 'PASS_VIP'
+  return user.role === 'admin'
 }
 
 /**

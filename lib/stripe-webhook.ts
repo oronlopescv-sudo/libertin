@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { verifyWebhookSignature } from '@/lib/stripe';
 import { sendAbonnementConfirmationEmail } from '@/lib/email';
+import { EVENT_PLANS } from '@/lib/events';
+import type { EventPlanType } from '@/lib/types';
 
 // Client privilégié (clé de service) : le webhook arrive depuis Stripe, sans
 // session utilisateur. Il doit pouvoir écrire dans `profiles` en contournant
@@ -38,7 +40,13 @@ export async function handleStripeWebhook(request: NextRequest) {
 
     switch (event.type) {
       case 'checkout.session.completed':
-        await handleCheckoutSessionCompleted(event.data.object);
+        // Sessões de compra de anúncio (eventos) têm eventId em metadata e
+        // NÃO devem ativar uma assinatura — só publicar o anúncio pago.
+        if (event.data.object.metadata?.eventId) {
+          await handleEventPaid(event.data.object);
+        } else {
+          await handleCheckoutSessionCompleted(event.data.object);
+        }
         break;
 
       case 'invoice.paid':
@@ -152,6 +160,53 @@ async function handleCheckoutSessionCompleted(session: any) {
   }
 
   console.log(`✅ Abonnement activated for user ${userId}: ${planId}`);
+}
+
+/**
+ * Anúncio (evento) pago: publica. Antes disto não existia — o cliente
+ * pagava a publicação e ela ficava is_active=false para sempre
+ * (activateEvent() em lib/events.ts não tinha chamador).
+ * Recalcula expires_at a partir do momento do pagamento (o prazo de
+ * exibição conta a partir do pagamento, não da criação).
+ */
+async function handleEventPaid(session: any) {
+  const eventId = session.metadata.eventId;
+  const planType = session.metadata.planType;
+
+  if (!eventId) {
+    console.error('checkout.session.completed de evento sem eventId — ignorado');
+    return;
+  }
+
+  const duracaoDias =
+    (EVENT_PLANS[planType as EventPlanType]?.duration as number | undefined) ?? 30;
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + duracaoDias);
+
+  const { data: evento, error } = await supabase
+    .from('events')
+    .update({
+      is_active: true,
+      payment_status: 'paid',
+      expires_at: expiresAt.toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', eventId)
+    .select('id, title, user_id')
+    .maybeSingle();
+
+  if (error) {
+    console.error('Failed to activate paid event:', error);
+    return;
+  }
+
+  if (!evento) {
+    console.error(`Evento pago ${eventId} não existe na BD — nada a ativar`);
+    return;
+  }
+
+  console.log(`📢 Anúncio pago e ativado: ${evento.title} (${eventId})`);
+  console.log('⚠️ RLS precisa permitir UPDATE por service_role em events');
 }
 
 /**
