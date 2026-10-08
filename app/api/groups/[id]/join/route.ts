@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
 import { utilisateurPremium } from '@/lib/auth-serveur';
 
@@ -72,18 +71,28 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
       );
     }
 
-    // O contador conta-se via chave de SERVIÇO: com RLS fechado, um membro
-    // comum não pode fazer UPDATE em groups (só o criador pode editar o
-    // grupo); service_role contorna o RLS de propósito.
-    const servico = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://example.supabase.co',
-      process.env.SUPABASE_SERVICE_ROLE_KEY || 'dummy-key',
-      { auth: { persistSession: false } }
-    );
-    await servico
-      .from('groups')
-      .update({ member_count: (groupe.member_count ?? 0) + 1 })
-      .eq('id', groupId);
+    // O contador recalcula-se pelo COUNT REAL de memberships (não por «+1»
+    // de um valor possivelmente desatualizado) e via chave de SERVIÇO: com
+    // RLS fechado, um membro comum não tem UPDATE em groups (só o criador);
+    // service_role contorna o RLS de propósito. A falha REGISTA-SE — antes
+    // caía num client «dummy-key» e o contador ficava errado sem sinal.
+    try {
+      const { createServiceRoleClient } = await import('@/lib/supabase');
+      const servico = createServiceRoleClient();
+      const { count } = await servico
+        .from('group_memberships')
+        .select('id', { count: 'exact', head: true })
+        .eq('group_id', groupId);
+      const { error: erroContador } = await servico
+        .from('groups')
+        .update({ member_count: count ?? 0 })
+        .eq('id', groupId);
+      if (erroContador) {
+        console.error('[groups join] contador:', erroContador);
+      }
+    } catch (erroServico) {
+      console.error('[groups join] contador sem service key:', erroServico);
+    }
 
     return NextResponse.json(
       { success: true, groupId, joinedAt: new Date().toISOString() },
