@@ -41,7 +41,9 @@ export async function GET() {
   };
 
   // O bucket é privado: o URL público gravado em `url` já não abre — a fila
-  // recebe um URL ASSINADO (1h) gerado pelo servidor.
+  // recebe um URL ASSINADO (1h) gerado pelo servidor. Quando a assinatura
+  // falha (service key em falta, p.ex.) o item chega com url=null e o
+  // componente mostra «Imagem indisponível» em vez de renderizar URL morto.
   const mapped = await Promise.all(
     (photos ?? []).map(async (p: any) => ({
       id: p.id,
