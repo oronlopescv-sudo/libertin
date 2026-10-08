@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { verifyWebhookSignature } from '@/lib/stripe';
+import { aplicaEnvRuntime } from './env-runtime';
 import { sendAbonnementConfirmationEmail } from '@/lib/email';
 import { EVENT_PLANS } from '@/lib/events';
 import type { EventPlanType } from '@/lib/types';
 
 // Client privilégié (clé de service) : le webhook arrive depuis Stripe, sans
 // session utilisateur. Il doit pouvoir écrire dans `profiles` en contournant
-// le RLS. À n'utiliser qu'ici — jamais côté client.
+// le RLS. À n'utiliser qu'ici — jamais côté client. Ao aplicar o .env-runtime
+// ANTES: sem isso este módulo nasceria com as chaves antigas do painel.
+aplicaEnvRuntime();
 const criaSessaoStripe = () =>
   createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://example.supabase.co',
