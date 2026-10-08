@@ -202,11 +202,18 @@ export function VerificationQueuePanel() {
       <div className="bg-[#1C102B] border border-[#2C1B3D] rounded-2xl overflow-hidden">
         {/* Photo */}
         <div className="aspect-video bg-black relative overflow-hidden">
-          <img
-            src={photo.url}
-            alt="Vérification"
-            className="w-full h-full object-cover"
-          />
+          {photo.url ? (
+            <img
+              src={photo.url}
+              alt="Vérification"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-zinc-500 text-sm">
+              Imagem indisponível — assinatura do storage falhou (falta a chave
+              de serviço no servidor?)
+            </div>
+          )}
           <div className="absolute top-4 left-4 bg-black/80 px-3 py-1.5 rounded-full text-xs text-white">
             {currentIndex + 1} / {photos.length}
           </div>

@@ -45,27 +45,46 @@ async function viaFallback<T = any>(
  *   * análise NSFW → abaixo, saveVerificationPhoto assina antes de consultar
  *     o Google Vision (a fotografia era pública e já não é).
  *
- * Entradas que não são do bucket (data: URL, link externo colado pelo
- * utilizador) voltam intactas — o histórico de rows também guarda essas.
+ * Devolve:
+ *   * o URL assinado, tudo bem;
+ *   * null quando era URL do bucket e NÃO foi possível assinar — o chamador
+ *     trata-o como «imagem indisponível»/falha fechada, NUNCA renderiza o
+ *     URL público (morto com o bucket privado);
+ *   * o próprio url para entradas fora do bucket (data:, link externo).
+ *
+ * A assinatura exige service_role (createSignedUrl é operação admin-only e
+ * sem política SELECT no bucket privado um client de sessão não passa —
+ * clienteDeEscrita devolve service_key só no formato legacy eyJ…; a falta
+ * da chave no servidor degrada para null aqui, não para o URL morto).
+ * O path é decodificado antes de assinar: getPublicUrl grava o url com
+ * percent-encoding e createSignedUrl espera o path cru (ficheiros com
+ * espaços/virgulas no nome — file.name do utilizador).
  */
-export async function assinaUrlVerificacao(url: string | null | undefined): Promise<string> {
+export async function assinaUrlVerificacao(url: string | null | undefined): Promise<string | null> {
   if (!url || !/^https?:\/\//i.test(url)) return url ?? '';
   const pathMatch = url.match(/verification\/[^?]+/);
   if (!pathMatch) return url;
+
+  let path = pathMatch[0];
+  try {
+    path = decodeURIComponent(path);
+  } catch {
+    /* path sem encoding */
+  }
 
   try {
     const { cliente } = await clienteDeEscrita();
     const { data, error } = await cliente.storage
       .from('verification-photos')
-      .createSignedUrl(pathMatch[0], 60 * 60); // 1h — só para a sessão de revisão
+      .createSignedUrl(path, 60 * 60); // 1h — só para a sessão de revisão
     if (error || !data?.signedUrl) {
       console.error('Falha ao assinar a foto de verificação:', error);
-      return url;
+      return null;
     }
     return data.signedUrl;
   } catch (err) {
     console.error('Falha ao assinar a foto de verificação:', err);
-    return url;
+    return null;
   }
 }
 
@@ -178,9 +197,28 @@ export async function saveVerificationPhoto(
   photoPath: string
 ): Promise<VerificationPhotoResult> {
   // Check for NSFW content — com o bucket privado o URL público já não é
-  // buscável: analisa um URL ASSINADO (data:/externos passam como estão; o
-  // Google Vision não consegue buscar data: e a análise falha aberta, como hoje).
-  const isNSFW = await checkNSFWContent(await assinaUrlVerificacao(photoUrl));
+  // buscável: analisa um URL ASSINADO. assinaUrlVerificacao devolve null
+  // quando não conseguiu assinar (service key em falta, por ex.):
+  //   * Vision configurado (GOOGLE_APPLICATION_CREDENTIALS) → FALHA FECHADA:
+  //     remove o ficheiro e recusa (não passa foto sem análise);
+  //   * Vision não configurado (estado atual: o check nem corre) → status quo,
+  //     para não bloquear submissões pela chave de serviço ter de estar no
+  //     servidor (decisão fail-open documentada — decidir com o dono).
+  const paraAnalise = await assinaUrlVerificacao(photoUrl);
+  const visionAtivo = Boolean(process.env.GOOGLE_APPLICATION_CREDENTIALS);
+
+  if (paraAnalise === null && visionAtivo && photoPath) {
+    await comRetomada((c) => c.storage.from('verification-photos').remove([photoPath]));
+    return {
+      success: false,
+      error: 'Não foi possível analisar a foto — tenta novamente mais tarde',
+      nsfw: false,
+    };
+  }
+
+  const isNSFW = paraAnalise !== null
+    ? await checkNSFWContent(paraAnalise)
+    : false;
 
   if (isNSFW) {
     // Delete the uploaded photo (uniquement si elle a été stockée : le mode
@@ -367,12 +405,18 @@ export async function rejectVerification(
         .single()
     );
 
-    // Delete from storage
+    // Delete from storage — erro não é silencioso: com o bucket privado e
+    // vp_owner_delete restrito à própria pasta, um remove() negado deixa o
+    // documento no storage; regista-se para o admin saber (a row continua
+    // marcada rejected, para a fila avançar).
     const pathMatch = photo.url.match(/verification\/[^?]+/);
     if (pathMatch) {
-      await comRetomada((c) =>
+      const { error: erroRemove } = await comRetomada((c) =>
         c.storage.from('verification-photos').remove([pathMatch[0]])
       );
+      if (erroRemove) {
+        console.error('Falha ao remover o ficheiro do storage:', erroRemove);
+      }
     }
 
     // Update photo status

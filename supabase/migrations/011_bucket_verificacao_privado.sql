@@ -52,11 +52,16 @@ CREATE POLICY "vp_owner_delete" ON storage.objects
     AND (storage.foldername(name))[2] = (select auth.uid())::text
   );
 
--- 3. `vp_auth_insert` mantém-se como estava (fallback de upload com a sessão
---    do membro, quando a chave de serviço não é utilizável) — recriada aqui
---    só para ficar versionada junto do resto do bucket.
+-- 3. `vp_auth_insert` (fallback de upload com a sessão do membro, quando a
+--    chave de serviço não é utilizável) — agora restrito À PRÓPRIA PASTA:
+--    verification/<meuUserId>/... é o path que uploadVerificationPhoto gera
+--    (userId vem da sessão, nunca do cliente); antes era todo o bucket.
 DROP POLICY IF EXISTS "vp_auth_insert" ON storage.objects;
 CREATE POLICY "vp_auth_insert" ON storage.objects
-  FOR INSERT WITH CHECK (bucket_id = 'verification-photos');
+  FOR INSERT WITH CHECK (
+    bucket_id = 'verification-photos'
+    AND (storage.foldername(name))[1] = 'verification'
+    AND (storage.foldername(name))[2] = (select auth.uid())::text
+  );
 
 -- FIM — 011_bucket_verificacao_privado.sql
