@@ -1,71 +1,84 @@
 ==============================================================================
-XLIBERTINE — INSTRUÇÕES PARA O DEPLOYMENT NO HOSTINGER
-(ler do topo ao fundo antes de clicar no botão Deploy)
+XLIBERTINE — INSTRUÇÕES DE DEPLOY + SEGURANÇA (atualizado 2026-10-08)
+Ler do topo ao fundo. Ordem importa: SECRETS → DEPLOY → SQL 010 → SQL 011.
 ==============================================================================
 
-O QUE ESTAVA A CONTECER
------------------------
-- Os commits estam TODOS no GitHub (repo: oronlopescv-sudo/libertin, branch main).
-- O deployment estava a disparar normalmente, mas o BUILD MORRIA com
-  « supabaseUrl is required » na rota /api/payments/webhook, porque as variáveis
-  de ambiente não chegam ao build desde que os .env saíram do git
-  (medida de segurança — o repo é público).
-- Por isso nenhum commit recente chegava ao site.
+O QUE JÁ ESTÁ FEITO (não precisas de fazer nada disto)
+------------------------------------------------------
+- BUG DO SITE PRETO (CSP): corrigido e live.
+- LOGIN a saltar para /profil: corrigido — agora vai a /decouvrir.
+- WEBHOOK Stripe idempotente: não encurta assinaturas nem duplica pagamentos.
+- ANÚNCIOS PAGOS: o webhook publica o anúncio ao receber o pagamento
+  (metadata.eventId) — antes o anúncio ficava ativo para sempre falso.
+- ESCALADA DE PRIVÉLEGIOS: comprar VIP já não dá poderes admin.
+- MIGRATION 010 (fecha RLS aberto) e 011 (bucket de fotos privado) escritas
+  e pushadas, prontas a colar no SQL Editor (passo 4 e 5 abaixo).
+- FILA DE FOTOS DE VERIFICAÇÃO: o servidor entrega as fotos por URL ASSINADO
+  (commit 982e282) — preparado para o bucket passar a privado.
 
-O QUE JÁ FOI CORRIGIDO (não precisas de fazer nada disto)
----------------------------------------------------------
-- Código hardenizado (push c7f2ea3): os clientes do Supabase em âmbito de
-  módulo nunca mais fazem o build falhar sem variáveis de ambiente.
-- Fix do chat no Supabase de produção: messages.media_url existe; envio do
-  chat passa (verificado 2026-09-30).
-- Migration 006 (tiers antigos → mensais) confirmada na produção.
-- Chave da Stripe testada via REST (List/POST/DELETE ok).
+PASSO A PASSO (só a tua parte)
+------------------------------
+1. Painel Hostinger → Websites → xlibertine.com → Deployment →
+   «Variables d'environnement». Cola lá ESTAS VARIÁVEIS (valores reais,
+   sem espaços):
 
-PASSO A PASSO NO HOSTINGER (só a tua parte, ~2 minutos)
--------------------------------------------------------
-1. Painel Hostinger → Websites → (xlibertine) → Deployment / Build settings
-2. Abre "Variables d'environnement"
-3. Cola lá estas duas linhas (são PÚBLICAS — sem segredo):
+   SUPABASE_SERVICE_ROLE_KEY   ← a chave LEGACY formato eyJ... (NÃO sb_...)
+                                 (Supabase → Settings → API Keys → Legacy)
+   STRIPE_SECRET_KEY           ← sk_live_... (a rk_live_... NÃO CHEGA: dá 403
+                                 em Prices/Payment Links/Checkout)
+   STRIPE_WEBHOOK_SECRET       ← whsec_... (cria primeiro o endpoint, ver (a))
+   STRIPE_LINK_PASS_EPICURIEN  ← buy.stripe.com/... Épicurien 9€/mês  — ver (b)
+   STRIPE_LINK_PASS_PRIVILEGE  ← buy.stripe.com/... Privilège 15€/mês — ver (b)
+   STRIPE_LINK_PASS_VIP        ← buy.stripe.com/... VIP Elite 25€/mês — ver (b)
 
-   NEXT_PUBLIC_SUPABASE_URL=https://mfchfnsekoluicxnguoh.supabase.co
-   NEXT_PUBLIC_APP_URL=https://xlibertine.com
+   As 3 públicas (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY,
+   NEXT_PUBLIC_APP_URL) já lá estão — deixa-as.
 
-4. Cola também (um por chave, valores reais desta máquina):
+   (a) WEBHOOK na Stripe: Dashboard → Developers → Webhooks → Add endpoint
+       URL: https://xlibertine.com/api/payments/webhook
+       Eventos: checkout.session.completed, invoice.paid,
+                customer.subscription.deleted, charge.succeeded
+       Copia o whsec_... para STRIPE_WEBHOOK_SECRET.
+   (b) PAYMENT LINKS: os que estão no .env.production apontam à conta ERRADA
+       («Test Business»). Na conta certa (xlibertine, acct_...51TvP6) os
+       produtos JÁ EXISTEM; cria os 3 PREÇOS mensais (9/15/25€) e os links;
+       ou dá à chave restricted as permissões «Prices read+write» +
+       «Payment Links read+write» e o Claude cria tudo e cola aqui os links.
 
-   NEXT_PUBLIC_SUPABASE_ANON_KEY  ← no env.example/terminal (ver dump abaixo)
-   SUPABASE_SERVICE_ROLE_KEY     ← a chave LEGACY (formato eyJ..., NÃO a sb_...)
-   STRIPE_SECRET_KEY             ← a rk_live_... do .env.production
-   STRIPE_WEBHOOK_SECRET         ← o whsec_... do webhook criado na Stripe
-   STRIPE_LINK_PASS_EPICURIEN    ← o buy.stripe.com/... Épicurien (9€/mês)
-   STRIPE_LINK_PASS_PRIVILEGE    ← o buy.stripe.com/... Privilège (15€/mês)
-   STRIPE_LINK_PASS_VIP          ← o buy.stripe.com/... VIP Elite (25€/mês)
+2. Clica DEPLOY e espera o build ficar VERDE (sobe o commit 982e282).
 
-5. Guardar e clicar DEPLOY. Espera o build terminar (verde).
+3. Supabase → SQL Editor (https://supabase.com/dashboard/project/
+   mfchfnsekoluicxnguoh/sql/new):
+   Cola TODO o ficheiro supabase/migrations/010_endurecer_rls.sql e Run.
+   Fecha o «USING(true)» de todas as tabelas — hoje QUALQUER pessoa com a
+   chave anon lê emails/telefones/password hashes da tabela legada users,
+   mensagens, likes, notificações. URGENTE.
 
-DUMP DOS VALORES DA TUA MÁQUINA (escrever na caixa de texto daqui)
-------------------------------------------------------------------
-! cat /root/libertin/.env.production
+4. Supabase → SQL Editor de novo:
+   Cola TODO o supabase/migrations/011_bucket_verificacao_privado.sql e Run.
+   ⚠️ SÓ DEPOIS do passo 2 (deploy verde). Sem a service key no servidor
+   (passo 1), a fila de fotos do admin fica SEM imagens.
 
-Nota: o SUPABASE_SERVICE_ROLE_KEY que lá está está no formato NOVO (sb_...,
-não aceito pelo Storage). Vai ao Supabase (Settings → API Keys → Legacy API
-keys) e copia a service_role em formato eyJ....
+PORQUE NESTA ORDEM
+------------------
+- 011 vira a bucket privado; o servidor precisa da service key (passo 1) para
+  assinar os URLs; deploy (passo 2) traz o código que assina. Sem essas duas
+  partes primeiro, as fotos da fila admin ficam partidas e o login de novos
+  utilizadores pode falhar.
 
-COMO VERIFICAR QUE CHEGOU AO SITE
----------------------------------
-1. https://xlibertine.com/conditions-generais  → tem de dar 200 (era 404)
-   (teste: a página CGU existe no repo desde o push 5d18a71)
-2. No site: enviar uma foto de perfil → tem de acabar sem erro
-   (o erro antigo era « Échec de l'envoi de la photo — Invalid Compact JWS ")
-3. Painel Hostinger mostra o build verde no commit mais recente (c7f2ea3+).
-
-DEPOIS DO BUILD VERDE
----------------------
-- O upload de fotos deixa de depender da chave de service: há um fallback
-  (lib/upload-fallback.ts) que refaz a operação pela sessão do membro.
-- Para os PAYMENT LINKS: na Stripe, marca «Payment Links read+write» e
-  «Prices read+write» no editor da chave RESTRICTED (senão 403).
+COMO VERIFICAR QUE FICOU BEM
+----------------------------
+1. https://xlibertine.com/ → 200, ecrã normal (não preto).
+2. Login → vai a /decouvrir (não /profil).
+3. Anon lê users/messages/notifications → tem de dar [] (não dados):
+   https://mfchfnsekoluicxnguoh.supabase.co/rest/v1/users?select=id&limit=1
+   com a anon key → 200 [] = RLS fechado.
+4. Fila de verificação no admin: fotos aparecem (URLs assinados).
+5. Compra de teste: checkout abre e paga — perfil fica Premium e o webhook
+   renova na próxima fatura.
 
 DÚVIDAS/ERROS
 -------------
-- Cola aqui o log do painel se o build voltar a falhar.
+- Cola aqui o log do painel se o build voltar a falhar, ou o erro do SQL
+  Editor se alguma migration recusar.
 ==============================================================================
