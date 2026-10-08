@@ -20,7 +20,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     // Le groupe existe-t-il ?
     const { data: groupe, error: erreurGroupe } = await supabase
       .from('groups')
-      .select('id, name, max_members, is_private')
+      .select('id, name, max_members, is_private, member_count')
       .eq('id', groupId)
       .single();
 
@@ -70,6 +70,14 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
         { status: 500 }
       );
     }
+
+    // Le compteur affiché dans la liste doit refléter le nouveau membre.
+    // (L'app ne fait jamais de décrément — si un jour une sortie de groupe
+    // est implémentée, y remettre member_count - 1.)
+    await supabase
+      .from('groups')
+      .update({ member_count: (groupe.member_count ?? 0) + 1 })
+      .eq('id', groupId);
 
     return NextResponse.json(
       { success: true, groupId, joinedAt: new Date().toISOString() },

@@ -13,7 +13,16 @@ export async function POST(request: NextRequest) {
     const auth = await utilisateurActuel();
     if (!auth.ok) return auth.reponse;
 
-    const { planType, eventTitle } = await request.json();
+    const { planType, eventTitle, eventId } = await request.json();
+    // O eventId é indispensável: é o identificador que o webhook usa para
+    // marcar o anúncio como pago e ativo. Sem ele o dinheiro entra e o
+    // evento nunca aparece (is_active ficava false para sempre).
+    if (!eventId || typeof eventId !== 'string') {
+      return NextResponse.json(
+        { error: 'eventId do anúncio é obrigatório' },
+        { status: 400 }
+      );
+    }
     if (!planType) {
       return NextResponse.json(
         { error: 'Missing required fields' },
@@ -49,12 +58,15 @@ export async function POST(request: NextRequest) {
         'line_items[0][price]': priceId,
         'line_items[0][quantity]': '1',
         mode: 'payment',
-        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/events/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/events/cancel`,
+        // As respetivas páginas vivem em /evenements (não /events — essa
+        // rota não existe no app e 500/404 depois do pagamento).
+        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/evenements?annonces=succes&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/evenements?annonces=annule`,
         customer_email: email ?? '',
         client_reference_id: userId,
         'metadata[userId]': userId,
         'metadata[planType]': planType,
+        'metadata[eventId]': eventId,
         'metadata[eventTitle]': eventTitle || 'Event Listing',
       }).toString(),
     });

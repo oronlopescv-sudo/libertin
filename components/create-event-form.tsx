@@ -69,13 +69,15 @@ export function CreateEventForm({ userId }: CreateEventFormProps) {
         return;
       }
 
-      // Redirect to checkout
+      // Redirect to checkout — leva também o eventId: é o que o webhook usa
+      // para ativar a publicação depois da confirmação de pagamento.
       const response = await fetchResilient('/api/events/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           planType,
           eventTitle: formData.title,
+          eventId: result.eventId,
         }),
       });
 
