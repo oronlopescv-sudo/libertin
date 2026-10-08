@@ -1,20 +1,25 @@
 /**
- * Events Service
- * Manage event creation, participation, and lifecycle
+ * Events Service — criação e listagem de anúncios de eventos.
+ *
+ * (RLS) As duas funções pedem AGORA o cliente que o CHAMADOR usa: as rotas
+ * /api/events passam o cliente autenticado por cookies da sessão, e o
+ * creator_id vem sempre da sessão — nunca do browser. O antigo corpo deste
+ * ficheiro usava um client anónimo global e escrevia directamente do browser
+ * (creator_id falsificável); os helpers mortos (activateEvent, joinEvent,
+ * renewEvent, etc.) foram removidos — activateEvent nunca tinha chamador e
+ * a ativação vive no webhook (lib/stripe-webhook.ts → handleEventPaid).
  */
 
-import { createClient } from '@supabase/supabase-js';
-import { Event, EventParticipant, EventPlanType } from './types';
+import type { Event, EventPlanType } from './types';
 
-const criaSessaoEventos = () =>
-  createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://example.supabase.co',
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy-key'
-  );
-const supabase = criaSessaoEventos();
+/** Mínimo do cliente Supabase que as rotas injectam (cliente da sessão). */
+export type SupabaseCliente = {
+  from: (t: string) => any;
+};
 
 /**
- * Event pricing
+ * Event pricing — euros. Cobrança por price_data (€ × 100 → cêntimos), o
+ * webhook trata da ativação com a duração aqui definida.
  */
 export const EVENT_PLANS: Record<EventPlanType, { price: number; duration: number; name: string }> = {
   basic: { price: 100, duration: 30, name: 'Annonce Basique' },
@@ -23,9 +28,11 @@ export const EVENT_PLANS: Record<EventPlanType, { price: number; duration: numbe
 };
 
 /**
- * Create a new event listing
+ * Criar um anúncio de evento. `creatorId` é o id da SESSÃO (a rota passa),
+ * nunca um valor vindo do corpo do pedido.
  */
 export async function createEvent(
+  cliente: SupabaseCliente,
   creatorId: string,
   eventData: {
     type: string;
@@ -42,7 +49,6 @@ export async function createEvent(
   }
 ): Promise<{ success: boolean; eventId?: string; error?: string }> {
   try {
-    // Validate required fields
     if (!eventData.title || !eventData.description) {
       return { success: false, error: 'Le titre et la description sont obligatoires' };
     }
@@ -55,13 +61,11 @@ export async function createEvent(
       return { success: false, error: 'La description doit contenir au minimum 50 caractères' };
     }
 
-    // Calculate expiration
     const plan = EVENT_PLANS[eventData.plan_type];
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + plan.duration);
 
-    // Insert event
-    const { data, error } = await supabase
+    const { data, error } = await cliente
       .from('events')
       .insert({
         creator_id: creatorId,
@@ -81,7 +85,7 @@ export async function createEvent(
         is_active: false,
         expires_at: expiresAt.toISOString(),
       })
-      .select()
+      .select('id')
       .single();
 
     if (error) throw error;
@@ -89,49 +93,19 @@ export async function createEvent(
     return { success: true, eventId: data.id };
   } catch (error) {
     console.error('Failed to create event:', error);
-    return { success: false, error: 'Échec de la création de l\'annonce' };
+    return { success: false, error: "Échec de la création de l'annonce" };
   }
 }
 
 /**
- * Activate event after payment
+ * Anúncios ativos com filtros (type, city, limit).
  */
-export async function activateEvent(
-  eventId: string,
-  stripePaymentId: string,
-  creatorId: string
-): Promise<boolean> {
+export async function getEvents(
+  cliente: SupabaseCliente,
+  filters?: { type?: string; city?: string; limit?: number }
+): Promise<Event[]> {
   try {
-    const { error } = await supabase
-      .from('events')
-      .update({
-        is_active: true,
-        payment_status: 'paid',
-        stripe_payment_id: stripePaymentId,
-      })
-      .eq('id', eventId)
-      .eq('creator_id', creatorId);
-
-    if (error) throw error;
-
-    return true;
-  } catch (error) {
-    console.error('Failed to activate event:', error);
-    return false;
-  }
-}
-
-/**
- * Get active events with filters
- */
-export async function getEvents(filters?: {
-  type?: string;
-  city?: string;
-  limit?: number;
-  offset?: number;
-}): Promise<Event[]> {
-  try {
-    let query = supabase
+    let query = cliente
       .from('events')
       .select('*')
       .eq('is_active', true)
@@ -147,8 +121,8 @@ export async function getEvents(filters?: {
     }
 
     const { data, error } = await query.range(
-      filters?.offset || 0,
-      (filters?.offset || 0) + (filters?.limit || 50) - 1
+      0,
+      (filters?.limit || 50) - 1
     );
 
     if (error) throw error;
@@ -157,238 +131,5 @@ export async function getEvents(filters?: {
   } catch (error) {
     console.error('Failed to get events:', error);
     return [];
-  }
-}
-
-/**
- * Get event details
- */
-export async function getEventDetails(eventId: string): Promise<Event | null> {
-  try {
-    const { data, error } = await supabase
-      .from('events')
-      .select('*')
-      .eq('id', eventId)
-      .single();
-
-    if (error) throw error;
-
-    return data;
-  } catch (error) {
-    console.error('Failed to get event:', error);
-    return null;
-  }
-}
-
-/**
- * Join/express interest in event
- */
-export async function joinEvent(
-  eventId: string,
-  userId: string,
-  status: 'interested' | 'confirmed' = 'interested'
-): Promise<boolean> {
-  try {
-    // Check if already joined
-    let existing: { id: string } | null = null;
-    try {
-      const result = await supabase
-        .from('event_participants')
-        .select('id')
-        .eq('event_id', eventId)
-        .eq('user_id', userId)
-        .single();
-      existing = result.data;
-    } catch {
-      existing = null;
-    }
-
-    if (existing) {
-      // Already joined
-      return true;
-    }
-
-    // Add participant
-    const { error } = await supabase.from('event_participants').insert({
-      event_id: eventId,
-      user_id: userId,
-      status,
-    });
-
-    if (error) throw error;
-
-    // Update confirmed count if confirmed
-    if (status === 'confirmed') {
-      try {
-        await supabase.rpc('increment_event_participants', {
-          event_id: eventId,
-        });
-      } catch {
-        /* Ignore if function doesn't exist */
-      }
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Failed to join event:', error);
-    return false;
-  }
-}
-
-/**
- * Leave event
- */
-export async function leaveEvent(eventId: string, userId: string): Promise<boolean> {
-  try {
-    const { error } = await supabase
-      .from('event_participants')
-      .delete()
-      .eq('event_id', eventId)
-      .eq('user_id', userId);
-
-    if (error) throw error;
-
-    return true;
-  } catch (error) {
-    console.error('Failed to leave event:', error);
-    return false;
-  }
-}
-
-/**
- * Get participants for event
- */
-export async function getEventParticipants(eventId: string): Promise<EventParticipant[]> {
-  try {
-    const { data, error } = await supabase
-      .from('event_participants')
-      .select('*')
-      .eq('event_id', eventId);
-
-    if (error) throw error;
-
-    return data || [];
-  } catch (error) {
-    console.error('Failed to get participants:', error);
-    return [];
-  }
-}
-
-/**
- * Renew event listing
- */
-export async function renewEvent(
-  eventId: string,
-  creatorId: string,
-  planType: EventPlanType
-): Promise<{ success: boolean; error?: string }> {
-  try {
-    const event = await getEventDetails(eventId);
-
-    if (!event || event.creator_id !== creatorId) {
-      return { success: false, error: 'Événement introuvable ou sans autorisation' };
-    }
-
-    const plan = EVENT_PLANS[planType];
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + plan.duration);
-
-    const { error } = await supabase
-      .from('events')
-      .update({
-        expires_at: expiresAt.toISOString(),
-        payment_status: 'pending',
-        plan_type: planType,
-      })
-      .eq('id', eventId)
-      .eq('creator_id', creatorId);
-
-    if (error) throw error;
-
-    return { success: true };
-  } catch (error) {
-    console.error('Failed to renew event:', error);
-    return { success: false, error: 'Échec du renouvellement de l\'annonce' };
-  }
-}
-
-/**
- * Get user's events
- */
-export async function getUserEvents(userId: string): Promise<Event[]> {
-  try {
-    const { data, error } = await supabase
-      .from('events')
-      .select('*')
-      .eq('creator_id', userId)
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-
-    return data || [];
-  } catch (error) {
-    console.error('Failed to get user events:', error);
-    return [];
-  }
-}
-
-/**
- * Delete event (admin or creator only)
- */
-export async function deleteEvent(eventId: string, userId: string): Promise<boolean> {
-  try {
-    const event = await getEventDetails(eventId);
-
-    if (!event || event.creator_id !== userId) {
-      return false;
-    }
-
-    const { error } = await supabase
-      .from('events')
-      .delete()
-      .eq('id', eventId)
-      .eq('creator_id', userId);
-
-    if (error) throw error;
-
-    return true;
-  } catch (error) {
-    console.error('Failed to delete event:', error);
-    return false;
-  }
-}
-
-/**
- * Get event statistics
- */
-export async function getEventStats(): Promise<{
-  total: number;
-  active: number;
-  byType: Record<string, number>;
-  byCity: Record<string, number>;
-} | null> {
-  try {
-    const { data, error } = await supabase.from('events').select('type, city, is_active');
-
-    if (error) throw error;
-
-    const stats = {
-      total: data?.length || 0,
-      active: data?.filter((e) => e.is_active).length || 0,
-      byType: {} as Record<string, number>,
-      byCity: {} as Record<string, number>,
-    };
-
-    data?.forEach((event: any) => {
-      stats.byType[event.type] = (stats.byType[event.type] || 0) + 1;
-      if (event.city) {
-        stats.byCity[event.city] = (stats.byCity[event.city] || 0) + 1;
-      }
-    });
-
-    return stats;
-  } catch (error) {
-    console.error('Failed to get event stats:', error);
-    return null;
   }
 }

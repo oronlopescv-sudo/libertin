@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
 import { utilisateurPremium } from '@/lib/auth-serveur';
 
@@ -71,10 +72,15 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
       );
     }
 
-    // Le compteur affiché dans la liste doit refléter le nouveau membre.
-    // (L'app ne fait jamais de décrément — si un jour une sortie de groupe
-    // est implémentée, y remettre member_count - 1.)
-    await supabase
+    // O contador conta-se via chave de SERVIÇO: com RLS fechado, um membro
+    // comum não pode fazer UPDATE em groups (só o criador pode editar o
+    // grupo); service_role contorna o RLS de propósito.
+    const servico = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://example.supabase.co',
+      process.env.SUPABASE_SERVICE_ROLE_KEY || 'dummy-key',
+      { auth: { persistSession: false } }
+    );
+    await servico
       .from('groups')
       .update({ member_count: (groupe.member_count ?? 0) + 1 })
       .eq('id', groupId);

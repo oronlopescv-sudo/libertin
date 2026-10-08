@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { utilisateurActuel } from '@/lib/auth-serveur';
+import { createServerSupabaseClient } from '@/lib/supabase-server';
 import { createEvent, getEvents } from '@/lib/events';
 import type { EventPlanType } from '@/lib/types';
 
@@ -24,7 +25,8 @@ export async function GET(request: NextRequest) {
     if (city) filtro.city = city;
     if (limite > 0) filtro.limit = limite;
 
-    const events = await getEvents(filtro);
+    const supabase = await createServerSupabaseClient();
+    const events = await getEvents(supabase, filtro);
     return NextResponse.json({ events });
   } catch (err) {
     console.error('[events GET]', err);
@@ -53,7 +55,9 @@ export async function POST(request: NextRequest) {
     }
 
     // createEvent valida título/descrição e devolve { success, eventId?, error? }.
-    const result = await createEvent(auth.user.id, {
+    // Cliente AUTENTICADO da sessão — o RLS vai exigir creator_id = auth.uid().
+    const supabase = await createServerSupabaseClient();
+    const result = await createEvent(supabase, auth.user.id, {
       type: typeof body.type === 'string' ? body.type : 'festa',
       title: typeof body.title === 'string' ? body.title : '',
       description: typeof body.description === 'string' ? body.description : '',
