@@ -266,6 +266,75 @@ export async function sendAbonnementConfirmationEmail(
 }
 
 /**
+ * Renouvellement mensuel réussi (invoice.paid) — confirme que le Pass reste
+ * actif et annonce la nouvelle date de validité, sans recréer le template de
+ * bienvenue (membre existant).
+ */
+export async function sendAbonnementRenewalEmail(
+  email: string,
+  _username: string,
+  planId: string,
+  subscriptionEnd: Date
+): Promise<boolean> {
+  const planNames: Record<string, string> = {
+    PASS_EPICURIEN: 'Pass Épicurien',
+    PASS_PRIVILEGE: 'Pass Privilège',
+    PASS_VIP: 'Pass VIP Elite',
+  };
+
+  const planName = planNames[planId] || planId;
+  const endDate = subscriptionEnd.toLocaleDateString('fr-FR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #D4145A, #E86B7A); color: white; padding: 20px; border-radius: 8px; text-align: center; }
+          .plan-details { background: #F8F9FA; padding: 20px; border-radius: 8px; margin: 20px 0; }
+          .button { display: inline-block; background: #D4145A; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+          .footer { color: #999; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🔁 ${planName} renouvelé</h1>
+          </div>
+
+          <p>Bonjour ${_username},</p>
+          <p>Votre abonnement a été renouvelé pour un mois. Tout continue de fonctionner normalement.</p>
+
+          <div class="plan-details">
+            <p><strong>Plan:</strong> ${planName}</p>
+            <p><strong>Valide jusqu'au:</strong> ${endDate}</p>
+            <p><strong>Statut:</strong> ✅ Actif</p>
+          </div>
+
+          <a href="${APP_URL}/decouvrir" class="button">Continuer à explorer</a>
+
+          <div class="footer">
+            <p>© 2026 xlibertine — Tous droits réservés.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  return sendEmail({
+    to: email,
+    subject: `🔁 Votre ${planName} a été renouvelé`,
+    html,
+  });
+}
+
+/**
  * Photo verification approval email
  */
 export async function sendPhotoApprovedEmail(

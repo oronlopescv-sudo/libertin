@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { verifyWebhookSignature } from '@/lib/stripe';
 import { aplicaEnvRuntime } from './env-runtime';
-import { sendAbonnementConfirmationEmail } from '@/lib/email';
+import { sendAbonnementConfirmationEmail, sendAbonnementRenewalEmail } from '@/lib/email';
 import { EVENT_PLANS } from '@/lib/events';
 import type { EventPlanType } from '@/lib/types';
 
@@ -244,20 +244,35 @@ async function handleInvoicePaid(invoice: any) {
     return;
   }
 
-  const { error } = await supabase
+  const { data: renovees, error } = await supabase
     .from('profiles')
     .update({
       subscription_end: subscriptionEnd.toISOString(),
       updated_at: new Date().toISOString(),
     })
-    .eq('stripe_customer_id', customerId);
+    .eq('stripe_customer_id', customerId)
+    .select('email, username, subscription_tier');
 
   if (error) {
     console.error('Failed to extend subscription_end on invoice.paid:', error);
     return;
   }
 
+  const renovee = Array.isArray(renovees) && renovees.length > 0 ? renovees[0] : null;
   console.log(`🔁 Abonnement renouvelé jusqu'au ${subscriptionEnd.toISOString()} (customer ${customerId})`);
+
+  if (renovee?.email) {
+    try {
+      await sendAbonnementRenewalEmail(
+        renovee.email,
+        renovee.username,
+        renovee.subscription_tier || 'PASS_EPICURIEN',
+        subscriptionEnd
+      );
+    } catch (err) {
+      console.error('Failed to send renewal email:', err);
+    }
+  }
 }
 
 /**

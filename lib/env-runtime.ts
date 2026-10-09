@@ -28,6 +28,8 @@ const CHAVES_PERMITIDAS = [
   'SUPABASE_SERVICE_ROLE_KEY',
   'STRIPE_SECRET_KEY',
   'STRIPE_WEBHOOK_SECRET',
+  'RESEND_API_KEY',
+  'RESEND_FROM_EMAIL',
 ] as const;
 
 let jaAplicado = false;
