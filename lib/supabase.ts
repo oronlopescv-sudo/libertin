@@ -313,6 +313,11 @@ export async function getCurrentSupabaseUser(): Promise<User | null> {
       .from('profiles')
       .select('*')
       .eq('id', userId)
+      // Conta banida (is_active=false): considera DESLOGADA no cliente, em
+      // coerência com o servidor (utilisateurActuel devolve 403 'Compte
+      // suspendu'). Antes a UI mostrava a sessão "logada" e cada chamada
+      // API falhava com 403 — um estado impossível.
+      .eq('is_active', true)
       .single();
 
     if (error || !profile) {

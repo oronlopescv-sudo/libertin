@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { utilisateurActuel } from '@/lib/auth-serveur';
+import { utilisateurPremium } from '@/lib/auth-serveur';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
 import { createEvent, getEvents } from '@/lib/events';
 import type { EventPlanType } from '@/lib/types';
@@ -7,12 +7,13 @@ import type { EventPlanType } from '@/lib/types';
 /**
  * GET /api/events — listar anúncios ativos (com filtros ?type= e ?city=).
  *
- * Antes a listagem era feita no browser com a chave anónima: qualquer pessoa
- * lia eventos com localização. Aqui o pedido passa a obrigatório autenticado.
+ * Réservé aux membres Premium (la page /evenements est déjà verrouillée
+ * ainsi côté UI) — l'API applique le même gate pour ne pas laisser un
+ * membre FREE lire la liste directement.
  */
 export async function GET(request: NextRequest) {
   try {
-    const auth = await utilisateurActuel();
+    const auth = await utilisateurPremium('consulter les événements');
     if (!auth.ok) return auth.reponse;
 
     const { searchParams } = new URL(request.url);
@@ -45,7 +46,10 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const auth = await utilisateurActuel();
+    // Gate Premium côté serveur — cohérent avec la page /evenements
+    // (« Seuls les membres Premium peuvent créer et participer ») et avec
+    // /api/events/join, qui l'applique déjà.
+    const auth = await utilisateurPremium('créer un événement');
     if (!auth.ok) return auth.reponse;
 
     const body = await request.json().catch(() => ({}));
