@@ -51,14 +51,43 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Vérifie que le profil correspond bien à l'email indiqué (cohérence)
+    // CLAIM atomique AVANT de toucher à la password : la mise à jour ne
+    // s'applique que si le jeton est encore inutilisé. L'ordre inverse
+    // (reset puis mark) laissait deux doubles-submits concurrents changer
+    // tous les deux la password, le perdant gagnant le dernier mot.
+    const { data: marcou, error: markError } = await supabase
+      .from('password_resets')
+      .update({ used: true })
+      .eq('id', resetRecord.id)
+      .eq('used', false)
+      .select('id');
+
+    if (markError) {
+      console.error('Mark error:', markError);
+      return NextResponse.json({ error: 'Erreur interne' }, { status: 500 });
+    }
+    if (!marcou || marcou.length === 0) {
+      return NextResponse.json(
+        { error: 'Ce lien de réinitialisation a déjà été utilisé' },
+        { status: 409 }
+      );
+    }
+
+    // Vérifie que le profil correspond bien à l'email indiqué (cohérence).
+    // Les e-mails auth Supabase sont en minuscules : comparaison
+    // insensible à la casse, sinon un jeton valide échoue parce que le
+    // membre a tapé un autre casing que celui stocké.
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('id, email')
       .eq('id', resetRecord.user_id)
       .single();
 
-    if (profileError || !profile || profile.email !== email) {
+    if (
+      profileError ||
+      !profile ||
+      (profile.email ?? '').toLowerCase() !== email.trim().toLowerCase()
+    ) {
       return NextResponse.json({ error: 'Jeton invalide ou expiré' }, { status: 400 });
     }
 
@@ -75,28 +104,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: 'Erreur lors de la mise à jour du mot de passe' },
         { status: 500 }
-      );
-    }
-
-    // Marque le jeton comme utilisé de façon atomique : la mise à jour ne
-    // s'applique que s'il est encore inutilisé, ce qui empêche un double reset
-    // concurrent avec le même lien.
-    const { data: marked, error: markError } = await supabase
-      .from('password_resets')
-      .update({ used: true })
-      .eq('id', resetRecord.id)
-      .eq('used', false)
-      .select('id');
-
-    if (markError) {
-      console.error('Mark error:', markError);
-    }
-
-    // Si aucune ligne n'a été modifiée, un autre usage concurrent a gagné.
-    if (!markError && (!marked || marked.length === 0)) {
-      return NextResponse.json(
-        { error: 'Ce lien de réinitialisation a déjà été utilisé' },
-        { status: 409 }
       );
     }
 
