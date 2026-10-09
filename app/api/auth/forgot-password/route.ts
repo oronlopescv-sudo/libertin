@@ -33,12 +33,49 @@ if (process.env.RESEND_API_KEY) {
  * La réponse reste identique dans les deux voies : un succès neutre, jamais
  * d'information sur l'existence d'un compte.
  */
+// Limiteur de débit : marque la demande et dit si le quota est atteint.
+// Fenêtre glissante par clé (IP + e-mail en minuscules), 3 par 15 min.
+const JANELA_MS = 15 * 60 * 1000;
+const MAX_POR_JANELA = 3;
+
+function limiteUltrapassado(chave: string): boolean {
+  const g = globalThis as unknown as {
+    __esquecerPasseMarcas?: Map<string, number[]>;
+  };
+  const marcas: Map<string, number[]> =
+    g.__esquecerPasseMarcas ?? (g.__esquecerPasseMarcas = new Map<string, number[]>());
+  const agora = Date.now();
+  const vivas = (marcas.get(chave) ?? []).filter((t) => agora - t < JANELA_MS);
+  if (vivas.length >= MAX_POR_JANELA) {
+    return true;
+  }
+  vivas.push(agora);
+  marcas.set(chave, vivas);
+  return false;
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { email } = await req.json();
+    const { email: emailBrut } = await req.json();
 
-    if (!email || typeof email !== 'string') {
+    if (!emailBrut || typeof emailBrut !== 'string') {
       return NextResponse.json({ error: 'Email obligatoire' }, { status: 400 });
+    }
+    const email = emailBrut.trim();
+
+    // Limiteur de débit en mémoire (une seule instance Passenger) : 3
+    // demandes par e-mail + IP toutes les 15 minutes. Sans lui, la voie
+    // custom permet le bombing de courriels dès qu'une clé Resend vit
+    // ici, et la différence de statut 200/503 rendrait l'énumération
+    // d'adresses gratuite. Réponse identique quels que soient existence
+    // et quota : aucun indice.
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'inconnue';
+    const chave = `${ip}|${email.toLowerCase()}`;
+    if (limiteUltrapassado(chave)) {
+      return NextResponse.json(
+        { error: "Trop de demandes : attendez quelques minutes avant de redemander." },
+        { status: 429 }
+      );
     }
 
     // ─── Voie 1 : e-mail de récupération natif de Supabase ───
@@ -70,11 +107,13 @@ export async function POST(req: NextRequest) {
     // ─── Voie 2 : jeton maison (clé de service + Resend) ───
     const supabase = createServiceRoleClient();
 
-    // Récupère le profil par email (table `profiles`, snake_case)
+    // Récupère le profil par email (table `profiles`, snake_case). Les
+    // e-mails auth Supabase sont en minuscules : on normalise la demande
+    // pour ne pas manquer les profils à cause de la casse tapée.
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('id, email, username')
-      .eq('email', email)
+      .eq('email', email.toLowerCase())
       .single();
 
     if (profileError || !profile) {
