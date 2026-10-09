@@ -189,6 +189,12 @@ export function LoginForm() {
             </button>
 
             <div className="text-center text-sm text-zinc-400">
+              <a
+                href="/forgot-password"
+                className="block w-full mb-3 py-2.5 border border-[#3C2B4D] rounded-lg text-[#E86B7A] font-semibold hover:bg-[#2C1B3D] hover:border-[#D4145A]/60 transition"
+              >
+                Mot de passe oublié ?
+              </a>
               Pas encore de compte ?{' '}
               <a href="/register" className="text-[#E86B7A] font-semibold hover:underline">
                 Créer un compte
