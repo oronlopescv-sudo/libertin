@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { fetchResilient } from '@/lib/fetch-resilient';
 import { Navbar } from '@/components/navbar';
 import { VerificationQueuePanel } from '@/components/admin-verification-queue';
-import { Users, Zap, Heart, TrendingUp, Ban, Lock, Crown, ShieldCheck, X } from 'lucide-react';
+import { Users, Zap, Heart, TrendingUp, Ban, Lock, Crown, ShieldCheck, X, KeyRound } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/auth-context';
 
@@ -78,7 +78,7 @@ export default function AdminDashboard() {
   // Confirmations via un modal intégré à la page. Remplacent les confirm()/
   // prompt()/alert() natifs (laids, bloquants et incohérents avec l'interface).
   const [acao, setAcao] = useState<null | {
-    tipo: 'ban' | 'unban' | 'grant';
+    tipo: 'ban' | 'unban' | 'grant' | 'reset';
     userId: string;
     username: string;
     tierAtual: string;
@@ -88,14 +88,18 @@ export default function AdminDashboard() {
     'PASS_PRIVILEGE'
   );
   const [meses, setMeses] = useState(1);
+  // senhaNova: apenas a ação «reset» — vazia = o servidor gera uma
+  // temporária e a devolve na resposta para passar ao membro.
+  const [senhaNova, setSenhaNova] = useState('');
   const [processando, setProcessando] = useState(false);
   const [feedback, setFeedback] = useState<{ tipo: 'ok' | 'erro'; texto: string } | null>(null);
 
-  const prepararAcao = (tipo: 'ban' | 'unban' | 'grant', u: AdminUser) => {
+  const prepararAcao = (tipo: 'ban' | 'unban' | 'grant' | 'reset', u: AdminUser) => {
     setFeedback(null);
     setMotivo('Violation des conditions');
     setPlano('PASS_PRIVILEGE');
     setMeses(1);
+    setSenhaNova('');
     setAcao({ tipo, userId: u.id, username: u.username, tierAtual: u.subscriptionTier });
   };
 
@@ -128,6 +132,12 @@ export default function AdminDashboard() {
         res = await fetchResilient(`/api/admin/users?userId=${acao.userId}`, {
           method: 'DELETE',
         });
+      } else if (acao.tipo === 'reset') {
+        res = await fetchResilient('/api/admin/users/reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: acao.userId, newPassword: senhaNova.trim() }),
+        });
       } else {
         res = await fetchResilient('/api/admin/users/grant-premium', {
           method: 'POST',
@@ -137,12 +147,23 @@ export default function AdminDashboard() {
       }
 
       if (res.ok) {
-        const textos = {
-          ban: `${acao.username} a été banni.`,
-          unban: `${acao.username} a été réactivé.`,
-          grant: `${plano} activé pour ${meses} mois — ${acao.username}.`,
-        };
-        setFeedback({ tipo: 'ok', texto: textos[acao.tipo] });
+        if (acao.tipo === 'reset') {
+          // A senha gerada VEM apenas nesta resposta — é ela que o admin
+          // passa ao membro por canal privado (nada de email nem logs).
+          const dados = await res.json();
+          const senhaRevelada = dados.gerada ? dados.password : senhaNova.trim();
+          setFeedback({
+            tipo: 'ok',
+            texto: `Password reposta — ${acao.username} entra agora com : ${senhaRevelada} (passa-lhe por canal privado; não sai por email).`,
+          });
+        } else {
+          const textos = {
+            ban: `${acao.username} a été banni.`,
+            unban: `${acao.username} a été réactivé.`,
+            grant: `${plano} activé pour ${meses} mois — ${acao.username}.`,
+          };
+          setFeedback({ tipo: 'ok', texto: textos[acao.tipo] });
+        }
         setAcao(null);
         await recarregarUsuarios();
       } else {
@@ -352,6 +373,12 @@ export default function AdminDashboard() {
                               {u.subscriptionTier && u.subscriptionTier !== 'FREE' ? 'Renouveler Premium' : 'Activer Premium'}
                             </button>
                             <button
+                              onClick={() => prepararAcao('reset', u)}
+                              className="text-[#E86B7A] hover:text-[#D4145A] text-xs font-semibold flex items-center gap-1"
+                            >
+                              <KeyRound className="w-4 h-4" /> Repor password
+                            </button>
+                            <button
                               onClick={() => prepararAcao('ban', u)}
                               className="text-red-400 hover:text-red-300 text-xs font-semibold flex items-center gap-1"
                             >
@@ -445,6 +472,11 @@ export default function AdminDashboard() {
                     {acao.username}
                   </>
                 )}
+                {acao.tipo === 'reset' && (
+                  <>
+                    Repor password — {acao.username}
+                  </>
+                )}
               </h3>
               <button
                 onClick={() => setAcao(null)}
@@ -478,6 +510,27 @@ export default function AdminDashboard() {
               <p className="text-sm text-zinc-400">
                 L&apos;utilisateur retrouvera l&apos;accès à la plateforme. Confirmer ?
               </p>
+            )}
+
+            {acao.tipo === 'reset' && (
+              <div className="space-y-2">
+                <p className="text-sm text-zinc-400">
+                  Para o membro bloqueado enquanto o envio de e-mails não funciona: define a
+                  nova password, ele entra com ela e troca depois no perfil.
+                </p>
+                <label className="text-xs text-zinc-400 block">
+                  Nova password — deixada vazia, gera uma temporária automaticamente (aparece
+                  no toast, cópia-a e passa ao membro)
+                </label>
+                <input
+                  type="text"
+                  value={senhaNova}
+                  onChange={(e) => setSenhaNova(e.target.value)}
+                  placeholder='Vazio = gerar — ex: "NovaSenhaE2e2026!"'
+                  autoComplete="off"
+                  className="w-full p-3 bg-[#12091A] border border-[#2C1B3D] rounded-lg text-white placeholder-zinc-600 focus:outline-none focus:border-[#D4145A] text-sm"
+                />
+              </div>
             )}
 
             {acao.tipo === 'grant' && (
