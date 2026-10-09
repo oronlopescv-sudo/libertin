@@ -102,12 +102,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Erreur lors de la création du jeton' }, { status: 500 });
     }
 
-    // Envoie l'email via Resend (si configuré)
+    // Envoie l'email via Resend (si configuré). On suit le résultat : la
+    // réponse ne peut PAS prétendre un succès (« Email envoyé ! ») quand
+    // aucun courrier n'est parti — le membre resterait bloqué sans le
+    // savoir (c'est arrivé en production avec une clé Resend morte).
+    let emailEnviado = false;
+
     if (resend) {
       const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://xlibertine.com'}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
 
       try {
-        await resend.emails.send({
+        const resultado = await resend.emails.send({
           from: 'noreply@xlibertine.com',
           to: email,
           subject: 'Réinitialiser votre mot de passe - xlibertine',
@@ -158,13 +163,28 @@ export async function POST(req: NextRequest) {
             </div>
           `,
         });
-      } catch (emailError) {
-        console.error('Resend error:', emailError);
-        // Ne pas échouer : le jeton a été créé
+        const erroResend = (resultado as any)?.error;
+        if (erroResend) {
+          console.error('[forgot-password] Resend devolveu erro :', erroResend.message ?? erroResend);
+        } else if (resultado?.data?.id) {
+          emailEnviado = true;
+        }
+      } catch (emailError: any) {
+        console.error('[forgot-password] erro do envio Resend :', emailError?.message ?? emailError);
       }
     } else {
       console.warn("Resend n'est pas configuré. L'email ne sera pas envoyé.");
-      console.log('Reset URL: /reset-password?token=' + resetToken + '&email=' + email);
+    }
+
+    // Le profil existe et une demande a été enregistrée : si AUCUN courrier
+    // n'a pu partir (clé Resend absente/morte), on le dit au lieu de
+    // mentir avec « Email envoyé ! ». Message générique : aucun indice
+    // sur le compte n'est révélé.
+    if (!emailEnviado) {
+      return NextResponse.json(
+        { error: "Le service d'envoi d'e-mails est momentanément indisponible. Réessayez dans quelques minutes." },
+        { status: 503 }
+      );
     }
 
     return NextResponse.json(
