@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
 import { utilisateurActuel } from '@/lib/auth-serveur';
+import { isPremium } from '@/lib/premium';
 
 /**
  * GET /api/profiles/[id] — profil public d'un membre.
  *
  * Ouvert à tout membre connecté (Premium ou non). Ne renvoie que les champs
- * publics (jamais email, phone, stripe_customer_id, etc.). Inclut les photos
- * de l'album et un indicateur "likedByMe" pour le bouton Like.
+ * publics (jamais email, phone, stripe_customer_id, etc.). Inclut un
+ * indicateur "likedByMe" pour le bouton Like.
+ *
+ * Paywall « albums privés » appliqué ICI, côté serveur (la UI seule
+ * n'était que cosmétique : les URLs complètes partaient à tout member).
+ * Un membre FREE ne reçoit que la photo de couverture ; les URLs des
+ * autres photos de l'album ne sortent jamais de l'API. Seul le total
+ * (totalPhotos) l'informe de l'existence des photos réservées.
  */
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -52,12 +59,19 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
     }
 
-    // Album photo (table photos).
-    const { data: photos } = await supabase
+    // Album photo (table photos). Paywall côté serveur : hors Premium,
+    // seules les photos de couverture sont renvoyées — les URLs de l'album
+    // complet ne quittent jamais le serveur.
+    const { data: fotos } = await supabase
       .from('photos')
       .select('id, url, is_cover, display_order')
       .eq('user_id', id)
       .order('display_order', { ascending: true });
+    const todasFotos = fotos ?? [];
+    const todosFotosCount = todasFotos.length;
+    const photos = isPremium(auth.user)
+      ? todasFotos
+      : todasFotos.filter((p: any) => p.is_cover);
 
     // Est-ce que j'ai déjà liké ce profil ?
     const { data: monLike } = await supabase
@@ -82,11 +96,12 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
           isNsfw: !!profil.is_nsfw,
           createdAt: profil.created_at,
         },
-        photos: (photos ?? []).map((p: any) => ({
+        photos: photos.map((p: any) => ({
           id: p.id,
           url: p.url,
           isCover: !!p.is_cover,
         })),
+        totalPhotos: todosFotosCount,
         likedByMe: !!monLike,
       },
       { status: 200 }

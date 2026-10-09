@@ -156,7 +156,11 @@ export function AbonnementPlans() {
             <div>
               <div className="text-xs text-zinc-400 font-medium">Votre Formule Actuelle</div>
               <div className="text-lg font-bold text-white flex items-center gap-2">
-                <span>{getPlanDetails(user.subscriptionTier).title}</span>
+                {/* Tier OBSOLÈTE en base quand l'abonnement expire (le
+                    webhook ne repasse pas toujours le tier à FREE) : on
+                    n'affiche le titre du plan que si l'accès Premium est
+                    réel — sinon « Gratuit », jamais un plan expiré. */}
+                <span>{isPremium ? getPlanDetails(user.subscriptionTier).title : 'Gratuit'}</span>
                 {isPremium && (
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white font-bold uppercase tracking-wider">
                     Actif
@@ -168,9 +172,15 @@ export function AbonnementPlans() {
 
           <div className="text-right text-xs text-zinc-400">
             {user.subscriptionEnd ? (
-              <div>
-                Valide jusqu&apos;au <strong className="text-white">{new Date(user.subscriptionEnd).toLocaleDateString('fr-FR')}</strong>
-              </div>
+              isPremium ? (
+                <div>
+                  Valide jusqu&apos;au <strong className="text-white">{new Date(user.subscriptionEnd).toLocaleDateString('fr-FR')}</strong>
+                </div>
+              ) : (
+                <div>
+                  Expired from <strong className="text-white">{new Date(user.subscriptionEnd).toLocaleDateString('fr-FR')}</strong>
+                </div>
+              )
             ) : (
               <div>Inscrit le {new Date(user.createdAt).toLocaleDateString('fr-FR')}</div>
             )}

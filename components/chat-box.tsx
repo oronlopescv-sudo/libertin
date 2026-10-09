@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Message } from '@/lib/types';
-import { Store } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
 import { fetchResilient } from '@/lib/fetch-resilient';
 import { useAuth } from '@/context/auth-context';
@@ -56,6 +55,10 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
   const [uploadError, setUploadError] = useState('');
   const [pendingMediaPreview, setPendingMediaPreview] = useState<string | null>(null);
   const [pendingMediaUrl, setPendingMediaUrl] = useState<string | null>(null);
+  // Bloqueios MEUS na tabela servidor (`blocked_users`) — mesma fonte que
+  // profile-card/discovery. Antes o botão aqui gravava em localStorage:
+  // não persistia entre dispositivos e não bloqueava nada de verdade.
+  const [bloqueadosPorMim, setBloqueadosPorMim] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -91,6 +94,17 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
   useEffect(() => {
     loadMessages();
   }, [loadMessages]);
+
+  // Carrega a lista de bloqueios do servidor (fonte única e persistente).
+  useEffect(() => {
+    if (!user) return;
+    fetchResilient('/api/blocks')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d?.blockedIds && setBloqueadosPorMim(new Set<string>(d.blockedIds)))
+      .catch(() => {
+        /* sem lista → não filtra nada (comportamento anterior) */
+      });
+  }, [user]);
 
   // Temps réel : nouveaux messages du groupe, dédoublonnés par id.
   useEffect(() => {
@@ -293,7 +307,8 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
 
   const visibleMessages = messages.filter((msg) => {
     if (!user) return true;
-    return !Store.isBlocked(user.id, msg.userId);
+    // Membros que EU bloquee persistente-mente no servidor.
+    return !bloqueadosPorMim.has(msg.userId);
   });
 
   return (
@@ -365,12 +380,32 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
                     <span>• {new Date(msg.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
                     {!isMe && user && (
                       <button
-                        onClick={() => {
-                          Store.blockUser(user.id, msg.userId);
-                          loadMessages();
+                        onClick={async () => {
+                          setBloqueadosPorMim((prev) => {
+                            const nxt = new Set(prev);
+                            nxt.add(msg.userId);
+                            return nxt;
+                          });
+                          try {
+                            const res = await fetchResilient('/api/blocks', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ blockedId: msg.userId }),
+                            });
+                            if (!res.ok) {
+                              // Falhou no servidor: desfaz otimista e avisa.
+                              setBloqueadosPorMim((prev) => {
+                                const nxt = new Set(prev);
+                                nxt.delete(msg.userId);
+                                return nxt;
+                              });
+                            }
+                          } catch {
+                            // silêncio: a mensagem some só até recarregar
+                          }
                         }}
                         className="text-zinc-500 hover:text-red-400 transition-colors ml-1"
-                        title="Bloquer ce membre"
+                        title="Bloquer ce membre (persistant)"
                       >
                         <UserX className="w-3 h-3 inline" />
                       </button>

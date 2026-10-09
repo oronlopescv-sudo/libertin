@@ -158,7 +158,7 @@ export function Navbar() {
                     {user.isVerified && <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />}
                   </div>
                   <div className="text-xs text-zinc-400">
-                    Statut: <span className="text-[#E86B7A] font-bold">{user.subscriptionTier}</span>
+                    Statut: <span className="text-[#E86B7A] font-bold">{isPremium ? user.subscriptionTier : 'FREE'}</span>
                   </div>
                 </div>
               </div>

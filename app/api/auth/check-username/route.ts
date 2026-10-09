@@ -12,6 +12,8 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/supabase-env';
  *
  * Requête anonyme, une seule ligne lue : la RLS permissive de `profiles`
  * permet la lecture, et la clé de service n'est pas nécessaire.
+ * N.B. 012 : la lecture anónima passa à la VUE `profiles_public` (sans PII) —
+ * la table elle-même n'est plus lisible par la clé anon.
  *
  * Réponse :
  *   { disponivel: true }                        — pseudo libre
@@ -35,8 +37,10 @@ export async function GET(req: NextRequest) {
 
     const anon = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // 012: leitura anónima APENAS pela view pública `profiles_public` — a
+    // tabela `profiles` já não é legível pela anon key (email/phone/stripe).
     const { data, error } = await anon
-      .from('profiles')
+      .from('profiles_public')
       .select('id')
       .eq('username', username)
       .limit(MAX_REPONSES);

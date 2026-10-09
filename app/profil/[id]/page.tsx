@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Navbar } from '@/components/navbar';
 import { useAuth } from '@/context/auth-context';
 import { fetchResilient } from '@/lib/fetch-resilient';
-import { Heart, MessageSquare, ShieldCheck, MapPin, ArrowLeft, Flag, X } from 'lucide-react';
+import { Heart, MessageSquare, ShieldCheck, MapPin, ArrowLeft, Flag, X, Crown, Lock } from 'lucide-react';
 
 interface Photo {
   id: string;
@@ -37,6 +37,9 @@ export default function ProfileDetailPage() {
 
   const [profil, setProfil] = useState<ProfileDetail | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
+  // Total de fotos do álbum: fora de Premium a API só entrega a capa (paywall
+  // no servidor) — totalPhotos > photos.length significa fotos reservadas.
+  const [totalFotos, setTotalFotos] = useState(0);
   const [liked, setLiked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [erreur, setErreur] = useState('');
@@ -96,6 +99,7 @@ export default function ProfileDetailPage() {
         }
         setProfil(data.profile);
         setPhotos(data.photos ?? []);
+        setTotalFotos(Number(data.totalPhotos ?? (data.photos ?? []).length));
         setLiked(!!data.likedByMe);
       } catch {
         setErreur('Erreur réseau. Vérifiez votre connexion.');
@@ -251,6 +255,27 @@ export default function ProfileDetailPage() {
                   <img src={p.url} alt="" className="w-full h-full object-cover" />
                 </button>
               ))}
+            </div>
+          )}
+
+          {/* Paywall « albums privés » : a API só entrega a capa fora de
+              Premium; se o álbum tem mais fotos, mostra o aviso em vez de
+              fingir que elas estavam desfocadas. */}
+          {!isPremium && totalFotos > photos.length && (
+            <div className="m-3 mt-0 p-4 rounded-xl bg-[#2C1B3D]/80 border border-[#3D2654] text-center space-y-2">
+              <Lock className="w-6 h-6 text-[#D4145A] mx-auto" />
+              <p className="text-sm font-semibold text-white">
+                {totalFotos - photos.length} photo{totalFotos - photos.length > 1 ? 's' : ''} supplémentaire
+                {totalFotos - photos.length > 1 ? 's' : ''} réservée
+                {totalFotos - photos.length > 1 ? 's' : ''} aux membres Premium
+              </p>
+              <Link
+                href="/abonnements"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#D4145A] text-white text-xs font-bold shadow-md"
+              >
+                <Crown className="w-4 h-4" />
+                <span>Déflouter (à partir de 9€/mois)</span>
+              </Link>
             </div>
           )}
 
