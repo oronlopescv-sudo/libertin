@@ -34,24 +34,37 @@ if (process.env.RESEND_API_KEY) {
  * d'information sur l'existence d'un compte.
  */
 // Limiteur de débit : marque la demande et dit si le quota est atteint.
-// Fenêtre glissante par clé (IP + e-mail en minuscules), 3 par 15 min.
+// Janela deslizante por chave, MAX por parâmetro.
 const JANELA_MS = 15 * 60 * 1000;
-const MAX_POR_JANELA = 3;
+const MAX_POR_EMAIL = 3; // por IP + email
+const MAX_POR_IP = 12;   // por IP apenas — tampa a sondagem de muitos
+                         // emails distintos do mesmo cliente, sem
+                         // castigar quem partilha rede NAT.
 
-function limiteUltrapassado(chave: string): boolean {
+function limiteUltrapassado(chave: string, maxPorJanela: number): boolean {
   const g = globalThis as unknown as {
     __esquecerPasseMarcas?: Map<string, number[]>;
   };
   const marcas: Map<string, number[]> =
     g.__esquecerPasseMarcas ?? (g.__esquecerPasseMarcas = new Map<string, number[]>());
   const agora = Date.now();
-  const vivas = (marcas.get(chave) ?? []).filter((t) => agora - t < JANELA_MS);
-  if (vivas.length >= MAX_POR_JANELA) {
-    return true;
+
+  // Purgue (barato e raro) quando o Map cresce demais : sem isto, cada
+  // IP|email sondado uma vez lá ficava para sempre — um atacante a
+  // variar endereços fazia a memória crescer sem limite.
+  if (marcas.size > 5000) {
+    for (const [k, ts] of marcas) {
+      const ultima = ts[ts.length - 1];
+      if (ultima === undefined || agora - ultima >= JANELA_MS) marcas.delete(k);
+    }
   }
+
+  const vivas = (marcas.get(chave) ?? []).filter((t) => agora - t < JANELA_MS);
+  // O pedido marca-se mesmo quando é recusado : a janela não reinicia
+  // com cada recusa, o bombardeio não ganha orçamento novo.
   vivas.push(agora);
   marcas.set(chave, vivas);
-  return false;
+  return vivas.length > maxPorJanela;
 }
 
 export async function POST(req: NextRequest) {
@@ -64,14 +77,19 @@ export async function POST(req: NextRequest) {
     const email = emailBrut.trim();
 
     // Limiteur de débit en mémoire (une seule instance Passenger) : 3
-    // demandes par e-mail + IP toutes les 15 minutes. Sans lui, la voie
-    // custom permet le bombing de courriels dès qu'une clé Resend vit
-    // ici, et la différence de statut 200/503 rendrait l'énumération
-    // d'adresses gratuite. Réponse identique quels que soient existence
-    // et quota : aucun indice.
-    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'inconnue';
-    const chave = `${ip}|${email.toLowerCase()}`;
-    if (limiteUltrapassado(chave)) {
+    // demandes par e-mail + IP, ET 12 par IP seul, toutes les 15 min.
+    // Sans lui, la voie custom permet le bombing de courriels dès qu'une
+    // clé Resend vit ici, et la différence de statut 200/503 rendrait
+    // l'énumération d'adresses gratuite. Réponse identique quels que
+    // soient existence et quota : aucun indice.
+    const ip =
+      req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      req.headers.get('x-real-ip')?.trim() ||
+      'inconnue';
+    if (
+      limiteUltrapassado(`${ip}|${email.toLowerCase()}`, MAX_POR_EMAIL) ||
+      limiteUltrapassado(ip, MAX_POR_IP)
+    ) {
       return NextResponse.json(
         { error: "Trop de demandes : attendez quelques minutes avant de redemander." },
         { status: 429 }
