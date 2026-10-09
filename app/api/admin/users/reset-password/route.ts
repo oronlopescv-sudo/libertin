@@ -46,8 +46,8 @@ export async function POST(req: NextRequest) {
       // Temporária legível no telefone (sem l/1, S/5, 0/O confusos ao ditar).
       const alfabeto = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
       senha = Array.from(
-        crypto.randomBytes(14),
-        (b: number) => alfabeto[b % alfabeto.length]
+        { length: 14 },
+        () => alfabeto[crypto.randomInt(alfabeto.length)]
       ).join('');
       gerada = true;
     }
@@ -88,6 +88,16 @@ export async function POST(req: NextRequest) {
     if (resetsError) {
       console.error('[admin/reset-password] limpeza de tokens :', resetsError.message);
     }
+
+    // Trilho de auditoria (como ban/unban) — SEM a password, nada de
+    // credenciais persistidas em log algum.
+    await supabase.from('admin_logs').insert({
+      admin_id: auth.user.id,
+      action: 'RESET_PASSWORD',
+      target_id: destino,
+      reason: gerada ? 'senha temporária gerada' : 'senha definida pelo admin',
+      created_at: new Date().toISOString(),
+    });
 
     return NextResponse.json({
       success: true,

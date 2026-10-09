@@ -599,6 +599,8 @@ export default function AdminDashboard() {
                   'Confirmer le bannissement'
                 ) : acao.tipo === 'unban' ? (
                   'Confirmer la réactivation'
+                ) : acao.tipo === 'reset' ? (
+                  'Repor password'
                 ) : (
                   `Confirmer — ${meses} mois`
                 )}
