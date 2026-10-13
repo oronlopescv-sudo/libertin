@@ -192,6 +192,13 @@ export default function RegisterPage() {
       return;
     }
 
+    // Un lien de photo collé à la main doit être une adresse https : tout le
+    // reste (http, javascript:, texte libre) finirait tel quel dans `photos.url`.
+    if (photoUrl && !photoUrl.startsWith('data:image/') && !/^https:\/\/\S+$/i.test(photoUrl.trim())) {
+      afficherErreur("Le lien de la photo doit commencer par https:// — ou choisissez une photo depuis votre appareil.");
+      return;
+    }
+
     const cityCoords = CITIES[location];
 
     setErrorMsg('');
@@ -664,7 +671,7 @@ export default function RegisterPage() {
 
                   <input
                     type="text"
-                    placeholder="ou coller le lien d'image selfie"
+                    placeholder="ou coller le lien d'une image (https://…)"
                     value={photoUrl.startsWith('data:image') ? '' : photoUrl}
                     onChange={(e) => setPhotoUrl(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl bg-[#12091A] border border-[#3D2654] text-white"
