@@ -199,7 +199,7 @@ export default function RegisterPage() {
     try {
       await register({
         email,
-        username,
+        username: username.trim(),
         password,
         dateOfBirth,
         age: new Date().getFullYear() - new Date(dateOfBirth).getFullYear(),
@@ -606,19 +606,18 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* Photo optionnelle : le badge passe par une vraie modération,
-                  pas par la simple présence d'un selfie. On ne promet plus un
-                  « badge immédiat » qui n'a jamais existé. */}
+              {/* Photo de profil optionnelle. Elle est enregistrée comme photo
+                  de couverture (table `photos`, publique) : le texte ne doit
+                  donc JAMAIS la présenter comme un selfie confidentiel de
+                  vérification — ce n'est pas ce qu'elle est. */}
               <div className="p-3.5 rounded-2xl bg-[#2C1B3D] border border-[#3D2654] space-y-2">
                 <div className="font-semibold text-white flex items-center gap-1.5">
                   <Camera className="w-4 h-4 text-emerald-400" />
-                  <span>Photo de vérification (optionnelle)</span>
+                  <span>Photo de profil (optionnelle)</span>
                 </div>
                 <p className="text-[11px] text-zinc-400 leading-snug">
-                  Un selfie vous permet de demander le badge « Profil vérifié » : votre demande est
-                  ensuite examinée par notre équipe de modération. Votre selfie reste strictement
-                  confidentiel — visible uniquement par la modération et détruit après examen.
-                  Vous pouvez aussi l&apos;envoyer plus tard depuis votre profil.
+                  Cette photo sera visible par les autres membres sur votre profil. Vous pouvez
+                  passer cette étape : elle n&apos;est pas obligatoire.
                 </p>
 
                 <div className="space-y-2 pt-1">

@@ -108,7 +108,7 @@ export async function signUpWithSupabase(userData: {
         // est créé côté base même si l'upsert client ci-dessous échoue (ex. :
         // confirmation d'email activée -> pas de session -> RLS refuse l'insert).
         data: {
-          username: userData.username,
+          username: userData.username.trim(),
           dateOfBirth: userData.dateOfBirth,
           gender: userData.gender,
           sexualOrientation: userData.sexualOrientation,
@@ -137,6 +137,10 @@ export async function signUpWithSupabase(userData: {
         message = 'Trop d\'inscriptions ou d\'e-mails envoyés dans la dernière heure. Attendez quelques minutes et réessayez.';
       } else if (brut.includes('password')) {
         message = 'Mot de passe refusé : utilisez au moins 8 caractères.';
+      } else if (brut.includes('database error')) {
+        // Levée par le trigger de création du profil (pseudo déjà pris
+        // entre-temps, champ invalide…). Message brut = incompréhensible.
+        message = 'Impossible de créer le profil : ce pseudo est peut-être déjà pris. Essayez-en un autre, puis réessayez.';
       }
       return {
         success: false,
@@ -154,23 +158,21 @@ export async function signUpWithSupabase(userData: {
     const userId = authData.user.id;
 
     // 2. Insert into public.profiles table in Supabase
+    // Seuls les champs de CONTENU du profil sont envoyés. Rôle, abonnement,
+    // vérification, etc. viennent du trigger / des valeurs par défaut de la
+    // table : le navigateur ne doit jamais pouvoir les fixer.
     const profilePayload = {
       id: userId,
       email: userData.email,
-      username: userData.username,
+      username: userData.username.trim(),
       date_of_birth: userData.dateOfBirth,
       gender: userData.gender,
       sexual_orientation: userData.sexualOrientation,
       location: userData.location,
       lat: userData.lat || 48.8566,
       lng: userData.lng || 2.3522,
-      subscription_tier: 'FREE',
       bio: userData.bio || '',
       interests: userData.interests || [],
-      is_verified: false,
-      is_active: true,
-      is_nsfw: true,
-      role: 'user',
       updated_at: new Date().toISOString(),
     };
 
@@ -179,17 +181,21 @@ export async function signUpWithSupabase(userData: {
       .upsert(profilePayload, { onConflict: 'id' });
 
     if (profileError) {
-      // Le compte Auth existe déjà à ce stade. Signaler l'échec plutôt que de
-      // le journaliser en silence : sans profil, l'utilisateur se retrouve
-      // avec un mot de passe valide mais aucune possibilité de se connecter.
       console.error('Échec de création du profil:', profileError.message);
-      return {
-        success: false,
-        error:
-          "Compte créé mais profil incomplet. Essayez de vous connecter : le profil sera complété automatiquement.",
-        profileMissing: true,
-        userId,
-      };
+      // Sans session (e-mail de confirmation activé) l'écriture côté navigateur
+      // est refusée par la RLS — c'est NORMAL : le trigger SQL
+      // on_auth_user_created a déjà créé le profil complet à partir des
+      // métadonnées. Ce n'est donc pas une erreur d'inscription.
+      // Avec une session, un échec est réel : on laisse l'appelant réparer.
+      if (authData.session) {
+        return {
+          success: false,
+          error:
+            "Compte créé mais profil incomplet. Essayez de vous connecter : le profil sera complété automatiquement.",
+          profileMissing: true,
+          userId,
+        };
+      }
     }
 
     // 3. Insert photo if provided
@@ -822,13 +828,10 @@ export async function creerProfilManquant(
       location: meta.location || '',
       lat: meta.lat ?? 48.8566,
       lng: meta.lng ?? 2.3522,
-      subscription_tier: 'FREE',
-      bio: '',
-      interests: [],
-      is_verified: false,
-      is_active: true,
-      is_nsfw: true,
-      role: 'user',
+      // Bio et centres d'intérêt viennent des métadonnées : les remettre à
+      // vide effaçait ce que la personne venait de saisir à l'inscription.
+      bio: typeof meta.bio === 'string' ? meta.bio : '',
+      interests: Array.isArray(meta.interests) ? meta.interests : [],
       updated_at: new Date().toISOString(),
     };
 
