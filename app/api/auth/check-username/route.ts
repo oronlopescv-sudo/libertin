@@ -39,11 +39,22 @@ export async function GET(req: NextRequest) {
 
     // 012: leitura anónima APENAS pela view pública `profiles_public` — a
     // tabela `profiles` já não é legível pela anon key (email/phone/stripe).
-    const { data, error } = await anon
+    let { data, error } = await anon
       .from('profiles_public')
       .select('id')
       .eq('username', username)
       .limit(MAX_REPONSES);
+
+    // Tant que la migration 012 n'est pas appliquée, la vue n'existe pas : au
+    // lieu de répondre « disponible » à tout le monde (ce qui laissait passer
+    // des pseudos déjà pris), on retombe sur la table.
+    if (error) {
+      ({ data, error } = await anon
+        .from('profiles')
+        .select('id')
+        .eq('username', username)
+        .limit(MAX_REPONSES));
+    }
 
     if (error) {
       // En cas de panne on répond « disponible » : mieux vaut laisser
