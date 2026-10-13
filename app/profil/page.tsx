@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchResilient } from '@/lib/fetch-resilient';
+import { comprimirImagem } from '@/lib/compress-image';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
 import { LogOut, User, Mail, Camera, Star, Trash2, Loader2, Save, MapPin, X, Info } from 'lucide-react';
@@ -166,8 +167,12 @@ export default function ProfilePage() {
     setErreur('');
     setUploading(true);
     try {
+      // Reduz a foto no navegador (fotos de telemóvel passam facilmente de
+      // 5 MB, o limite do servidor, e podem ser barradas pelo proxy).
+      const aEnviar = await comprimirImagem(file);
+
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', aEnviar);
 
       const res = await fetchResilient('/api/photos/upload', { method: 'POST', body: formData });
 
@@ -175,6 +180,10 @@ export default function ProfilePage() {
       try {
         data = await res.json();
       } catch {
+        if (res.status === 413) {
+          setErreur('Photo trop lourde pour le serveur. Choisissez une photo plus légère.');
+          return;
+        }
         // Le serveur n'a pas renvoyé de JSON valide (page d'erreur HTML du
         // proxy Hostinger, 502/504, etc.) — plus utile à dire que "erreur
         // réseau" générique, qui laisse penser à tort à un problème de
