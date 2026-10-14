@@ -246,7 +246,13 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
     // On peut envoyer soit du texte, soit une image (uploadée), soit les deux.
     if ((!content && !pendingMediaUrl) || !user || isSending) return;
 
-    // Texte : ouvert à tous. Seules les images sont Premium (upload gardé plus haut).
+    // Gate Premium côté client (évite un aller-retour inutile) — le serveur
+    // vérifie aussi. L'admin est Premium à vie via lib/premium.
+    if (!isPremium) {
+      setUpgradeModalOpen(true);
+      return;
+    }
+
     setIsSending(true);
     setErreur('');
     try {
@@ -444,7 +450,7 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
         <div className="px-4 py-2 bg-[#2C1B3D]/90 border-t border-[#3D2654] flex items-center justify-between text-xs text-amber-300">
           <div className="flex items-center gap-2">
             <Lock className="w-4 h-4 text-amber-400" />
-            <span>Compte Découverte : messages texte inclus. L&apos;envoi de photos nécessite un Pass Premium.</span>
+            <span>Compte Découverte : La participation aux tchats nécessite un Pass Premium.</span>
           </div>
           <Link
             href="/abonnements"
@@ -560,9 +566,11 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
             value={inputContent}
             onChange={(e) => setInputContent(e.target.value)}
             placeholder={
-              pendingMediaUrl
-                ? "Ajoutez une légende (optionnel)…"
-                : "Écrivez votre message discret…"
+              isPremium
+                ? pendingMediaUrl
+                  ? "Ajoutez une légende (optionnel)…"
+                  : "Écrivez votre message discret…"
+                : "Abonnement requis pour envoyer un message…"
             }
             className="flex-1 px-4 py-2.5 rounded-xl bg-[#1C102B] border border-[#3D2654] text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#D4145A]"
           />
@@ -593,9 +601,9 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
               <Crown className="w-6 h-6" />
             </div>
 
-            <h3 className="text-lg font-bold">Photos : Premium requis</h3>
+            <h3 className="text-lg font-bold">Abonnement Premium Requis</h3>
             <p className="text-xs text-zinc-300 leading-relaxed">
-              Pour maintenir la sérénité et la qualité des échanges sur nos tchats, l&apos;envoi de photos est réservé aux membres possédant un Pass Premium. Les messages texte restent gratuits.
+              Pour maintenir la sérénité et la qualité des échanges sur nos tchats, l&apos;envoi de messages est réservé aux membres possédant un Pass Premium.
             </p>
 
             <div className="pt-2 space-y-2">
@@ -604,13 +612,13 @@ export function ChatBox({ groupId, groupName, memberCount }: ChatBoxProps) {
                 className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white text-xs font-bold shadow-lg flex items-center justify-center gap-2"
               >
                 <Crown className="w-4 h-4" />
-                <span>Débloquer les photos (dès 9€/mois)</span>
+                <span>Débloquer les tchats (dès 9€/mois)</span>
               </Link>
               <button
                 onClick={() => setUpgradeModalOpen(false)}
                 className="w-full py-2 rounded-xl text-xs text-zinc-400 hover:text-white"
               >
-                Continuer
+                Continuer en mode lecture
               </button>
             </div>
           </div>
