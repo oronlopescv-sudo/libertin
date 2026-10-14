@@ -15,6 +15,7 @@ import {
   LogOut,
   Menu,
   X,
+  Megaphone,
 } from 'lucide-react';
 import { NotificationBell } from '@/components/notification-bell';
 
@@ -29,6 +30,7 @@ export function Navbar() {
     { href: '/decouvrir', label: 'Découvrir', icon: Flame },
     { href: '/groupes', label: 'Groupes', icon: Users },
     { href: '/evenements', label: 'Événements', icon: Calendar },
+    { href: '/annonces', label: 'Annonces', icon: Megaphone },
     { href: '/messagerie', label: 'Messages', icon: MessageSquare },
     { href: '/abonnements', label: 'Abonnements', icon: Crown, highlight: true },
     { href: '/admin', label: 'Modération', icon: ShieldCheck, adminOnly: true },
