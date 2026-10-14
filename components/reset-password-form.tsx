@@ -48,8 +48,42 @@ export function ResetPasswordForm() {
     // 2. Fluxo nativo :
     let cancelado = false;
     const detetarSessao = async () => {
-      // criaBrowserClient processa o fragmento #access_token da
-      // recuperação automaticamente (detectSessionInUrl).
+      // O e-mail de recuperação é gerado no servidor (cliente "implicit") e
+      // o link traz os tokens no fragmento #access_token=…&refresh_token=….
+      // O cliente do navegador (@supabase/ssr) usa PKCE e RECUSA esse formato
+      // ("Not a valid PKCE flow url"), então a sessão nunca era criada e o
+      // membro via sempre « Lien invalide ». Lemos o fragmento nós mesmos.
+      try {
+        const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+        const erroLink = hash.get('error_code') || hash.get('error');
+        if (erroLink) {
+          if (!cancelado) {
+            setError(
+              erroLink === 'otp_expired' || erroLink === 'access_denied'
+                ? 'Ce lien a expiré ou a déjà été utilisé. Refaites « Mot de passe oublié » et utilisez le lien le plus récent.'
+                : 'Lien de réinitialisation invalide.'
+            );
+            setModo('invalido');
+          }
+          return;
+        }
+        const accessToken = hash.get('access_token');
+        const refreshToken = hash.get('refresh_token');
+        if (accessToken && refreshToken) {
+          const { data, error: erroSessao } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          if (!erroSessao && data.session && !cancelado) {
+            window.history.replaceState({}, '', window.location.pathname);
+            setEmail(data.session.user?.email ?? '');
+            setModo('sessao-nativa');
+            return;
+          }
+        }
+      } catch {
+        /* cai para a deteção normal abaixo */
+      }
       try {
         const { data } = await supabase.auth.getSession();
         if (!cancelado && data.session) {
@@ -60,7 +94,7 @@ export function ResetPasswordForm() {
       } catch {
         /* sem sessão */
       }
-      if (!cancelado) setModo('invalido');
+      if (!cancelado) setModo((m) => (m === 'sessao-nativa' ? m : 'invalido'));
     };
     // A sessão pode levantar um instante depois do primeiro render
     // (processo do fragmento) : tenta já, e de novo após 700 ms.
@@ -156,7 +190,7 @@ export function ResetPasswordForm() {
             <AlertCircle className="w-8 h-8 text-red-500" />
           </div>
           <h2 className="text-2xl font-bold text-white">Lien invalide</h2>
-          <p className="text-zinc-400">Le lien de réinitialisation a expiré ou est invalide.</p>
+          <p className="text-zinc-400">{error || 'Le lien de réinitialisation a expiré ou est invalide.'}</p>
           <a
             href="/login"
             className="inline-block py-2 px-6 bg-gradient-to-r from-[#D4145A] to-[#E86B7A] rounded-lg font-semibold text-white hover:opacity-90 transition"
