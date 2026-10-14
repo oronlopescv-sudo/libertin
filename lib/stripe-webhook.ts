@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { verifyWebhookSignature } from '@/lib/stripe';
+import { verifyWebhookSignature, stripe, SUBSCRIPTION_PLANS } from '@/lib/stripe';
 import { aplicaEnvRuntime } from './env-runtime';
 import { sendAbonnementConfirmationEmail, sendAbonnementRenewalEmail } from '@/lib/email';
 import { EVENT_PLANS } from '@/lib/events';
@@ -39,7 +39,23 @@ export async function handleStripeWebhook(request: NextRequest) {
       );
     }
 
-    const event = verifyWebhookSignature(body, signature);
+    let event: ReturnType<typeof verifyWebhookSignature>;
+    try {
+      event = verifyWebhookSignature(body, signature);
+    } catch (erroAssinatura) {
+      const msg = erroAssinatura instanceof Error ? erroAssinatura.message : '';
+      // Falta de configuração (chave/segredo ausentes) é um erro NOSSO: segue
+      // para o catch geral (500). Assinatura que não confere é pedido inválido.
+      if (
+        msg === 'Stripe not configured' ||
+        msg.includes('STRIPE_WEBHOOK_SECRET not set') ||
+        msg.includes('No API Key provided')
+      ) {
+        throw erroAssinatura;
+      }
+      console.warn('Webhook Stripe recusado: assinatura inválida');
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
+    }
 
     switch (event.type) {
       case 'checkout.session.completed':
@@ -84,6 +100,36 @@ export async function handleStripeWebhook(request: NextRequest) {
   }
 }
 
+const PLANOS_PAGOS = SUBSCRIPTION_PLANS.filter((p) => p.id !== 'FREE').map((p) => p.id as string);
+
+/**
+ * Descobre qual plano foi REALMENTE pago numa sessão de Payment Link, pelos
+ * produtos das linhas da compra, comparados com STRIPE_PRODUCT_<PLANO>.
+ *
+ *  - Nenhum STRIPE_PRODUCT_* definido  -> não dá para verificar: devolve o plano
+ *    declarado (comportamento antigo) com um aviso.
+ *  - Produtos configurados             -> devolve o plano cujo produto foi pago
+ *    (prefere o declarado se também bater), ou null se nenhum bater.
+ *  - Erro ao consultar o Stripe        -> lança (500): o Stripe repete mais tarde.
+ */
+async function planoRealmentePago(session: any, declarado: string): Promise<string | null> {
+  const configurados = PLANOS_PAGOS.filter((id) => !!process.env[`STRIPE_PRODUCT_${id}`]);
+  if (configurados.length === 0) {
+    console.warn('[webhook] STRIPE_PRODUCT_* não definidos — plano vindo da URL NÃO verificado');
+    return declarado;
+  }
+  if (!stripe) throw new Error('Stripe not configured');
+
+  const itens = await stripe.checkout.sessions.listLineItems(session.id, { limit: 20 });
+  const pagos = itens.data
+    .map((i: any) => (typeof i.price?.product === 'string' ? i.price.product : i.price?.product?.id))
+    .filter(Boolean) as string[];
+
+  const bate = (id: string) => pagos.includes(process.env[`STRIPE_PRODUCT_${id}`] as string);
+  if (configurados.includes(declarado) && bate(declarado)) return declarado;
+  return configurados.find(bate) ?? null;
+}
+
 /**
  * Paiement réussi : active l'abonnement Premium dans `profiles`.
  */
@@ -105,6 +151,30 @@ async function handleCheckoutSessionCompleted(session: any) {
   if (!userId || !planId) {
     console.error('Missing userId or planId in webhook');
     return;
+  }
+
+  // Só planos pagos conhecidos. Antes, qualquer texto vindo da referência era
+  // gravado tal e qual em subscription_tier.
+  if (!SUBSCRIPTION_PLANS.some((p) => p.id === planId && p.id !== 'FREE')) {
+    console.error(`[webhook] plano desconhecido "${planId}" para o membro ${userId} — ignorado`);
+    return;
+  }
+
+  // Chemin A (Payment Link) : o plano veio de um parâmetro de URL que o próprio
+  // membro pode editar. Quando os produtos Stripe estão configurados
+  // (STRIPE_PRODUCT_<PLANO>), concede-se o plano REALMENTE pago.
+  if (ref.includes('|')) {
+    const pago = await planoRealmentePago(session, planId);
+    if (!pago) {
+      console.error(
+        `[webhook] PAGAMENTO NÃO CORRESPONDE a nenhum plano configurado (sessão ${session.id}, membro ${userId}) — nada concedido`
+      );
+      return;
+    }
+    if (pago !== planId) {
+      console.warn(`[webhook] referência pedia ${planId} mas o produto pago é ${pago} — concedido ${pago}`);
+      planId = pago;
+    }
   }
 
   // Facturation MENSUELLE récurrente : le premier paiement ne couvre qu'un
@@ -145,8 +215,15 @@ async function handleCheckoutSessionCompleted(session: any) {
     .single();
 
   if (error) {
+    // Perfil inexistente: repetir não ajuda. Qualquer outro erro (banco fora do
+    // ar, chave inválida…) TEM de devolver 500 — com 200 o Stripe não repete e
+    // o cliente fica a pagar sem receber o acesso.
+    if (error.code === 'PGRST116') {
+      console.error(`[webhook] membro ${userId} não existe em profiles — nada a ativar`);
+      return;
+    }
     console.error('Failed to update profile subscription:', error);
-    return;
+    throw new Error(`profiles update failed: ${error.message}`);
   }
 
   if (profileData?.email) {
@@ -255,7 +332,7 @@ async function handleInvoicePaid(invoice: any) {
 
   if (error) {
     console.error('Failed to extend subscription_end on invoice.paid:', error);
-    return;
+    throw new Error(`profiles update failed: ${error.message}`);
   }
 
   const renovee = Array.isArray(renovees) && renovees.length > 0 ? renovees[0] : null;
@@ -367,7 +444,7 @@ async function handleAbonnementDeleted(subscription: any) {
 
   if (error) {
     console.error('Failed to reset profile subscription:', error);
-    return;
+    throw new Error(`profiles update failed: ${error.message}`);
   }
 
   console.log(`✋ Abonnement cancelled for user ${profile.id}`);
