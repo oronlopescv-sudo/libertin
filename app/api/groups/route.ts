@@ -18,6 +18,8 @@ export async function GET() {
     const { data: groups, error } = await supabase
       .from('groups')
       .select('*')
+      // Les conversations privées (2 personnes) ne sont jamais listées publiquement.
+      .neq('category', 'private_dm')
       .order('created_at', { ascending: false });
 
     if (error) {
