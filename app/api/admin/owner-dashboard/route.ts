@@ -120,30 +120,8 @@ export async function GET() {
         }
       });
 
-      // Connexions : last_login_at n'existe pas dans `profiles` -> reste à 0.
-      // (Bloc isolé pour ne pas casser les inscriptions si la colonne apparaît plus tard.)
-      try {
-        const { data: connexions } = await supabase
-          .from('profiles')
-          .select('last_login_at')
-          .not('last_login_at', 'is', null)
-          .gte('last_login_at', il30Jours.toISOString());
-
-        const il24h = new Date(maintenant.getTime() - 24 * 60 * 60 * 1000);
-        const il7Jours = new Date(maintenant.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-        (connexions ?? []).forEach((u: any) => {
-          if (!u.last_login_at) return;
-          const date = new Date(u.last_login_at);
-          visites.connexions30Jours += 1;
-          if (date >= il24h) visites.actifs24h += 1;
-          if (date >= il7Jours) visites.actifs7Jours += 1;
-          const entree = parJour.get(u.last_login_at.slice(0, 10));
-          if (entree) entree.connexions += 1;
-        });
-      } catch (e) {
-        // last_login_at absent : connexions restent à 0
-      }
+      // Connexions : `profiles` n'a pas de colonne last_login_at, donc ces
+      // compteurs restent à 0 (la requête qui échouait en 400 a été retirée).
 
       visites.parJour = Array.from(parJour.entries()).map(([date, v]) => ({
         date,
