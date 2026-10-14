@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
-import { utilisateurActuel } from '@/lib/auth-serveur';
-import { isPremium } from '@/lib/premium';
+import { utilisateurActuel, utilisateurPremium } from '@/lib/auth-serveur';
 
 /**
  * GET /api/conversations — boîte de réception du membre connecté.
@@ -9,7 +8,7 @@ import { isPremium } from '@/lib/premium';
  * Liste ses conversations privées (groupes category='private_dm') avec, pour
  * chacune : l'autre membre (username, avatar de couverture, badge vérifié),
  * le dernier message et sa date. La lecture est ouverte à tout membre
- * connecté, comme l'envoi de messages texte.
+ * connecté ; seul l'envoi est réservé aux Premium.
  */
 export async function GET() {
   try {
@@ -115,12 +114,12 @@ export async function GET() {
  * cherche d'abord un groupe existant entre les deux comptes avant d'en
  * créer un nouveau, pour ne jamais dupliquer une conversation.
  *
- * Ouvert à tout membre connecté. Les comptes gratuits sont limités à 10 nouvelles
- * conversations par 24 h (anti-spam) ; Premium sans limite.
+ * Réservé aux membres Premium — c'est l'envoi de messages qui est payant,
+ * pas la consultation des profils.
  */
 export async function POST(req: NextRequest) {
   try {
-    const auth = await utilisateurActuel();
+    const auth = await utilisateurPremium('envoyer des messages privés');
     if (!auth.ok) return auth.reponse;
 
     const { targetUserId } = await req.json().catch(() => ({}));
@@ -166,24 +165,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Aucune conversation existante : anti-spam pour les comptes gratuits.
-    if (!isPremium(auth.user)) {
-      const depuis = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-      const { count } = await supabase
-        .from('groups')
-        .select('id', { count: 'exact', head: true })
-        .eq('category', 'private_dm')
-        .eq('creator_id', auth.user.id)
-        .gte('created_at', depuis);
-      if ((count ?? 0) >= 10) {
-        return NextResponse.json(
-          { error: 'Limite de 10 nouvelles conversations par jour pour les comptes gratuits. Réessayez demain ou passez Premium.' },
-          { status: 429 }
-        );
-      }
-    }
-
-    // On crée la conversation.
+    // Aucune conversation existante : on en crée une.
     const maintenant = new Date().toISOString();
     const { data: nouveauGroupe, error: groupeError } = await supabase
       .from('groups')

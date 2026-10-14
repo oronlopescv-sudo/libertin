@@ -110,14 +110,14 @@ export default function MessageriePage() {
           </div>
         </div>
 
-        {/* Bannière non-Premium : texte gratuit, photos Premium. */}
+        {/* Bannière non-Premium : la lecture est libre, l'envoi est Premium. */}
         {!isPremium && user?.role !== 'admin' && (
           <div className="p-4 rounded-xl bg-amber-950/50 border border-amber-700/40 text-amber-200 text-xs flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <Lock className="w-4 h-4 text-amber-400 shrink-0" />
               <span>
-                Les messages texte sont gratuits. Un Pass Premium débloque
-                l&apos;envoi de <strong>photos</strong> et supprime les limites anti-spam.
+                Vous pouvez lire vos conversations. Pour <strong>répondre</strong> et
+                en démarrer de nouvelles, un Pass Premium est requis.
               </span>
             </div>
             <Link

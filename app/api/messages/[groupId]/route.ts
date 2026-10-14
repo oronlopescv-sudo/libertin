@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
-import { utilisateurActuel } from '@/lib/auth-serveur';
-import { isPremium } from '@/lib/premium';
+import { utilisateurActuel, utilisateurPremium } from '@/lib/auth-serveur';
 
 /**
  * Messages d'un groupe.
  *
  * Lecture : ouverte à tout membre connecté du groupe.
- * Écriture : texte ouvert à tous les membres du groupe (limite anti-spam pour
- * les comptes gratuits) ; l'envoi d'images reste réservé aux Premium.
+ * Écriture : réservée aux membres Premium.
  *
  * La table `messages` est en snake_case (group_id, user_id, user_name,
  * user_avatar, content, created_at). L'ancien code utilisait des colonnes
@@ -90,15 +88,14 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ gro
   }
 }
 
-// POST — envoyer un message (texte : tous ; image : Premium)
+// POST — envoyer un message (Premium uniquement)
 export async function POST(req: NextRequest, { params }: { params: Promise<{ groupId: string }> }) {
   try {
     const { groupId } = await params;
 
     // L'abonnement vient de la base, via la session — pas du corps de la requête
-    const auth = await utilisateurActuel();
+    const auth = await utilisateurPremium('envoyer des messages dans les groupes');
     if (!auth.ok) return auth.reponse;
-    const premium = isPremium(auth.user);
 
     const supabase = await createServerSupabaseClient();
 
@@ -116,30 +113,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gro
     // Un message doit contenir au moins un texte ou une image.
     if (!content && !mediaUrl) {
       return NextResponse.json({ error: 'Le contenu du message est vide.' }, { status: 400 });
-    }
-
-    // Images : réservées aux Premium.
-    if (mediaUrl && !premium) {
-      return NextResponse.json(
-        { error: "L'envoi d'images est réservé aux membres Premium.", premiumRequired: true },
-        { status: 403 }
-      );
-    }
-
-    // Anti-spam pour les comptes gratuits : 30 messages par heure.
-    if (!premium) {
-      const depuis = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-      const { count } = await supabase
-        .from('messages')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', auth.user.id)
-        .gte('created_at', depuis);
-      if ((count ?? 0) >= 30) {
-        return NextResponse.json(
-          { error: 'Limite de 30 messages par heure atteinte pour les comptes gratuits. Réessayez plus tard ou passez Premium.' },
-          { status: 429 }
-        );
-      }
     }
 
     if (content.length > 2000) {
