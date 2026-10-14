@@ -365,7 +365,7 @@ export default function ProfileDetailPage() {
             </div>
             {!isPremium && user.role !== 'admin' && (
               <p className="text-[11px] text-amber-300/80 text-center">
-                Les messages texte sont gratuits ; le like et les albums complets nécessitent un Pass Premium.
+                Le like et l&apos;envoi de messages nécessitent un Pass Premium.
               </p>
             )}
 
