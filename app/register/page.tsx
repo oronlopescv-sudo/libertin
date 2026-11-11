@@ -8,6 +8,7 @@ import { Footer } from '@/components/footer';
 import { useAuth } from '@/context/auth-context';
 import { GenderType, SexualOrientationType } from '@/lib/types';
 import { CITIES, COUNTRIES } from '@/lib/geo';
+import { comprimirImagem } from '@/lib/compress-image';
 import {
   Flame,
   ArrowRight,
@@ -628,25 +629,27 @@ export default function RegisterPage() {
                       type="file"
                       accept="image/*"
                       className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
+                      onChange={async (e) => {
+                        const original = e.target.files?.[0];
                         e.target.value = '';
-                        if (!file) return;
+                        if (!original) return;
 
                         // Une photo de téléphone à pleine résolution peut
-                        // faire plusieurs Mo. Une fois encodée en base64,
-                        // elle peut dépasser la taille de requête acceptée
-                        // par Supabase et faire échouer toute l'inscription
-                        // sans message clair. On refuse tôt, avec une raison.
-                        const LIMITE_MO = 3;
+                        // faire plusieurs Mo. Encodée en base64 elle peut
+                        // dépasser la taille de requête acceptée et faire
+                        // échouer toute l'inscription. On la réduit ici
+                        // (≈ 300 Ko) au lieu de la refuser.
+                        setPhotoErreur('');
+                        const file = await comprimirImagem(original, { ladoMax: 1200, bytesMax: 300 * 1024 });
+
+                        const LIMITE_MO = 1;
                         if (file.size > LIMITE_MO * 1024 * 1024) {
                           setPhotoErreur(
-                            `Cette photo dépasse ${LIMITE_MO} Mo. Choisissez une photo plus légère, ou passez cette étape — vous pourrez l'ajouter depuis votre profil après inscription.`
+                            `Cette photo n'a pas pu être réduite (format non pris en charge ?). Choisissez une photo JPEG ou PNG, ou passez cette étape — vous pourrez l'ajouter depuis votre profil après inscription.`
                           );
                           return;
                         }
 
-                        setPhotoErreur('');
                         const reader = new FileReader();
                         reader.onloadend = () => {
                           setPhotoUrl(reader.result as string);

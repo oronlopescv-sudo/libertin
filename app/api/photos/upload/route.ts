@@ -28,11 +28,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Aucun fichier fourni' }, { status: 400 });
     }
 
-    const validation = validateFileUpload(file, 5, [
-      'image/jpeg',
-      'image/png',
-      'image/webp',
-    ]);
+    // Alguns browsers/telemóveis enviam o ficheiro sem `type` : deduz-se pela
+    // extensão em vez de recusar uma foto perfeitamente válida.
+    const extensaoNome = (file.name.split('.').pop() || '').toLowerCase();
+    const tipoPorExtensao: Record<string, string> = {
+      jpg: 'image/jpeg',
+      jpeg: 'image/jpeg',
+      png: 'image/png',
+      webp: 'image/webp',
+    };
+    const tipoFinal = file.type || tipoPorExtensao[extensaoNome] || '';
+    const validation = validateFileUpload(
+      file.type ? file : new File([file], file.name, { type: tipoFinal }),
+      8,
+      ['image/jpeg', 'image/png', 'image/webp']
+    );
     if (!validation.valid) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
@@ -48,7 +58,7 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const { data: uploadData, error: uploadError } = await comRetomada<{ path: string }>((c) =>
       c.storage.from(bucket).upload(filename, arrayBuffer, {
-        contentType: file.type,
+        contentType: tipoFinal,
         cacheControl: '3600',
         upsert: false,
       })
