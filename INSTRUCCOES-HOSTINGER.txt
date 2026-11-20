@@ -1,7 +1,24 @@
 ==============================================================================
-XLIBERTINE — INSTRUÇÕES DE DEPLOY + SEGURANÇA (atualizado 2026-10-08 tarde)
-Ler do topo ao fundo. Ordem importa: DEPLOY → SQL 010 → SQL 011.
+XLIBERTINE — INSTRUÇÕES DE DEPLOY + SEGURANÇA (atualizado 2026-11-20)
+O ESTADO ATUAL E AS PROVAS: ler ESTADO-2026-11-20.md (tudo fechado, nada
+pendente do dono). Este ficheiro mantém só o contexto técnico histórico.
 ==============================================================================
+
+RESUMO 2026-11-20 (tudo VERIFICADO A VIVO, não presumido)
+---------------------------------------------------------
+- Resend: dominio xlibertine.com VERIFICADO (DNS criado na Hostinger pela
+  API); emails de reset/boas-vindas partem de noreply@xlibertine.com; chave
+  válida vive no .env-runtime do servidor (5 segredos, chmod 600).
+- Balde verification-photos PRIVADO (uploads novos são servidos só por URL
+  assinado; fila admin intacta).
+- RLS: SQL 010+011+012 APLICADAS — anon deixou de ler users (hashedPassword/
+  email), messages (DMs), likes, notifications; profiles Public virou
+  profiles_public. App mantém: groups, events, photos, profiles_public.
+- SQL colagem única usada: supabase/COLAR_NO_SQL_EDITOR_010_011_012.sql
+  (idempotente — correr 2x não faz mal).
+
+HISTÓRICO (como chegámos até aqui)
+------------------------------------------------------
 
 O QUE JÁ ESTÁ FEITO (não precisas de fazer nada disto)
 ------------------------------------------------------
@@ -26,8 +43,8 @@ O QUE JÁ ESTÁ FEITO (não precisas de fazer nada disto)
   Não precisas de tocar no painel. NÃO HÁ PAYMENT LINKS nem PRICES a criar
   (o checkout cria a sessão com price_data dinâmico — testado com 200).
 
-PASSO A PASSO (só a tua parte)
-------------------------------
+PASSO A PASSO (só a tua parte) — FEITO EM 2026-11-20, HISTÓRICO
+---------------------------------------------------------------
 1. Clica DEPLOY e espera o build ficar VERDE (sobe o commit 3733593).
 
 2. Supabase → SQL Editor (https://supabase.com/dashboard/project/
