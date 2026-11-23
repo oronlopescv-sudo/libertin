@@ -45,12 +45,46 @@ export default function AnnoncesPage() {
 
   useEffect(() => {
     if (isLoading) return;
-    if (!user) {
-      router.push('/login');
-      return;
-    }
+    if (!user) return; // o visitante vê o ecrã de bloqueio abaixo (sem salto)
     charger();
   }, [user, isLoading, router, charger]);
+
+  // Visitante : ecrã de bloqueio com o caminho de conta. Antes, a página
+  // empurrava brutalmente para /login — confuso e sem contexto.
+  if (!isLoading && !user) {
+    return (
+      <div className="min-h-screen flex flex-col bg-[#12091A] text-[#F5F0F8]">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center px-4">
+          <div className="max-w-md text-center space-y-6">
+            <div className="w-20 h-20 bg-[#D4145A]/20 rounded-full flex items-center justify-center mx-auto">
+              <Lock className="w-10 h-10 text-[#D4145A]" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">Annonces</h1>
+              <p className="text-zinc-400 mb-6">
+                Les annonces sont réservées aux membres inscrits.
+              </p>
+            </div>
+            <div className="space-y-3">
+              <Link
+                href="/register"
+                className="block py-3 px-6 bg-gradient-to-r from-[#D4145A] to-[#E86B7A] rounded-lg font-semibold text-white hover:opacity-90 transition"
+              >
+                Créer mon compte gratuit
+              </Link>
+              <Link
+                href="/login"
+                className="block py-3 px-6 bg-[#2C1B3D] rounded-lg font-semibold text-white hover:bg-[#3C2B4D] transition"
+              >
+                Se connecter
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const publier = async (e: React.FormEvent) => {
     e.preventDefault();
