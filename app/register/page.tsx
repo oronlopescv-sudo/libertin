@@ -192,6 +192,13 @@ export default function RegisterPage() {
       return;
     }
 
+    // Un lien de photo collé à la main doit être une adresse https : tout le
+    // reste (http, javascript:, texte libre) finirait tel quel dans `photos.url`.
+    if (photoUrl && !photoUrl.startsWith('data:image/') && !/^https:\/\/\S+$/i.test(photoUrl.trim())) {
+      afficherErreur("Le lien de la photo doit commencer par https:// — ou choisissez une photo depuis votre appareil.");
+      return;
+    }
+
     const cityCoords = CITIES[location];
 
     setErrorMsg('');
@@ -199,7 +206,7 @@ export default function RegisterPage() {
     try {
       await register({
         email,
-        username,
+        username: username.trim(),
         password,
         dateOfBirth,
         age: new Date().getFullYear() - new Date(dateOfBirth).getFullYear(),
@@ -606,19 +613,18 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* Photo optionnelle : le badge passe par une vraie modération,
-                  pas par la simple présence d'un selfie. On ne promet plus un
-                  « badge immédiat » qui n'a jamais existé. */}
+              {/* Photo de profil optionnelle. Elle est enregistrée comme photo
+                  de couverture (table `photos`, publique) : le texte ne doit
+                  donc JAMAIS la présenter comme un selfie confidentiel de
+                  vérification — ce n'est pas ce qu'elle est. */}
               <div className="p-3.5 rounded-2xl bg-[#2C1B3D] border border-[#3D2654] space-y-2">
                 <div className="font-semibold text-white flex items-center gap-1.5">
                   <Camera className="w-4 h-4 text-emerald-400" />
-                  <span>Photo de vérification (optionnelle)</span>
+                  <span>Photo de profil (optionnelle)</span>
                 </div>
                 <p className="text-[11px] text-zinc-400 leading-snug">
-                  Un selfie vous permet de demander le badge « Profil vérifié » : votre demande est
-                  ensuite examinée par notre équipe de modération. Votre selfie reste strictement
-                  confidentiel — visible uniquement par la modération et détruit après examen.
-                  Vous pouvez aussi l&apos;envoyer plus tard depuis votre profil.
+                  Cette photo sera visible par les autres membres sur votre profil. Vous pouvez
+                  passer cette étape : elle n&apos;est pas obligatoire.
                 </p>
 
                 <div className="space-y-2 pt-1">
@@ -665,7 +671,7 @@ export default function RegisterPage() {
 
                   <input
                     type="text"
-                    placeholder="ou coller le lien d'image selfie"
+                    placeholder="ou coller le lien d'une image (https://…)"
                     value={photoUrl.startsWith('data:image') ? '' : photoUrl}
                     onChange={(e) => setPhotoUrl(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl bg-[#12091A] border border-[#3D2654] text-white"
