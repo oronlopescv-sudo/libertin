@@ -76,7 +76,7 @@ function SupabaseDataContent() {
     setPingStatus('testing');
     setPingMessage('Test de connexion à la base de données Supabase...');
     try {
-      const { error, count } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+      const { error, count } = await supabase.from('profiles').select('id', { count: 'exact', head: true });
       if (error) {
         setPingStatus('warning');
         setPingMessage(`Supabase reachable (Statut: Table non encore initialisée ou RLS active. ${error.message})`);

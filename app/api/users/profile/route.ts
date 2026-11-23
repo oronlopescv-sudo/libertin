@@ -31,10 +31,11 @@ export async function GET() {
     if (!auth.ok) return auth.reponse;
 
     const supabase = await createServerSupabaseClient();
+    // 014: email não é coluna selecionável por membros — vem da SESSION auth.
     const { data, error } = await supabase
       .from('profiles')
       .select(
-        'id, username, email, date_of_birth, gender, sexual_orientation, location, bio, interests, is_nsfw, is_verified'
+        'id, username, date_of_birth, gender, sexual_orientation, location, bio, interests, is_nsfw, is_verified'
       )
       .eq('id', auth.user.id)
       .maybeSingle();
@@ -47,7 +48,7 @@ export async function GET() {
       profile: {
         id: data.id,
         username: data.username,
-        email: data.email,
+        email: auth.user.email ?? null,
         dateOfBirth: data.date_of_birth ?? '',
         gender: data.gender ?? '',
         sexualOrientation: data.sexual_orientation ?? '',

@@ -50,9 +50,11 @@ export async function utilisateurActuel(): Promise<Resultat> {
   }
 
   // 2. Charge le profil dans `profiles` (snake_case) — source unique.
+  // 014: email/phone/stripe_customer_id não são mais selecionáveis por
+  // membros (REVOKE de colunas) — o email do membro vem da SESSION auth.
   const { data: profile, error: profileError } = await supabaseServer
     .from('profiles')
-    .select('id, email, username, role, subscription_tier, subscription_end, is_active')
+    .select('id, username, role, subscription_tier, subscription_end, is_active')
     .eq('id', user.id)
     .single();
 
@@ -74,7 +76,7 @@ export async function utilisateurActuel(): Promise<Resultat> {
     ok: true,
     user: {
       id: profile.id,
-      email: profile.email ?? user.email ?? null,
+      email: user.email ?? null,
       username: profile.username ?? null,
       role: profile.role ?? null,
       subscriptionTier: profile.subscription_tier ?? null,

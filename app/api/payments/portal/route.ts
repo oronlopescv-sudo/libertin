@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { utilisateurActuel } from '@/lib/auth-serveur';
-import { createServerSupabaseClient } from '@/lib/supabase-server';
+import { createServiceRoleClient } from '@/lib/supabase';
 
 /**
  * Ouvre une session du portail de facturation Stripe (page hébergée par Stripe).
@@ -26,12 +26,13 @@ export async function POST(req: NextRequest) {
   const auth = await utilisateurActuel();
   if (!auth.ok) return auth.reponse;
 
-  const supabase = await createServerSupabaseClient();
-  const { data } = await supabase
+  // 014: stripe_customer_id deixou de ser selecionável por membros
+  // (REVOKE de colunas) — leitura agora usa a chave de serviço.
+  const { data } = await createServiceRoleClient()
     .from('profiles')
     .select('stripe_customer_id')
     .eq('id', auth.user.id)
-    .single();
+    .maybeSingle();
 
   const customerId = data?.stripe_customer_id;
   if (!customerId) {

@@ -309,9 +309,13 @@ export async function getCurrentSupabaseUser(): Promise<User | null> {
     if (!sessionData.session?.user) return null;
 
     const userId = sessionData.session.user.id;
+    // 014: select explícito de colunas seguras (email/phone/stripe_customer_id
+    // deixam de ser selecionáveis por membros). O email vem da própria sessão.
     const { data: profile, error } = await supabase
       .from('profiles')
-      .select('*')
+      .select(
+        'id, username, date_of_birth, gender, sexual_orientation, location, lat, lng, subscription_tier, subscription_start, subscription_end, bio, interests, is_verified, is_active, is_nsfw, role, created_at, updated_at'
+      )
       .eq('id', userId)
       // Conta banida (is_active=false): considera DESLOGADA no cliente, em
       // coerência com o servidor (utilisateurActuel devolve 403 'Compte
@@ -324,13 +328,17 @@ export async function getCurrentSupabaseUser(): Promise<User | null> {
       console.warn('getCurrentSupabaseUser:', error?.message);
       return null;
     }
-    return snakeToCamelProfile(profile);
+    return snakeToCamelProfile({ ...profile, email: sessionData.session.user.email ?? null });
   } catch (e: any) {
     console.warn('getCurrentSupabaseUser error:', e.message);
     return null;
   }
 }
 
+// 014: SEM chamadores — código morto. Se algum dia voltar a ser usado,
+// correr VIA createServiceRoleClient: `email` deixou de ser coluna
+// selecionável por membros (REVOKE) e o `.eq('email',…)` num cliente de
+// membro/público falharia sempre.
 export async function getSupabaseUserByEmail(email: string): Promise<User | null> {
   try {
     const { data: profile, error } = await supabase
@@ -815,6 +823,8 @@ CREATE POLICY "Allow abonnements insert" ON public.subscriptions FOR INSERT WITH
  * disponibles ; sinon on met des valeurs neutres que l'utilisateur pourra
  * corriger depuis son profil.
  */
+// 014: sem chamadores no repo (ajuda de migração antiga). Se algum dia
+// voltar a ser usado, substituir o select('*') por colunas seguras.
 export async function creerProfilManquant(
   authUser: { id: string; user_metadata?: Record<string, any> },
   email: string

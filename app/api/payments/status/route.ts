@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { utilisateurActuel } from '@/lib/auth-serveur';
-import { createServerSupabaseClient } from '@/lib/supabase-server';
+import { createServiceRoleClient } from '@/lib/supabase';
 import { getPlanDetails } from '@/lib/stripe';
 import { isPremium } from '@/lib/premium';
 
@@ -16,12 +16,13 @@ export async function GET() {
   const auth = await utilisateurActuel();
   if (!auth.ok) return auth.reponse;
 
-  const supabase = await createServerSupabaseClient();
-  const { data } = await supabase
+  // 014: stripe_customer_id deixou de ser selecionável por membros
+  // (REVOKE de colunas) — leitura agora usa a chave de serviço.
+  const { data } = await createServiceRoleClient()
     .from('profiles')
     .select('stripe_customer_id')
     .eq('id', auth.user.id)
-    .single();
+    .maybeSingle();
 
   // Tier obsoleto: quando o Premium expirou, o tier gravado na base
   // (e o título do plano) deixam de ser verdade — a UI mostraria
