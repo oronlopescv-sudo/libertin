@@ -22,9 +22,11 @@ import {
   Crown,
   X,
 } from 'lucide-react';
-
 export default function HomePage() {
-  const { user, usersList, isPremium } = useAuth();
+  // isLoading serve para evitar o flash do teaser de visitante: `user`
+  // começa null enquanto a sessão é lida, e um membro veria brevemente
+  // «Créer mon compte» antes da grelha real aparecer.
+  const { user, usersList, isPremium, isLoading } = useAuth();
   const router = useRouter();
   const [mensagemErro, setMensagemErro] = useState<string | null>(null);
 
@@ -214,42 +216,109 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Member Preview Grid */}
+        {/* Member Preview Grid — Réservée aux membres connectés : l'aperçu
+            public ne contenait aucun profil (la liste des membres exige une
+            session), la section restait affichée vide avec son badge
+            « En Direct ». Un visiteur voit désormais un aperçu verrouillé
+            honnête, avec le chemin d'inscription. */}
         <section className="py-16 border-b border-[#2C1B3D]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-10">
-              <div>
-                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                  <span>Derniers Profils Actifs</span>
-                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#D4145A] text-white font-semibold">
-                    En Direct
-                  </span>
-                </h2>
-                <p className="text-xs text-zinc-400 mt-1">
-                  Découvrez les couples et célibataires connectés dans votre région
-                </p>
+            {/* Sessão ainda a carregar: skeletons neutros, sem decisões de UI. */}
+            {isLoading ? (
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                {[0, 1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="h-48 rounded-2xl bg-[#1C102B] border border-[#2C1B3D] animate-pulse"
+                  />
+                ))}
               </div>
+            ) : !user ? (
+              <>
+                <div className="text-center max-w-2xl mx-auto mb-10">
+                  <h2 className="text-2xl font-bold text-white">
+                    Des couples et des solos partout en France
+                  </h2>
+                  <p className="text-xs text-zinc-400 mt-2">
+                    Les profils des membres sont réservés aux inscrits — discrétion
+                    oblige. Créez votre compte gratuit pour les découvrir à votre tour.
+                  </p>
+                </div>
 
-              <Link
-                href="/decouvrir"
-                className="text-xs font-bold text-[#E86B7A] hover:underline flex items-center gap-1"
-              >
-                <span>Voir tous les profils</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-10">
+                  {['Couples', 'Femmes', 'Hommes', 'Soirées'].map((label) => (
+                    <div
+                      key={label}
+                      className="relative rounded-2xl bg-[#1C102B] border border-[#2C1B3D] p-6 flex flex-col items-center text-center gap-3 overflow-hidden"
+                    >
+                      <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#2C1B3D] to-[#3D2654] flex items-center justify-center">
+                        <Lock className="w-8 h-8 text-[#D4145A]/70" />
+                      </div>
+                      <div className="text-xs font-bold text-zinc-300">{label}</div>
+                      <div className="text-[11px] text-zinc-500">Réservé aux membres</div>
+                    </div>
+                  ))}
+                </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {usersList.slice(0, 4).map((profile) => (
-                <ProfileCard
-                  key={profile.id}
-                  profile={profile}
-                  currentUser={user}
-                  isPremium={isPremium}
-                  onOpenMessageModal={handleOpenMessage}
-                />
-              ))}
-            </div>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <Link
+                    href="/register"
+                    className="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white font-bold text-sm hover:opacity-95 shadow-xl shadow-[#D4145A]/30 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Flame className="w-5 h-5 fill-white" />
+                    <span>Créer mon compte gratuit</span>
+                  </Link>
+                  <Link
+                    href="/login"
+                    className="w-full sm:w-auto px-8 py-4 rounded-xl bg-[#2C1B3D] border border-[#3D2654] text-white font-bold text-sm hover:border-[#D4145A] transition-all flex items-center justify-center gap-2"
+                  >
+                    <span>Se connecter</span>
+                  </Link>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-10">
+                  <div>
+                    <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                      <span>Derniers Profils Actifs</span>
+                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#D4145A] text-white font-semibold">
+                        En Direct
+                      </span>
+                    </h2>
+                    <p className="text-xs text-zinc-400 mt-1">
+                      Découvrez les couples et célibataires connectés dans votre région
+                    </p>
+                  </div>
+
+                  <Link
+                    href="/decouvrir"
+                    className="text-xs font-bold text-[#E86B7A] hover:underline flex items-center gap-1"
+                  >
+                    <span>Voir tous les profils</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {usersList.slice(0, 4).map((profile) => (
+                    <ProfileCard
+                      key={profile.id}
+                      profile={profile}
+                      currentUser={user}
+                      isPremium={isPremium}
+                      onOpenMessageModal={handleOpenMessage}
+                    />
+                  ))}
+                </div>
+
+                {usersList.length === 0 && (
+                  <p className="text-center text-xs text-zinc-500 py-6">
+                    Aucun profil à afficher pour le moment.
+                  </p>
+                )}
+              </>
+            )}
           </div>
         </section>
 

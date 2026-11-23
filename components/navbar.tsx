@@ -51,8 +51,10 @@ export function Navbar() {
               <div className="text-sm sm:text-xl font-bold tracking-tight text-white">
                 x<span className="text-[#D4145A]">libertine</span>
               </div>
-              <div className="text-[10px] text-zinc-400 uppercase tracking-widest font-medium">
-                100% Libertin & Discret
+              {/* Sous-titre masqué sous « lg » : à moyenne largeur, la barre
+                  devient trop étroite et le texte passait sur deux lignes. */}
+              <div className="hidden lg:block text-[10px] text-zinc-400 uppercase tracking-widest font-medium whitespace-nowrap">
+                100% Libertin &amp; Discret
               </div>
             </div>
           </Link>
@@ -122,12 +124,23 @@ export function Navbar() {
                 </button>
               </div>
             ) : (
-              <Link
-                href="/login"
-                className="px-4 py-2 rounded-lg bg-[#D4145A] text-white text-xs font-semibold hover:bg-[#B50E4A] transition-colors shadow-md"
-              >
-                Se Connecter
-              </Link>
+              // Visitante : deux actions lisibles — s'inscrire (chemin de
+              // conversion) et se connecter. Avant, seul « Se Connecter »
+              // existait et le site n'offrait aucun accroche au nouveau venu.
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/register"
+                  className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white text-xs font-bold hover:opacity-95 transition-colors shadow-md shadow-[#D4145A]/20 whitespace-nowrap"
+                >
+                  Rejoindre
+                </Link>
+                <Link
+                  href="/login"
+                  className="px-4 py-2 rounded-lg bg-[#2C1B3D] border border-[#3D2654] text-white text-xs font-semibold hover:border-[#D4145A] transition-colors whitespace-nowrap"
+                >
+                  Se connecter
+                </Link>
+              </div>
             )}
           </div>
 
@@ -209,13 +222,23 @@ export function Navbar() {
               <span>Se déconnecter</span>
             </button>
           ) : (
-            <Link
-              href="/login"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block text-center px-4 py-2.5 rounded-lg bg-[#D4145A] text-white text-sm font-semibold hover:bg-[#B50E4A] transition-colors mt-3"
-            >
-              Se connecter
-            </Link>
+            // Menu mobile visiteur : l'inscription passe avant la connexion.
+            <>
+              <Link
+                href="/register"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block text-center px-4 py-2.5 rounded-lg bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white text-sm font-bold hover:opacity-95 transition-colors mt-3 shadow-md shadow-[#D4145A]/20"
+              >
+                Rejoindre xlibertine — gratuit
+              </Link>
+              <Link
+                href="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block text-center px-4 py-2.5 rounded-lg bg-[#2C1B3D] border border-[#3D2654] text-white text-sm font-semibold hover:border-[#D4145A] transition-colors"
+              >
+                Se connecter
+              </Link>
+            </>
           )}
 
         </div>

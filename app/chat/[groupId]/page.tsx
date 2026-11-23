@@ -77,15 +77,23 @@ export default function ChatPage() {
             <div>
               <h1 className="text-3xl font-bold text-white mb-2">Chat de groupe</h1>
               <p className="text-zinc-400 mb-6">
-                Connectez-vous pour voir les conversations du groupe.
+                Les conversations du groupe sont réservées aux membres inscrits.
               </p>
             </div>
-            <Link
-              href="/login"
-              className="block py-3 px-6 bg-gradient-to-r from-[#D4145A] to-[#E86B7A] rounded-lg font-semibold text-white hover:opacity-90 transition"
-            >
-              Se connecter
-            </Link>
+            <div className="space-y-3 w-full">
+              <Link
+                href="/register"
+                className="block py-3 px-6 bg-gradient-to-r from-[#D4145A] to-[#E86B7A] rounded-lg font-semibold text-white hover:opacity-90 transition"
+              >
+                Créer mon compte gratuit
+              </Link>
+              <Link
+                href="/login"
+                className="block py-3 px-6 bg-[#2C1B3D] rounded-lg font-semibold text-white hover:bg-[#3C2B4D] transition"
+              >
+                Se connecter
+              </Link>
+            </div>
           </div>
         </div>
       </div>

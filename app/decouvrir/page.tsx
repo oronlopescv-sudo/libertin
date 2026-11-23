@@ -145,21 +145,22 @@ export default function Decouvrir() {
             <div>
               <h1 className="text-3xl font-bold text-white mb-2">Découvrir les profils</h1>
               <p className="text-zinc-400 mb-6">
-                Connectez-vous pour découvrir les profils de la communauté.
+                Les profils de la communauté sont réservés aux membres inscrits
+                — discrétion oblige.
               </p>
             </div>
             <div className="space-y-3">
               <Link
-                href="/login"
+                href="/register"
                 className="block py-3 px-6 bg-gradient-to-r from-[#D4145A] to-[#E86B7A] rounded-lg font-semibold text-white hover:opacity-90 transition"
               >
-                Se connecter
+                Créer mon compte gratuit
               </Link>
               <Link
-                href="/"
+                href="/login"
                 className="block py-3 px-6 bg-[#2C1B3D] rounded-lg font-semibold text-white hover:bg-[#3C2B4D] transition"
               >
-                Retour à l'accueil
+                Se connecter
               </Link>
             </div>
           </div>

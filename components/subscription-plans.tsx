@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { fetchResilient } from '@/lib/fetch-resilient';
 import { SUBSCRIPTION_PLANS, getPlanDetails } from '@/lib/stripe';
 import { AbonnementPlan } from '@/lib/types';
@@ -88,6 +89,13 @@ export function AbonnementPlans() {
 
   const handleOpenConfirm = (plan: AbonnementPlan) => {
     if (plan.id === 'FREE') return;
+    // Sans compte, le bouton « S'abonner » ne pouvait rien déclencher
+    // (il exige une session) : il ouvrait un modal qui menait à rien.
+    // Un visiteur est orienté vers l'inscription, seul étape logique.
+    if (!user) {
+      window.location.href = '/register';
+      return;
+    }
     setSelectedPlan(plan);
     setConfirmModalOpen(true);
   };
@@ -368,6 +376,20 @@ export function AbonnementPlans() {
                   >
                     Offre par défaut
                   </button>
+                ) : !user ? (
+                  // Visitante : um Link (e não um botão morto) — sem sessão,
+                  // a única etapa possível antes de pagar é criar conta.
+                  <Link
+                    href="/register"
+                    className={`w-full py-3 rounded-xl text-xs font-bold transition-all shadow-lg flex items-center justify-center gap-2 ${
+                      isPopular
+                        ? 'bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white hover:opacity-95 shadow-[#D4145A]/30'
+                        : 'bg-[#D4145A] text-white hover:bg-[#B50E4A]'
+                    }`}
+                  >
+                    <Crown className="w-4 h-4" />
+                    <span>Créer un compte pour vous abonner</span>
+                  </Link>
                 ) : (
                   <button
                     onClick={() => handleOpenConfirm(plan)}

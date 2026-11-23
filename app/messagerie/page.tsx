@@ -48,7 +48,10 @@ function tempsRelatif(iso: string): string {
 }
 
 export default function MessageriePage() {
-  const { user, isPremium } = useAuth();
+  // authLoading (contexto) vem antes do estado local: sem isto, um membro
+  // autenticado via um flash do ecrã de visitante antes das conversas
+  // chegarem (user começa null enquanto a sessão é lida).
+  const { user, isPremium, isLoading: authLoading } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [erreur, setErreur] = useState('');
@@ -144,7 +147,7 @@ export default function MessageriePage() {
         )}
 
         {/* États */}
-        {isLoading ? (
+        {authLoading || isLoading ? (
           <div className="flex flex-col items-center justify-center py-20 text-zinc-500 gap-3">
             <Loader2 className="w-6 h-6 animate-spin" />
             <span className="text-sm">Chargement de vos conversations…</span>
@@ -152,13 +155,23 @@ export default function MessageriePage() {
         ) : !user ? (
           <div className="flex flex-col items-center justify-center py-20 text-center gap-4">
             <Lock className="w-10 h-10 text-[#D4145A]/60" />
-            <p className="text-sm text-zinc-400">Connectez-vous pour accéder à votre messagerie.</p>
-            <Link
-              href="/login"
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white text-xs font-bold"
-            >
-              Se connecter
-            </Link>
+            <p className="text-sm text-zinc-400">
+              Votre messagerie est réservée aux membres inscrits.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link
+                href="/register"
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#D4145A] to-[#E86B7A] text-white text-xs font-bold"
+              >
+                Créer mon compte gratuit
+              </Link>
+              <Link
+                href="/login"
+                className="px-5 py-2.5 rounded-xl bg-[#2C1B3D] border border-[#3D2654] text-white text-xs font-semibold hover:border-[#D4145A]"
+              >
+                Se connecter
+              </Link>
+            </div>
           </div>
         ) : erreur ? (
           <div className="p-4 rounded-xl bg-rose-950/60 border border-rose-800/40 text-rose-300 text-sm">

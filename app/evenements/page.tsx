@@ -141,7 +141,46 @@ export default function ÉvénementsPage() {
     );
   }
 
-  if (!user || !isPremium) {
+  // Le visiteur sans compte ne doit pas voir « Passer à Premium » : on ne
+  // propose pas un abonnement à quelqu'une qui n'a même pas de profil. Il
+  // reçoit le chemin normal — créer un compte, puis éventuellement Premium.
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#12091A] to-[#1C102B]">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[80vh] px-4">
+          <div className="max-w-md text-center space-y-6">
+            <div className="w-20 h-20 bg-[#D4145A]/20 rounded-full flex items-center justify-center mx-auto">
+              <Lock className="w-10 h-10 text-[#D4145A]" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">Événements</h1>
+              <p className="text-zinc-400 mb-6">
+                Les soirées privées et les événements de la communauté sont
+                réservés aux membres inscrits.
+              </p>
+            </div>
+            <div className="space-y-3">
+              <Link
+                href="/register"
+                className="block py-3 px-6 bg-gradient-to-r from-[#D4145A] to-[#E86B7A] rounded-lg font-semibold text-white hover:opacity-90 transition"
+              >
+                Créer mon compte gratuit
+              </Link>
+              <Link
+                href="/login"
+                className="block py-3 px-6 bg-[#2C1B3D] rounded-lg font-semibold text-white hover:bg-[#3C2B4D] transition"
+              >
+                Se connecter
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isPremium) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#12091A] to-[#1C102B]">
         <Navbar />
@@ -167,11 +206,11 @@ export default function ÉvénementsPage() {
                 href="/"
                 className="block py-3 px-6 bg-[#2C1B3D] rounded-lg font-semibold text-white hover:bg-[#3C2B4D] transition"
               >
-                Retour à l'accueil
+                Retour à l&apos;accueil
               </Link>
             </div>
             <p className="text-sm text-zinc-500">
-              À partir de 9 €/mois
+              À partir de 9 €/mois, résiliable à tout moment
             </p>
           </div>
         </div>

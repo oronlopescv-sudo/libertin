@@ -196,11 +196,15 @@ export default function GroupesPage() {
                 </div>
 
                 <button
-                  onClick={() => handleJoin(group.id)}
+                  onClick={() => (user ? handleJoin(group.id) : router.push('/register'))}
                   disabled={joiningId === group.id}
                   className="w-full py-2 bg-gradient-to-r from-[#D4145A] to-[#E86B7A] rounded-lg font-semibold text-white hover:opacity-90 transition disabled:opacity-50"
                 >
-                  {joiningId === group.id ? 'Inscription...' : 'Rejoindre'}
+                  {user
+                    ? joiningId === group.id
+                      ? 'Inscription...'
+                      : 'Rejoindre'
+                    : 'Créer mon compte pour rejoindre'}
                 </button>
               </div>
             ))}
