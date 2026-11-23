@@ -115,8 +115,15 @@ const PLANOS_PAGOS = SUBSCRIPTION_PLANS.filter((p) => p.id !== 'FREE').map((p) =
 async function planoRealmentePago(session: any, declarado: string): Promise<string | null> {
   const configurados = PLANOS_PAGOS.filter((id) => !!process.env[`STRIPE_PRODUCT_${id}`]);
   if (configurados.length === 0) {
-    console.warn('[webhook] STRIPE_PRODUCT_* não definidos — plano vindo da URL NÃO verificado');
-    return declarado;
+    // Chemin A (Payment Link): o plano vinha de um parâmetro de URL que o
+    // próprio membro editava — pagar Épicurien e reescrever a referência dava
+    // VIP sem pagar a diferença. Sem produtos configurados para conferir, o
+    // pagamento de um link NÃO concede plano (falha segura; configure
+    // STRIPE_PRODUCT_<PLANO> ou use o Chemin B checkout + price_data).
+    console.error(
+      '[webhook] STRIPE_PRODUCT_* não definidos — pagamento via Payment Link sem verificação possível, NADA concedido'
+    );
+    return null;
   }
   if (!stripe) throw new Error('Stripe not configured');
 
@@ -411,9 +418,43 @@ async function handleChargeFailed(charge: any) {
 
 /**
  * Abonnement annulé : repasse le profil en offre FREE.
+ *
+ * ATENÇÃO: só repõe FREE se o cliente não tiver OUTRA subscrição ativa.
+ * A troca de Pass (create-checkout) marca a subscrição antiga com
+ * cancel_at_period_end — quando ela expira dispara customer.subscription
+ * .deleted, e sem este guard o evento APAGAVA o plano novo que o membro
+ * acabou de ativar.
  */
 async function handleAbonnementDeleted(subscription: any) {
   const customerId = subscription.customer;
+
+  // Outra subscrição ativa (a nova) existe? Então este cancelamento é o
+  // fim da assinatura ANTIGA — só desligamos FREE quando nenhuma sobrar.
+  try {
+    if (stripe) {
+      const subsAtivas = await stripe.subscriptions.list({
+        customer: customerId,
+        status: 'all',
+        limit: 20,
+      });
+      const restam = subsAtivas.data.filter(
+        (s: any) =>
+          s.id !== subscription.id &&
+          ['active', 'trialing', 'past_due'].includes(s.status)
+      );
+      if (restam.length > 0) {
+        console.log(
+          `[webhook] subscrição ${subscription.id} terminou mas o cliente ${customerId} tem ${restam.length} outra(s) ativa(s) — perfil mantido`
+        );
+        return;
+      }
+    }
+  } catch (erroSubs) {
+    // Falha ao consultar: lança para o Stripe REPETIR a entrega mais tarde
+    // (ignorá-la aqui faria o cancelamento real nunca chegar a repor FREE).
+    console.error('[webhook] listar subscrições do cliente falhou — nova tentativa no retry:', erroSubs instanceof Error ? erroSubs.message : erroSubs);
+    throw erroSubs instanceof Error ? erroSubs : new Error(String(erroSubs));
+  }
 
   let profile: { id: string; email: string } | null = null;
   try {

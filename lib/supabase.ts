@@ -348,22 +348,32 @@ export async function getSupabaseUserByEmail(email: string): Promise<User | null
 export async function getSupabaseUsersList(limit = 50): Promise<User[]> {
   try {
     // Colonnes publiques uniquement : ce résultat part vers TOUT navigateur
-    // (grille de la page d'accueil). Pas d'email ni de stripe_customer_id —
-    // ces champs peuvent être récupérés par getCurrentSupabaseUser() quand
-    // l'utilisateur lit SON propre profil.
+    // (grille de la page d'accueil). Pas d'email, de stripe_customer_id,
+    // de rôle ou de données d'abonnement. Les coordonnées d'AUTRUI sont
+    // ARRONDIES (2 décimales ≈ 1 km) — la distance affichée reste lisible
+    // sans publier le point GPS exact de personne. La position exacte du
+    // membre connecté continue d'arriver par getCurrentSupabaseUser.
     const { data, error } = await supabase
       .from('profiles')
       .select(
-        'id, username, date_of_birth, gender, sexual_orientation, location, lat, lng, subscription_tier, subscription_start, subscription_end, bio, interests, is_verified, is_active, is_nsfw, role, created_at, updated_at'
+        'id, username, date_of_birth, gender, sexual_orientation, location, lat, lng, bio, interests, is_verified, is_active, is_nsfw, created_at, updated_at'
       )
       .eq('is_active', true)
       .limit(limit);
     if (error || !data) return [];
+    const arredonda = (v: number | null | undefined): number | undefined =>
+      typeof v === 'number' && Number.isFinite(v) ? Math.round(v * 100) / 100 : undefined;
     return data.map((row: any) => ({
       ...snakeToCamelProfile(row),
       // Non exposé : colonnes sensibles volontairement non sélectionnées.
-      email: '',
+      role: undefined,
+      subscriptionTier: undefined,
+      subscriptionStart: undefined,
+      subscriptionEnd: undefined,
       stripeCustomerId: undefined,
+      email: '',
+      lat: arredonda(row.lat),
+      lng: arredonda(row.lng),
     }));
   } catch (e) {
     return [];

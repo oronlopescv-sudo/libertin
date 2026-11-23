@@ -23,14 +23,18 @@ export async function GET() {
     .eq('id', auth.user.id)
     .single();
 
-  const tier = (auth.user.subscriptionTier || 'FREE') as Parameters<typeof getPlanDetails>[0];
-  const plan = getPlanDetails(tier);
+  // Tier obsoleto: quando o Premium expirou, o tier gravado na base
+  // (e o título do plano) deixam de ser verdade — a UI mostraria
+  // «Pass VIP» a um membro que já não paga. Só `premium` real conta.
+  const ePremium = isPremium(auth.user);
+  const tierVisual = ePremium ? (auth.user.subscriptionTier || 'FREE') : 'FREE';
+  const plan = getPlanDetails(tierVisual as Parameters<typeof getPlanDetails>[0]);
 
   return NextResponse.json({
-    subscriptionTier: auth.user.subscriptionTier || 'FREE',
+    subscriptionTier: tierVisual,
     subscriptionEnd: auth.user.subscriptionEnd,
     stripeCustomerId: data?.stripe_customer_id ?? null,
     planTitle: plan?.title ?? 'Compte Découverte',
-    premium: isPremium(auth.user),
+    premium: ePremium,
   });
 }

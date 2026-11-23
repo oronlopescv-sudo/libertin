@@ -56,12 +56,15 @@ export async function GET(req: NextRequest) {
 
     if (ocupado) {
       // Sugestão simple : pseudo + «_» + 2 chiffres (vérifié immédiatement).
+      // Consulta em `profiles_public` (012): a tabela `profiles` não é
+      // legível pela anon key — sugestões contra `profiles` falhavam todas
+      // e podiam sugerir um pseudo já ocupado.
       let sugestao = '';
       for (let tentativa = 0; tentativa < 5; tentativa++) {
         const numero = Math.floor(10 + Math.random() * 89); // 10-99
         const candidata = `${username.slice(0, 20)}_${numero}`;
         const { data: existente } = await anon
-          .from('profiles')
+          .from('profiles_public')
           .select('id')
           .eq('username', candidata)
           .limit(1);

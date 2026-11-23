@@ -142,6 +142,33 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Ce membre est introuvable' }, { status: 404 });
     }
 
+    // Blocage (dans les deux sens) : ni moi qui bloque, ni qui est bloqué
+    // n'ouvre une conversation. Le « Bloquer » quitte d'être cosmétique :
+    // uma pessoa bloqueada não inicia DM com quem a bloqueou.
+    const { data: blocos } = await supabase
+      .from('blocked_users')
+      .select('user_id, blocked_id')
+      .or(
+        `and(user_id.eq.${targetUserId},blocked_id.eq.${auth.user.id}),and(user_id.eq.${auth.user.id},blocked_id.eq.${targetUserId})`
+      )
+      .limit(1);
+    if (blocos && blocos.length > 0) {
+      return NextResponse.json(
+        { error: "Cette conversation ne peut pas être ouverte" },
+        { status: 403 }
+      );
+    }
+
+    // Alvo desativado (conta suspensa) : sem conversa nem mensagens.
+    const { data: cibleAtiva } = await supabase
+      .from('profiles')
+      .select('is_active')
+      .eq('id', targetUserId)
+      .single();
+    if (cibleAtiva && cibleAtiva.is_active === false) {
+      return NextResponse.json({ error: 'Ce membre est indisponible' }, { status: 403 });
+    }
+
     // Cherche une conversation privée déjà existante entre les deux comptes.
     const { data: mesGroupesPrives } = await supabase
       .from('group_memberships')
@@ -195,6 +222,31 @@ export async function POST(req: NextRequest) {
     ]);
 
     if (membresError) {
+      // Trigger 013: barre um par de private_dm duplicado (23505). Corrida de
+      // duplo clique — a conversa já foi criada pelo request concorrente:
+      // APAGAMOS o grupo órfão deste request (ficaria private_dm sem
+      // membros, poluindo a base) e devolvemos a existente.
+      if (membresError.code === '23505') {
+        await supabase.from('groups').delete().eq('id', nouveauGroupe.id);
+        const { data: mesNovos } = await supabase
+          .from('group_memberships')
+          .select('group_id, groups!inner(category)')
+          .eq('user_id', auth.user.id)
+          .eq('groups.category', 'private_dm');
+        const idsNovos = (mesNovos ?? []).map((g: any) => g.group_id);
+        if (idsNovos.length > 0) {
+          const { data: repetida } = await supabase
+            .from('group_memberships')
+            .select('group_id')
+            .eq('user_id', targetUserId)
+            .in('group_id', idsNovos)
+            .limit(1)
+            .maybeSingle();
+          if (repetida) {
+            return NextResponse.json({ groupId: repetida.group_id }, { status: 200 });
+          }
+        }
+      }
       // Si l'ajout des membres échoue, supprimer le groupe fraîchement créé :
       // sinon il reste en base un groupe `private_dm` avec une seule personne,
       // invisible de la messagerie mais comptant dans les stats.

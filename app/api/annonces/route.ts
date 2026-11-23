@@ -82,6 +82,14 @@ export async function POST(req: NextRequest) {
       .insert({ user_id: auth.user.id, title, body, city })
       .select('id')
       .single();
+    if (error && error.code === '23505') {
+      // Trigger 013 (limite_anuncios_ativos): corrida de duplo clique
+      // passava o count e criava a 6.ª anúncio em paralelo.
+      return NextResponse.json(
+        { error: 'Vous avez déjà 5 annonces actives. Supprimez-en une pour en publier une nouvelle.' },
+        { status: 429 }
+      );
+    }
     if (error) {
       console.error('[annonces POST]', error);
       return NextResponse.json({ error: "Erreur lors de la publication de l'annonce" }, { status: 500 });

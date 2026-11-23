@@ -101,6 +101,39 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Subscrição anterior do mesmo cliente: cancelada NO FIM DO PERÍODO já
+    // pago (cancel_at_period_end). Sem isto, o Stripe cobra as duas
+    // subscrições em paralelo para sempre (cobrança dupla ao trocar de
+    // Pass). O membro conserva o mês já pago do plano antigo.
+    try {
+      const subsAnteriores = await stripe.subscriptions.list({
+        customer: customerId,
+        status: 'all',
+        limit: 100,
+      });
+      // Por-subscrição: uma falha não impede de cancelar as restantes.
+      let falhaContagem = 0;
+      for (const sub of subsAnteriores.data) {
+        if (
+          ['active', 'trialing', 'past_due'].includes(sub.status) &&
+          !sub.cancel_at_period_end
+        ) {
+          try {
+            await stripe.subscriptions.update(sub.id, { cancel_at_period_end: true });
+          } catch (erroItem) {
+            falhaContagem += 1;
+            console.warn('[create-checkout] falhou marcar fim-de-período de', sub.id, erroItem instanceof Error ? erroItem.message : erroItem);
+          }
+        }
+      }
+      if (falhaContagem > 0) {
+        console.warn(`[create-checkout] ${falhaContagem} subscrição(ões) anterior(es) ficaram por cancelar (o checkout segue)`);
+      }
+    } catch (erroSubs) {
+      // Não fatal: se a listagem falhar, o checkout continua — mas fica o log.
+      console.warn('[create-checkout] cancelamento da subscrição anterior falhou:', erroSubs instanceof Error ? erroSubs.message : erroSubs);
+    }
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       client_reference_id: auth.user.id,

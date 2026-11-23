@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
+import { createServiceRoleClient } from '@/lib/supabase';
 import { utilisateurPremium, utilisateurActuel } from '@/lib/auth-serveur';
 
 /**
@@ -64,14 +65,23 @@ export async function POST(req: NextRequest) {
       .from('likes')
       .insert({ user_id: auth.user.id, liked_user_id: likedUserId });
 
+    // Corrida de duplo clique: dois POSTs concorrentes passam o select e ambos
+    // tentam inserir. A UNIQUE (user_id, liked_user_id) barra o segundo com
+    // 23505 — é sucesso idempotente, não um erro.
+    if (insertError && insertError.code === '23505') {
+      return NextResponse.json({ success: true, message: 'Profil liké', liked: true }, { status: 200 });
+    }
     if (insertError) {
       console.error('[likes POST insert]', insertError);
       return NextResponse.json({ error: 'Erreur lors du like' }, { status: 500 });
     }
 
     // Notifier le membre liké (best-effort : ne jamais bloquer le like).
+    // Inserida pelo service_role: a tabela não abre INSERT a membros (013),
+    // e o cliente nunca cria notificações em nome próprio.
     try {
-      await supabase.from('notifications').insert({
+      const servico = createServiceRoleClient();
+      await servico.from('notifications').insert({
         user_id: likedUserId,
         type: 'like',
         title: 'Nouveau like',

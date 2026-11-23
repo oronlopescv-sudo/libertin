@@ -63,6 +63,23 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
       joined_at: new Date().toISOString(),
     });
 
+    // 23505 vem do trigger 013 (limite_membros_grupo) ou da UNIQUE
+    // (group_id,user_id) numa corrida de duplo clique.
+    if (erreurInsertion && erreurInsertion.code === '23505') {
+      const { data: jaEsta } = await supabase
+        .from('group_memberships')
+        .select('id')
+        .eq('user_id', auth.user.id)
+        .eq('group_id', groupId)
+        .maybeSingle();
+      if (jaEsta) {
+        return NextResponse.json(
+          { success: true, groupId, dejaMembre: true },
+          { status: 200 }
+        );
+      }
+      return NextResponse.json({ error: 'Ce groupe est complet' }, { status: 409 });
+    }
     if (erreurInsertion) {
       console.error('[groups join]', erreurInsertion);
       return NextResponse.json(

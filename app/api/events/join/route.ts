@@ -61,6 +61,14 @@ export async function POST(req: NextRequest) {
       status: 'interested',
     });
 
+    // Corrida de duplo clique: a UNIQUE (event_id, user_id) barra o segundo
+    // insert com 23505 — é sucesso idempotente, não um erro.
+    if (erreurInsertion && erreurInsertion.code === '23505') {
+      return NextResponse.json(
+        { success: true, eventId, status: 'interested' },
+        { status: 200 }
+      );
+    }
     if (erreurInsertion) {
       console.error('[events join]', erreurInsertion);
       return NextResponse.json(

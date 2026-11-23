@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
+import { createServiceRoleClient } from '@/lib/supabase';
 import { utilisateurActuel, utilisateurPremium } from '@/lib/auth-serveur';
 
 /**
@@ -106,6 +107,39 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gro
       );
     }
 
+    // Bloqueio bilateral nas conversas privadas (private_dm): quem bloqueou
+    // ou foi bloqueado não escreve na DM — a única barreira anterior ficava
+    // na criação da conversa, e uma DM velha continuava a aceitar textos.
+    const { data: categoria } = await supabase
+      .from('groups')
+      .select('category')
+      .eq('id', groupId)
+      .single();
+    if (categoria?.category === 'private_dm') {
+      const { data: outros } = await supabase
+        .from('group_memberships')
+        .select('user_id')
+        .eq('group_id', groupId)
+        .neq('user_id', auth.user.id)
+        .limit(1);
+      const outro = (outros ?? [])[0]?.user_id;
+      if (outro) {
+        const { data: bloqueio } = await supabase
+          .from('blocked_users')
+          .select('id')
+          .or(
+            `and(user_id.eq.${outro},blocked_id.eq.${auth.user.id}),and(user_id.eq.${auth.user.id},blocked_id.eq.${outro})`
+          )
+          .limit(1);
+        if (bloqueio && bloqueio.length > 0) {
+          return NextResponse.json(
+            { error: 'Les messages ne peuvent pas être envoyés dans cette conversation' },
+            { status: 403 }
+          );
+        }
+      }
+    }
+
     const body = await req.json().catch(() => ({}));
     const content = typeof body.content === 'string' ? body.content.trim() : '';
     const mediaUrl = typeof body.mediaUrl === 'string' ? body.mediaUrl.trim() : '';
@@ -146,7 +180,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gro
     }
 
     // Notifier les autres membres du groupe (best-effort : jamais bloquant).
+    // Inseridas via service_role: a tabela não abre INSERT a membros (013) —
+    // ninguém cria notificações em nome próprio via REST direto.
     try {
+      const servico = createServiceRoleClient();
       const { data: membres } = await supabase
         .from('group_memberships')
         .select('user_id')
@@ -158,7 +195,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gro
         // S'il n'y a que l'image (pas de texte), un placeholder lisible.
         const textePreview = content || '📷 Photo';
         const preview = textePreview.length > 80 ? textePreview.slice(0, 80) + '…' : textePreview;
-        await supabase.from('notifications').insert(
+        await servico.from('notifications').insert(
           autres.map((uid: string) => ({
             user_id: uid,
             type: 'message',
