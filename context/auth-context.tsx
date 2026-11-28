@@ -39,7 +39,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loadFromSupabase = useCallback(async () => {
     try {
       const current = await getCurrentSupabaseUser();
-      const list = await getSupabaseUsersList();
+      // Visitantes sem sessão não têm leitura de `profiles` (012): pedir a
+      // lista só gerava 401. A grelha só carrega para membros com sessão.
+      const list = current ? await getSupabaseUsersList() : [];
       if (current) {
         setUser(current);
         setUsersList(list);
