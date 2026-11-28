@@ -309,12 +309,13 @@ export async function getCurrentSupabaseUser(): Promise<User | null> {
     if (!sessionData.session?.user) return null;
 
     const userId = sessionData.session.user.id;
-    // 014: select explícito de colunas seguras (email/phone/stripe_customer_id
-    // deixam de ser selecionáveis por membros). O email vem da própria sessão.
+    // 014/016: select explícito de colunas seguras — email/phone/
+    // stripe_customer_id (REVOKE 015) e lat/lng EXATOS (REVOKE 016, a view
+    // proprio_gps dá as próprias). O email vem da própria sessão.
     const { data: profile, error } = await supabase
       .from('profiles')
       .select(
-        'id, username, date_of_birth, gender, sexual_orientation, location, lat, lng, subscription_tier, subscription_start, subscription_end, bio, interests, is_verified, is_active, is_nsfw, role, created_at, updated_at'
+        'id, username, date_of_birth, gender, sexual_orientation, location, subscription_tier, subscription_start, subscription_end, bio, interests, is_verified, is_active, is_nsfw, role, created_at, updated_at'
       )
       .eq('id', userId)
       // Conta banida (is_active=false): considera DESLOGADA no cliente, em
@@ -328,7 +329,21 @@ export async function getCurrentSupabaseUser(): Promise<User | null> {
       console.warn('getCurrentSupabaseUser:', error?.message);
       return null;
     }
-    return snakeToCamelProfile({ ...profile, email: sessionData.session.user.email ?? null });
+
+    // GPS exato do PRÓPRIO membro (a 016 fechou a leitura direta da coluna).
+    let gps: { lat?: number; lng?: number } = {};
+    const { data: g } = await supabase
+      .from('proprio_gps')
+      .select('lat, lng')
+      .maybeSingle();
+    if (g && typeof g.lat === 'number' && typeof g.lng === 'number') {
+      gps = { lat: g.lat, lng: g.lng };
+    }
+    return snakeToCamelProfile({
+      ...profile,
+      ...gps,
+      email: sessionData.session.user.email ?? null,
+    });
   } catch (e: any) {
     console.warn('getCurrentSupabaseUser error:', e.message);
     return null;
@@ -337,8 +352,9 @@ export async function getCurrentSupabaseUser(): Promise<User | null> {
 
 // 014/015: a pesquisa de perfil passa por ID, não por email — o membro
 // com sessão não pode filtrar nem ler a coluna `email` (REVOKE colunar).
-// Lista de 19 colunas seguras; SEM filtro is_active (membro suspenso tem
-// de ser ENCONTRADO aqui — se devolvesse null, a reparação no login
+// Lista de colunas seguras, SEM lat/lng (016: exatos apenas na view
+// proprio_gps), SEM filtro is_active (membro suspenso tem de ser
+// ENCONTRADO aqui — se devolvesse null, a reparação no login
 // sobrescreveria a conta suspensa com defaults e desbaniria à força).
 // O email do User vem do parâmetro (sessão/formulário), nunca da coluna.
 export async function getSupabaseUserById(
@@ -349,12 +365,30 @@ export async function getSupabaseUserById(
     const { data: profile, error } = await supabase
       .from('profiles')
       .select(
-        'id, username, date_of_birth, gender, sexual_orientation, location, lat, lng, subscription_tier, subscription_start, subscription_end, bio, interests, is_verified, is_active, is_nsfw, role, created_at, updated_at'
+        'id, username, date_of_birth, gender, sexual_orientation, location, subscription_tier, subscription_start, subscription_end, bio, interests, is_verified, is_active, is_nsfw, role, created_at, updated_at'
       )
       .eq('id', userId)
       .maybeSingle();
     if (error || !profile) return null;
-    return snakeToCamelProfile({ ...profile, email: email ?? null });
+    // 016: GPS exato só-quando-é-o-próprio — proprio_gps devolve SEMPRE a
+    // linha do JWT da sessão; se um dia esta função for chamada com o id
+    // de um TERCEIRO, as coordenadas não devem colar-se ao perfil alheio.
+    let gps: { lat?: number; lng?: number } = {};
+    try {
+      const { data: sessao } = await supabase.auth.getSession();
+      if (sessao.session?.user?.id === userId) {
+        const { data: g } = await supabase
+          .from('proprio_gps')
+          .select('lat, lng')
+          .maybeSingle();
+        if (g && typeof g.lat === 'number' && typeof g.lng === 'number') {
+          gps = { lat: g.lat, lng: g.lng };
+        }
+      }
+    } catch {
+      // sem GPS, o User cai na localidade por cidade (resolveLocationCoords)
+    }
+    return snakeToCamelProfile({ ...profile, ...gps, email: email ?? null });
   } catch (e) {
     return null;
   }
@@ -364,20 +398,36 @@ export async function getSupabaseUsersList(limit = 50): Promise<User[]> {
   try {
     // Colonnes publiques uniquement : ce résultat part vers TOUT navigateur
     // (grille de la page d'accueil). Pas d'email, de stripe_customer_id,
-    // de rôle ou de données d'abonnement. Les coordonnées d'AUTRUI sont
-    // ARRONDIES (2 décimales ≈ 1 km) — la distance affichée reste lisible
-    // sans publier le point GPS exact de personne. La position exacte du
-    // membre connecté continue d'arriver par getCurrentSupabaseUser.
+    // de rôle ni de données d'abonnement. 016: lat/lng EXATOS deixaram de
+    // existir para membros — as coords de AUTRUI vêm da VIEW profiles_gps,
+    // já ARREDONDADAS a 2 casas (≈1 km) e só de membros ativos. A posição
+    // exata do membro conectado segue por getCurrentSupabaseUser.
     const { data, error } = await supabase
       .from('profiles')
       .select(
-        'id, username, date_of_birth, gender, sexual_orientation, location, lat, lng, bio, interests, is_verified, is_active, is_nsfw, created_at, updated_at'
+        'id, username, date_of_birth, gender, sexual_orientation, location, bio, interests, is_verified, is_active, is_nsfw, created_at, updated_at'
       )
       .eq('is_active', true)
       .limit(limit);
     if (error || !data) return [];
-    const arredonda = (v: number | null | undefined): number | undefined =>
-      typeof v === 'number' && Number.isFinite(v) ? Math.round(v * 100) / 100 : undefined;
+
+    const ids = data.map((r: any) => r.id).filter(Boolean);
+    const gpsPorId = new Map<string, { lat?: number; lng?: number }>();
+    if (ids.length > 0) {
+      try {
+        const { data: gps } = await supabase
+          .from('profiles_gps')
+          .select('id, lat, lng')
+          .in('id', ids);
+        for (const g of gps ?? []) {
+          if (typeof g.lat === 'number' && typeof g.lng === 'number') {
+            gpsPorId.set(g.id, { lat: g.lat, lng: g.lng });
+          }
+        }
+      } catch {
+        // sem gps, a distância cai no fallback por cidade (resolveLocationCoords)
+      }
+    }
     return data.map((row: any) => ({
       ...snakeToCamelProfile(row),
       // Non exposé : colonnes sensibles volontairement non sélectionnées.
@@ -387,42 +437,18 @@ export async function getSupabaseUsersList(limit = 50): Promise<User[]> {
       subscriptionEnd: undefined,
       stripeCustomerId: undefined,
       email: '',
-      lat: arredonda(row.lat),
-      lng: arredonda(row.lng),
+      lat: gpsPorId.get(row.id)?.lat,
+      lng: gpsPorId.get(row.id)?.lng,
     }));
   } catch (e) {
     return [];
   }
 }
 
-export async function updateSupabaseProfile(
-  userId: string,
-  payload: Partial<User>
-): Promise<boolean> {
-  try {
-    const dbPayload: any = {};
-    if (payload.username !== undefined) dbPayload.username = payload.username;
-    if (payload.email !== undefined) dbPayload.email = payload.email;
-    if (payload.bio !== undefined) dbPayload.bio = payload.bio;
-    if (payload.location !== undefined) dbPayload.location = payload.location;
-    if (payload.lat !== undefined) dbPayload.lat = payload.lat;
-    if (payload.lng !== undefined) dbPayload.lng = payload.lng;
-    if (payload.gender !== undefined) dbPayload.gender = payload.gender;
-    if (payload.interests !== undefined) dbPayload.interests = payload.interests;
-    if (payload.subscriptionTier !== undefined) dbPayload.subscription_tier = payload.subscriptionTier;
-    if (payload.subscriptionStart !== undefined) dbPayload.subscription_start = payload.subscriptionStart;
-    if (payload.subscriptionEnd !== undefined) dbPayload.subscription_end = payload.subscriptionEnd;
-    if (payload.isVerified !== undefined) dbPayload.is_verified = payload.isVerified;
-    if (payload.isActive !== undefined) dbPayload.is_active = payload.isActive;
-    if (payload.role !== undefined) dbPayload.role = payload.role;
-    dbPayload.updated_at = new Date().toISOString();
-
-    const { error } = await supabase.from('profiles').update(dbPayload).eq('id', userId);
-    return !error;
-  } catch (e) {
-    return false;
-  }
-}
+// 016: updateSupabaseProfile APAGADO — sem chamadores no repo e deixava
+// o cliente de sessão escrever role/subscription/is_active/escrever email
+// (escalada). A edição real do perfil corre pelo PATCH /api/users/profile
+// (servidor, campos seguros); o GPS do registo escreve-se no signUp.
 
 export async function deleteSupabaseUser(userId: string): Promise<boolean> {
   try {
@@ -830,7 +856,7 @@ export async function creerProfilManquant(
       .from('profiles')
       .upsert(payload, { onConflict: 'id' })
       .select(
-        'id, username, date_of_birth, gender, sexual_orientation, location, lat, lng, subscription_tier, subscription_start, subscription_end, bio, interests, is_verified, is_active, is_nsfw, role, created_at, updated_at'
+        'id, username, date_of_birth, gender, sexual_orientation, location, subscription_tier, subscription_start, subscription_end, bio, interests, is_verified, is_active, is_nsfw, role, created_at, updated_at'
       )
       .single();
 
@@ -839,7 +865,14 @@ export async function creerProfilManquant(
       return null;
     }
 
-    return snakeToCamelProfile({ ...data, email });
+    // 016: lat/lng não se leem por coluna (REVOKE); os exatos do próprio
+    // estão no payload acabado de escrever.
+    return snakeToCamelProfile({
+      ...data,
+      lat: payload.lat,
+      lng: payload.lng,
+      email,
+    });
   } catch (e: any) {
     console.warn('creerProfilManquant error:', e?.message);
     return null;
