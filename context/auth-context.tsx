@@ -9,7 +9,7 @@ import {
   signInWithSupabase,
   signOutWithSupabase,
   getCurrentSupabaseUser,
-  getSupabaseUserByEmail,
+  getSupabaseUserById,
   creerProfilManquant,
   getSupabaseUsersList,
 } from '@/lib/supabase';
@@ -119,7 +119,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw new Error('Email ou mot de passe incorrect.');
     }
 
-    const profile = await getSupabaseUserByEmail(email);
+    // 015: perfil procurado pelo ID da sessão (a coluna email deixou de ser
+    // legível/filtrável por membros).
+    const profile = await getSupabaseUserById(result.user.id, email);
     if (profile) {
       setUser(profile);
       setUsersList(await getSupabaseUsersList());
@@ -180,7 +182,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw info;
       }
 
-      const profile = await getSupabaseUserByEmail(userData.email);
+      // userData = formulário (sem id) — o id vem do resultado do signUp.
+      const profile = await getSupabaseUserById(sbResult.userId, userData.email);
       if (profile) {
         setUser(profile);
         setUsersList(await getSupabaseUsersList());

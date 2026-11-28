@@ -335,19 +335,26 @@ export async function getCurrentSupabaseUser(): Promise<User | null> {
   }
 }
 
-// 014: SEM chamadores — código morto. Se algum dia voltar a ser usado,
-// correr VIA createServiceRoleClient: `email` deixou de ser coluna
-// selecionável por membros (REVOKE) e o `.eq('email',…)` num cliente de
-// membro/público falharia sempre.
-export async function getSupabaseUserByEmail(email: string): Promise<User | null> {
+// 014/015: a pesquisa de perfil passa por ID, não por email — o membro
+// com sessão não pode filtrar nem ler a coluna `email` (REVOKE colunar).
+// Lista de 19 colunas seguras; SEM filtro is_active (membro suspenso tem
+// de ser ENCONTRADO aqui — se devolvesse null, a reparação no login
+// sobrescreveria a conta suspensa com defaults e desbaniria à força).
+// O email do User vem do parâmetro (sessão/formulário), nunca da coluna.
+export async function getSupabaseUserById(
+  userId: string,
+  email?: string
+): Promise<User | null> {
   try {
     const { data: profile, error } = await supabase
       .from('profiles')
-      .select('*')
-      .eq('email', email)
-      .single();
+      .select(
+        'id, username, date_of_birth, gender, sexual_orientation, location, lat, lng, subscription_tier, subscription_start, subscription_end, bio, interests, is_verified, is_active, is_nsfw, role, created_at, updated_at'
+      )
+      .eq('id', userId)
+      .maybeSingle();
     if (error || !profile) return null;
-    return snakeToCamelProfile(profile);
+    return snakeToCamelProfile({ ...profile, email: email ?? null });
   } catch (e) {
     return null;
   }
@@ -426,45 +433,9 @@ export async function deleteSupabaseUser(userId: string): Promise<boolean> {
   }
 }
 
-export async function getPendingVerifications(): Promise<any[]> {
-  try {
-    const { data, error } = await supabase
-      .from('verification_photos')
-      .select('*, profiles(id, username, email)')
-      .eq('status', 'pending')
-      .order('created_at', { ascending: false });
-    if (error || !data) return [];
-    return data;
-  } catch (e) {
-    return [];
-  }
-}
-
-export async function approveVerification(photoId: string): Promise<boolean> {
-  try {
-    const { error } = await supabase
-      .from('verification_photos')
-      .update({ status: 'approved', updated_at: new Date().toISOString() })
-      .eq('id', photoId);
-    if (error) return false;
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
-
-export async function rejectVerification(photoId: string): Promise<boolean> {
-  try {
-    const { error } = await supabase
-      .from('verification_photos')
-      .update({ status: 'rejected', updated_at: new Date().toISOString() })
-      .eq('id', photoId);
-    if (error) return false;
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
+// 015: os gémeos mortos de verificação (getPendingVerifications /
+// approveVerification / rejectVerification por cliente de sessão) foram
+// apagados — os vivos, por chave de serviço, vivem em lib/photo-verification.ts.
 
 // ========================================================
 // PHOTOS HELPERS
@@ -823,8 +794,11 @@ CREATE POLICY "Allow abonnements insert" ON public.subscriptions FOR INSERT WITH
  * disponibles ; sinon on met des valeurs neutres que l'utilisateur pourra
  * corriger depuis son profil.
  */
-// 014: sem chamadores no repo (ajuda de migração antiga). Se algum dia
-// voltar a ser usado, substituir o select('*') por colunas seguras.
+// 014: reparação de perfil em falta no início de sessão (chamada de
+// context/auth-context.tsx quando o perfil não acompanhou a conta auth).
+// O select segue o conjunto seguro — email/phone/stripe_customer_id deixam
+// de ser selecionáveis por membros (REVOKE 015) e o email aqui vem do
+// parâmetro, não da linha.
 export async function creerProfilManquant(
   authUser: { id: string; user_metadata?: Record<string, any> },
   email: string
@@ -855,7 +829,9 @@ export async function creerProfilManquant(
     const { data, error } = await supabase
       .from('profiles')
       .upsert(payload, { onConflict: 'id' })
-      .select('*')
+      .select(
+        'id, username, date_of_birth, gender, sexual_orientation, location, lat, lng, subscription_tier, subscription_start, subscription_end, bio, interests, is_verified, is_active, is_nsfw, role, created_at, updated_at'
+      )
       .single();
 
     if (error || !data) {
@@ -863,7 +839,7 @@ export async function creerProfilManquant(
       return null;
     }
 
-    return snakeToCamelProfile(data);
+    return snakeToCamelProfile({ ...data, email });
   } catch (e: any) {
     console.warn('creerProfilManquant error:', e?.message);
     return null;

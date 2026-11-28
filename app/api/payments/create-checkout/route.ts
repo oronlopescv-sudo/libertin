@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe, SUBSCRIPTION_PLANS } from '@/lib/stripe';
-import { createServerSupabaseClient } from '@/lib/supabase-server';
 import { createServiceRoleClient } from '@/lib/supabase';
 import { utilisateurActuel } from '@/lib/auth-serveur';
 
@@ -15,8 +14,6 @@ export async function POST(req: NextRequest) {
   try {
     const auth = await utilisateurActuel();
     if (!auth.ok) return auth.reponse;
-
-    const supabase = await createServerSupabaseClient();
 
     const body = await req.json().catch(() => ({}));
     const tier = typeof body.tier === 'string' ? body.tier : '';
@@ -60,7 +57,10 @@ export async function POST(req: NextRequest) {
     // retrouver qui a payé. Lu/écrit dans `profiles` (snake_case).
     let customerId = auth.user.email
       ? (
-          await supabase
+          // 015: leitura pela chave de serviço — `stripe_customer_id` deixa de
+          // ser coluna legível por membros (só a sessão do membro não a lê),
+          // e a escrita já corria pela chave de serviço.
+          await createServiceRoleClient()
             .from('profiles')
             .select('stripe_customer_id')
             .eq('id', auth.user.id)
